@@ -13,15 +13,16 @@
   --font-heading: 'Fredoka', sans-serif;
   --font-body: 'Nunito', sans-serif;
 
-  --bg-body: var(--af-coffee);
+  /* MODO CLARO - FONDO CAFE, LETRAS CLARAS */
+  --bg-body: var(--af-cream); 
   --bg-pattern: radial-gradient(rgba(245, 166, 35, 0.15) 2px, transparent 2px);
-  --text-main: var(--af-cream);
-  --text-on-brand-muted: #E9D3B1;
+  --text-main: var(--af-coffee);
+  --text-on-brand-muted: #68452C; /* Corregido: En modo claro, texto sobre marca muted debe ser oscuro */
 
-  --card-bg: var(--af-cream);
-  --card-bg-hover: #F8F1E1;
+  --card-bg: var(--af-white);
+  --card-bg-hover: #F9F9F9;
   --card-border: #D8B37C;
-  --card-shadow: #26170E;
+  --card-shadow: rgba(0,0,0,0.1);
   --text-card: var(--af-coffee);
   --text-muted: #68452C;
 
@@ -47,6 +48,7 @@
 }
 
 [data-theme="dark"] {
+  /* MODO OSCURO - FONDO NEGRO, LETRAS CLARAS */
   --bg-body: #1E1610;
   --bg-pattern: radial-gradient(rgba(245, 166, 35, 0.05) 2px, transparent 2px);
   --text-main: #F5EBDA;
@@ -56,7 +58,7 @@
   --card-shadow: #0F0A07;
   --text-card: #F5EBDA;
   --text-muted: #D9BE9D;
-  --text-on-brand-muted: #E9D3B1;
+  --text-on-brand-muted: #E9D3B1; /* Corregido: En modo oscuro, texto sobre marca muted debe ser claro */
 
   --primary: var(--af-orange);
   --primary-shadow: #A33A10;
