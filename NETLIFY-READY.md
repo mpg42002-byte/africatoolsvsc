@@ -85,8 +85,8 @@ https://app.netlify.com/drop → Arrastra `App/`
 
 ## ✅ Post-Deploy Checklist
 
-1. [ ] Login: `admin` / `africa2026`
-2. [ ] Cambiar contraseña admin
+1. [ ] Login con credenciales de administrador
+2. [ ] Cambiar contraseña admin inmediatamente
 3. [ ] Crear usuario prueba
 4. [ ] Probar 7 módulos
 5. [ ] Instalar como PWA

@@ -54,7 +54,7 @@ App/
 ## 🚀 Uso después del despliegue
 
 1. Abre tu URL de Netlify (ej. `https://africa-tools.netlify.app`)
-2. Login inicial: **usuario** `admin` / **contraseña** `africa2026`
+2. Login inicial con las credenciales de administrador configuradas
 3. Ve a **Administración → Usuarios** y:
    - Cambia la contraseña del admin
    - Crea usuarios para tu equipo (Supervisor, Líder de Seguridad, etc.)

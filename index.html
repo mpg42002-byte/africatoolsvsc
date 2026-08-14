@@ -16,6 +16,17 @@
 <link rel="manifest" href="manifest.json" />
 <link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg" />
 <link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+<!-- Splash screens iOS -->
+<link rel="apple-touch-startup-image" href="assets/icons/splash/splash-640x1136.png" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2)" />
+<link rel="apple-touch-startup-image" href="assets/icons/splash/splash-750x1334.png" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2)" />
+<link rel="apple-touch-startup-image" href="assets/icons/splash/splash-1125x2436.png" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3)" />
+<link rel="apple-touch-startup-image" href="assets/icons/splash/splash-1170x2532.png" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3)" />
+<link rel="apple-touch-startup-image" href="assets/icons/splash/splash-1179x2556.png" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3)" />
+<link rel="apple-touch-startup-image" href="assets/icons/splash/splash-1284x2778.png" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3)" />
+<link rel="apple-touch-startup-image" href="assets/icons/splash/splash-1290x2796.png" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3)" />
+<link rel="apple-touch-startup-image" href="assets/icons/splash/splash-1536x2048.png" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2)" />
+<link rel="apple-touch-startup-image" href="assets/icons/splash/splash-1668x2388.png" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2)" />
+<link rel="apple-touch-startup-image" href="assets/icons/splash/splash-2048x2732.png" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2)" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
@@ -80,9 +91,9 @@
     <div id="nav-admin-section"></div>
 
     <div class="sidebar-footer">
-      <button id="theme-toggle" class="navlink theme-toggle" style="margin-bottom:6px;">🌓 Cambiar tema</button>
+      <button id="theme-toggle" class="navlink theme-toggle" style="margin-bottom:6px;" title="Cambiar tema"><span class="navlink-icon">🌓</span><span class="navlink-label">Cambiar tema</span></button>
       <div id="user-chip" class="user-chip"></div>
-      <button id="logout-btn" class="navlink" style="margin-top:6px;">Cerrar sesión</button>
+      <button id="logout-btn" class="navlink" style="margin-top:6px;" title="Cerrar sesión"><span class="navlink-icon">🔒</span><span class="navlink-label">Cerrar sesión</span></button>
     </div>
   </aside>
 
@@ -93,43 +104,48 @@
           <h2>Hola, <span id="dash-greeting-name"></span> 👋</h2>
           <p>Estos son tus módulos disponibles.</p>
         </div>
+        <div id="dash-summary" class="dash-summary"></div>
         <div id="module-grid" class="module-grid"></div>
       </div>
 
       <div id="admin-view" class="admin-wrap hidden">
         <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
-          <div><h2 style="margin:0;">Administración de usuarios</h2><p class="view-description">Gestiona los accesos de tu equipo.</p></div>
-          <div style="display:flex; gap:8px;">
-            <select id="filter-role" style="padding:8px; border-radius:6px; border:1px solid var(--color-border); background:var(--card-bg); color:var(--text-main);">
-              <option value="">Todos los roles</option>
-            </select>
-            <select id="filter-status" style="padding:8px; border-radius:6px; border:1px solid var(--color-border); background:var(--card-bg); color:var(--text-main);">
-              <option value="">Todos</option>
-              <option value="active">Activos</option>
-              <option value="inactive">Inactivos</option>
-            </select>
-            <button id="new-user-btn" class="btn-primary" style="width:auto; padding:10px 16px;">+ Nuevo usuario</button>
-          </div>
-        </div>
-        <!-- Campo de búsqueda -->
-        <div class="field" style="max-width:400px; margin-bottom:16px;">
-          <label for="user-search">Buscar usuario</label>
-          <input id="user-search" type="search" placeholder="Busca por nombre, usuario o rol..." />
+          <h2 style="margin:0;">Administración de usuarios</h2>
+          <button id="new-user-btn" class="btn-primary" style="width:auto; padding:10px 16px;">+ Nuevo usuario</button>
         </div>
         <div class="admin-table-scroll"><table class="admin-table">
           <thead><tr>
-            <th class="sortable" data-sort="nombre">Nombre <span class="sort-indicator"></span></th>
-            <th class="sortable" data-sort="usuario">Usuario <span class="sort-indicator"></span></th>
-            <th class="sortable" data-sort="roles">Roles <span class="sort-indicator"></span></th>
-            <th class="sortable" data-sort="activo">Estado <span class="sort-indicator"></span></th>
+            <th>Nombre</th>
+            <th>Usuario</th>
+            <th>Roles</th>
+            <th>Estado</th>
             <th>Acciones</th>
           </tr></thead>
           <tbody id="admin-tbody"></tbody>
         </table></div>
-        <div id="users-pagination" class="pagination hidden">
-          <button id="prev-page" disabled>‹ Anterior</button>
-          <span class="page-info"><span id="page-current">1</span> de <span id="page-total">1</span></span>
-          <button id="next-page" disabled>Siguiente ›</button>
+        
+        <div class="backup-section">
+          <h2 style="margin:0 0 4px;">Respaldo de datos</h2>
+          <p style="margin:0 0 14px; color:var(--text-muted); font-size:14px;">Todo Africa Tools vive en este navegador. Exporta un respaldo periódicamente — si se limpia el almacenamiento del navegador o cambias de equipo, es la única forma de recuperar lo guardado.</p>
+          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+            <button id="backup-export-btn" class="btn-primary" style="width:auto; padding:10px 16px;">⬇️ Exportar todo</button>
+            <label class="btn-secondary" style="width:auto; padding:10px 16px; cursor:pointer;">
+              ⬆️ Restaurar desde archivo
+              <input type="file" id="backup-import-input" accept="application/json" style="display:none;">
+            </label>
+            <span id="backup-status" style="font-size:13px; color:var(--text-muted);"></span>
+          </div>
+        </div>
+
+        <div class="activity-log-section">
+          <h2 style="margin:0 0 4px;">Actividad reciente</h2>
+          <p style="margin:0 0 14px; color:var(--text-muted); font-size:14px;">Registro de cambios hechos desde este panel de Administración (usuarios y roles). No incluye actividad dentro de los módulos.</p>
+          <div class="admin-table-scroll">
+            <table class="admin-table" id="activity-log-table">
+              <thead><tr><th>Cuándo</th><th>Quién</th><th>Acción</th></tr></thead>
+              <tbody id="activity-log-tbody"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -171,6 +187,38 @@
   </div>
 </div>
 
+<!-- Modal de cambio de contraseña obligatorio (primer login) -->
+<div id="force-pw-modal-backdrop" class="modal-backdrop hidden">
+  <div class="modal-card">
+    <h3>Cambia tu contraseña</h3>
+    <p style="font-size:13px; color:var(--text-muted); margin-top:-6px;">Es tu primer ingreso. Por seguridad, define tu propia contraseña antes de continuar.</p>
+    <div class="field">
+      <label for="fp-clave">Nueva contraseña</label>
+      <input id="fp-clave" type="password" autocomplete="new-password" />
+    </div>
+    <div class="field">
+      <label for="fp-clave2">Confirmar contraseña</label>
+      <input id="fp-clave2" type="password" autocomplete="new-password" />
+    </div>
+    <div id="force-pw-error" class="login-error hidden"></div>
+    <div class="modal-actions">
+      <button id="force-pw-save" class="btn-primary" style="width:auto; padding:10px 18px;">Guardar y continuar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de confirmación personalizado -->
+<div id="confirm-modal-backdrop" class="modal-backdrop hidden">
+  <div class="modal-card confirm-card">
+    <h3 id="confirm-modal-title">¿Confirmar acción?</h3>
+    <p id="confirm-modal-body"></p>
+    <div class="modal-actions">
+      <button id="confirm-modal-cancel" class="btn-secondary">Cancelar</button>
+      <button id="confirm-modal-accept" class="btn-primary" style="width:auto; padding:10px 18px;">Confirmar</button>
+    </div>
+  </div>
+</div>
+
 <script src="assets/permissions.js"></script>
 <script src="assets/shell.js"></script>
 <script src="assets/app.js"></script>
@@ -199,8 +247,29 @@
       });
     });
     window.addEventListener('appinstalled', () => { notice.classList.add('hidden'); });
+
+    /* iOS Safari no soporta beforeinstallprompt — mostrar banner manual */
+    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    const isInStandaloneMode = ('standalone' in window.navigator) && window.navigator.standalone;
+    if (isIos && !isInStandaloneMode && !localStorage.getItem('africa_tools_install_dismissed')) {
+      setTimeout(() => {
+        showNotice(
+          'Instala Africa Tools: pulsa Compartir (⬆) y luego «Agregar a pantalla de inicio».',
+          'Entendido',
+          () => { localStorage.setItem('africa_tools_install_dismissed', '1'); notice.classList.add('hidden'); }
+        );
+      }, 3000);
+    }
+
     if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('service-worker.js').catch(() => {}));
   })();
 </script>
+
+<div id="ios-install-prompt" class="hidden" style="position:fixed; bottom:20px; left:50%; transform:translateX(-50%); width:90%; max-width:400px; background:var(--card-bg); color:var(--text-main); padding:16px; border-radius:12px; box-shadow:0 8px 30px rgba(0,0,0,0.3); z-index:9999; text-align:center; border: 1px solid var(--primary);">
+  <button id="ios-prompt-close" style="position:absolute; top:8px; right:8px; background:transparent; border:none; color:var(--text-muted); font-size:18px; cursor:pointer;">×</button>
+  <div style="font-size:15px; font-weight:600; margin-bottom:8px;">📱 Instalar en iOS</div>
+  <div style="font-size:14px; color:var(--text-muted);">Para instalar esta app en tu iPhone/iPad, toca el botón <strong>Compartir</strong> (ícono cuadradito con flecha hacia arriba) y selecciona <b>Agregar a inicio</b>.</div>
+</div>
+
 </body>
 </html>

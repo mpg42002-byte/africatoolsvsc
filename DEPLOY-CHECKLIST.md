@@ -92,8 +92,8 @@ Luego en Netlify:
 
 ## ✅ Verificación Post-Deploy
 
-1. [ ] Login con `admin` / `africa2026`
-2. [ ] Cambiar contraseña del admin
+1. [ ] Login con credenciales de administrador
+2. [ ] Cambiar contraseña del admin inmediatamente
 3. [ ] Crear usuario de prueba
 4. [ ] Probar 7 módulos
 5. [ ] Instalar como PWA

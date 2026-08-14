@@ -53,16 +53,13 @@ let currentView = 'dashboard';
     if (event.key === 'Escape') {
       setSidebarOpen(false);
       document.getElementById('user-modal-backdrop').classList.add('hidden');
+      const forcePwModal = document.getElementById('force-pw-modal-backdrop');
+      if (forcePwModal && !forcePwModal.classList.contains('hidden')) {
+        event.preventDefault();
+      }
     }
     
     if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA') return;
-    
-    if ((event.ctrlKey || event.metaKey) && event.key === 'k') {
-      event.preventDefault();
-      if (currentView === 'admin') {
-        document.getElementById('user-search').focus();
-      }
-    }
     
     if ((event.ctrlKey || event.metaKey) && event.key === 'n') {
       event.preventDefault();
@@ -76,6 +73,15 @@ let currentView = 'dashboard';
       goToView('dashboard');
     }
   });
+  
+  const forcePwSaveBtn = document.getElementById('force-pw-save');
+  if (forcePwSaveBtn) forcePwSaveBtn.addEventListener('click', onForcePasswordSave);
+  
+  const backupExportBtn = document.getElementById('backup-export-btn');
+  if (backupExportBtn) backupExportBtn.addEventListener('click', onBackupExport);
+  
+  const backupImportInput = document.getElementById('backup-import-input');
+  if (backupImportInput) backupImportInput.addEventListener('change', onBackupImport);
 })();
 
 function setSidebarOpen(open) {
@@ -145,10 +151,18 @@ async function onLoginSubmit(e) {
   clearLoginAttempts();
   setSession(user, remember);
   currentUser = { id: user.id, usuario: user.usuario, nombre: user.nombre, roles: user.roles };
+  
+  if (user.mustChangePassword) {
+    document.getElementById('login-screen').classList.add('hidden');
+    const modal = document.getElementById('force-pw-modal-backdrop');
+    if (modal) modal.classList.remove('hidden');
+    return;
+  }
   showApp();
 }
 
 function onLogout() {
+  stopIdleWatcher();
   clearSession();
   currentUser = null;
   document.getElementById('login-form').reset();
@@ -159,10 +173,18 @@ function onLogout() {
 
 function showApp() {
   document.getElementById('login-screen').classList.add('hidden');
+  const forcePwModal = document.getElementById('force-pw-modal-backdrop');
+  if (forcePwModal) forcePwModal.classList.add('hidden');
   document.getElementById('app-shell').classList.remove('hidden');
   renderUserChip();
   renderNav();
   goToView('dashboard');
+  startIdleWatcher(() => {
+    onLogout();
+    const errorBox = document.getElementById('login-error');
+    errorBox.textContent = 'Tu sesión se cerró por inactividad. Vuelve a ingresar.';
+    errorBox.classList.remove('hidden');
+  });
 }
 
 function renderUserChip() {
@@ -177,13 +199,14 @@ function renderUserChip() {
   `;
 }
 
+
 function renderNav() {
   const permitted = resolvePermittedModules(currentUser.roles);
   const isAdmin = userIsAdmin(currentUser.roles);
   const nav = document.getElementById('nav-modules');
   nav.innerHTML = '';
 
-  const dashBtn = navButton('Dashboard', 'dashboard', currentView === 'dashboard');
+  const dashBtn = navButton('Dashboard', 'dashboard', currentView === 'dashboard', '🏠');
   nav.appendChild(dashBtn);
 
   const label = document.createElement('div');
@@ -192,7 +215,7 @@ function renderNav() {
   nav.appendChild(label);
 
   MODULES.filter(m => permitted.includes(m.key)).forEach(m => {
-    nav.appendChild(navButton(m.label, m.key, currentView === m.key));
+    nav.appendChild(navButton(m.label, m.key, currentView === m.key, m.icon));
   });
 
   const adminSection = document.getElementById('nav-admin-section');
@@ -202,17 +225,40 @@ function renderNav() {
     adminLabel.className = 'nav-section-label';
     adminLabel.textContent = 'Administración';
     adminSection.appendChild(adminLabel);
-    adminSection.appendChild(navButton('Usuarios', 'admin', currentView === 'admin'));
+    adminSection.appendChild(navButton('Usuarios', 'admin', currentView === 'admin', '👤'));
   }
 }
 
-function navButton(label, viewKey, active) {
+function navButton(label, viewKey, active, icon) {
   const btn = document.createElement('button');
   btn.className = 'navlink' + (active ? ' active' : '');
-  btn.textContent = label;
+  btn.title = label;
+  btn.innerHTML = `<span class="navlink-icon">${icon || '•'}</span><span class="navlink-label">${escapeHtmlLocal(label)}</span>`;
   if (active) btn.setAttribute('aria-current', 'page');
   btn.addEventListener('click', () => goToView(viewKey));
   return btn;
+}
+
+function showToast(message, type = 'error') {
+  let container = document.getElementById('toast-container');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'toast-container';
+    document.body.appendChild(container);
+  }
+  const toast = document.createElement('div');
+  toast.className = 'toast ' + (type === 'error' ? 'toast-error' : '');
+  const icon = type === 'error' ? '⚠️' : '✅';
+  toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+  container.appendChild(toast);
+  
+  // Trigger animation
+  requestAnimationFrame(() => toast.classList.add('show'));
+  
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, 3500);
 }
 
 function goToView(viewKey) {
@@ -240,7 +286,7 @@ function goToView(viewKey) {
     if (announcer) announcer.textContent = 'Navegaste al Dashboard';
   } else if (viewKey === 'admin') {
     if (!userIsAdmin(currentUser.roles)) { goToView('dashboard'); return; }
-    document.getElementById('app-shell').classList.remove('module-active');
+    document.getElementById('app-shell').classList.add('module-active');
     setSidebarOpen(false);
     admin.classList.remove('hidden');
     renderAdmin();
@@ -279,15 +325,77 @@ function renderDashboard() {
   document.getElementById('dash-greeting-name').textContent = currentUser.nombre || currentUser.usuario;
   const grid = document.getElementById('module-grid');
   grid.innerHTML = '';
+  const cards = [];
   MODULES.filter(m => permitted.includes(m.key)).forEach(m => {
     const card = document.createElement('button');
     card.className = 'module-card';
-    card.innerHTML = `<span class="module-card-icon" aria-hidden="true">${m.icon}</span><div class="cardTitle">${escapeHtmlLocal(m.label)}</div><p class="cardDescription">${escapeHtmlLocal(m.description)}</p><div class="cardGo">Abrir herramienta →</div>`;
+    const iconDisplay = m.icon || '•';
+    card.innerHTML = `<div class="cardIcon" aria-hidden="true">${iconDisplay}</div><div class="cardTitle">${escapeHtmlLocal(m.label)}</div>${m.description ? `<div class="cardDesc">${escapeHtmlLocal(m.description)}</div>` : ''}<div class="cardGo">Abrir →</div>`;
     card.addEventListener('click', () => goToView(m.key));
-    grid.appendChild(card);
+    cards.push(card);
   });
-  if (grid.children.length === 0) {
-    grid.innerHTML = '<div class="dashboard-empty"><span aria-hidden="true">🔐</span><strong>Aún no tienes herramientas asignadas</strong><p>Pide a un administrador que te asigne un rol para comenzar.</p></div>';
+  if (cards.length === 0) {
+    grid.innerHTML = '<p style="color:var(--text-muted)">No tienes módulos asignados todavía. Pide a un administrador que te asigne un rol.</p>';
+  } else {
+    cards.forEach(c => grid.appendChild(c));
+  }
+  if (currentUser.roles.includes('lider_seguridad') || userIsAdmin(currentUser.roles)) { renderDashboardSummary(permitted); } else { document.getElementById('dash-summary').innerHTML = ''; }
+}
+
+function renderDashboardSummary(permitted) {
+  const wrap = document.getElementById('dash-summary');
+  wrap.innerHTML = '';
+  const cards = [];
+
+  if (permitted.includes('limpieza')) {
+    try {
+      const emp = JSON.parse(localStorage.getItem('cp2_emp') || '[]');
+      const maq = JSON.parse(localStorage.getItem('cp2_maq') || '[]');
+      cards.push({ label: 'Limpieza', value: `${emp.length} persona(s) · ${maq.length} máquina(s)` });
+    } catch { /* formato inesperado */ }
+  }
+
+  if (permitted.includes('wow-tablero') || permitted.includes('wow-calificacion')) {
+    try {
+      const scores = JSON.parse(localStorage.getItem('africa_wow_scores') || '[]');
+      if (scores.length > 0) {
+        const totals = {};
+        scores.forEach(s => { totals[s.name] = (totals[s.name] || 0) + (Number(s.score) || 0); });
+        const top = Object.entries(totals).sort((a, b) => b[1] - a[1])[0];
+        cards.push({ label: 'Wow Points — líder actual', value: `${top[0]} (${top[1].toFixed(1)} pts)` });
+      } else {
+        cards.push({ label: 'Wow Points', value: 'Sin calificaciones todavía' });
+      }
+    } catch { /* formato inesperado */ }
+  }
+
+  cards.forEach(c => {
+    const div = document.createElement('div');
+    div.className = 'summary-card';
+    div.innerHTML = `<div class="sc-label">${escapeHtmlLocal(c.label)}</div><div class="sc-value">${escapeHtmlLocal(c.value)}</div>`;
+    wrap.appendChild(div);
+  });
+
+  if (currentUser.roles.includes('lider_seguridad')) {
+    const now = new Date();
+    const monthKey = 'checklist-' + now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    readIndexedDbStore('panel-lider-seguridad', 'kv').then(store => {
+      if (!store) return;
+      let label = 'Checklist mensual sin iniciar';
+      const raw = store[monthKey];
+      if (raw) {
+        try {
+          const state = JSON.parse(raw);
+          const total = Object.keys(state).length;
+          const done = Object.values(state).filter(Boolean).length;
+          if (total > 0) label = `${done}/${total} tareas completadas este mes`;
+        } catch { return; }
+      }
+      const div = document.createElement('div');
+      div.className = 'summary-card';
+      div.innerHTML = `<div class="sc-label">Líder de Seguridad</div><div class="sc-value">${escapeHtmlLocal(label)}</div>`;
+      wrap.appendChild(div);
+    }).catch(() => {});
   }
 }
 
@@ -305,170 +413,15 @@ function renderDashboard() {
   }
 })();
 
-let allUsersCache = [];
-let currentSort = { column: null, ascending: true };
-let currentPage = 1;
-const USERS_PER_PAGE = 20;
-
 function renderAdmin() {
   const users = loadUsers();
-  allUsersCache = users;
-  
-  // Poblar filtro
-  const filterRole = document.getElementById('filter-role');
-  filterRole.innerHTML = '<option value="">Todos los roles</option>';
-  const uniqueRoles = [...new Set(users.flatMap(u => u.roles))];
-  uniqueRoles.sort().forEach(roleKey => {
-    const opt = document.createElement('option');
-    opt.value = roleKey;
-    opt.textContent = (ROLES[roleKey] && ROLES[roleKey].label) || roleKey;
-    filterRole.appendChild(opt);
-  });
-  
-  renderUsersTable(users);
-  
-  function applyFilters() {
-    currentPage = 1;
-    const roleFilter = document.getElementById('filter-role').value;
-    const statusFilter = document.getElementById('filter-status').value;
-    const searchQuery = document.getElementById('user-search').value.toLowerCase().trim();
-    
-    let filtered = allUsersCache;
-    
-    // Filtro por rol
-    if (roleFilter) {
-      filtered = filtered.filter(u => u.roles.includes(roleFilter));
-    }
-    
-    if (statusFilter === 'active') {
-      filtered = filtered.filter(u => u.activo !== false);
-    } else if (statusFilter === 'inactive') {
-      filtered = filtered.filter(u => u.activo === false);
-    }
-    
-    if (searchQuery) {
-      filtered = filtered.filter(u => {
-        const nombre = (u.nombre || '').toLowerCase();
-        const usuario = u.usuario.toLowerCase();
-        const rolesText = u.roles.map(r => (ROLES[r] && ROLES[r].label) || r).join(' ').toLowerCase();
-        return nombre.includes(searchQuery) || usuario.includes(searchQuery) || rolesText.includes(searchQuery);
-      });
-    }
-    
-    renderUsersTable(filtered);
-  }
-  
-  const searchInput = document.getElementById('user-search');
-  searchInput.value = '';
-  searchInput.oninput = applyFilters;
-  
-  document.getElementById('filter-role').onchange = applyFilters;
-  document.getElementById('filter-status').onchange = applyFilters;
-
-  document.querySelectorAll('.sortable').forEach(th => {
-    th.style.cursor = 'pointer';
-    th.onclick = () => {
-      const column = th.dataset.sort;
-      if (currentSort.column === column) {
-        currentSort.ascending = !currentSort.ascending;
-      } else {
-        currentSort.column = column;
-        currentSort.ascending = true;
-      }
-      
-      const sorted = [...allUsersCache].sort((a, b) => {
-        let valA, valB;
-        if (column === 'nombre') {
-          valA = (a.nombre || '').toLowerCase();
-          valB = (b.nombre || '').toLowerCase();
-        } else if (column === 'usuario') {
-          valA = a.usuario.toLowerCase();
-          valB = b.usuario.toLowerCase();
-        } else if (column === 'roles') {
-          valA = a.roles.join(',').toLowerCase();
-          valB = b.roles.join(',').toLowerCase();
-        } else if (column === 'activo') {
-          valA = a.activo !== false ? 1 : 0;
-          valB = b.activo !== false ? 1 : 0;
-        }
-        
-        if (valA < valB) return currentSort.ascending ? -1 : 1;
-        if (valA > valB) return currentSort.ascending ? 1 : -1;
-        return 0;
-      });
-      
-      document.querySelectorAll('.sortable').forEach(header => {
-        const indicator = header.querySelector('.sort-indicator');
-        if (header.dataset.sort === column) {
-          indicator.textContent = currentSort.ascending ? ' ▲' : ' ▼';
-          header.style.fontWeight = '700';
-        } else {
-          indicator.textContent = '';
-          header.style.fontWeight = '600';
-        }
-      });
-      
-      renderUsersTable(sorted);
-    };
-  });
-
-  document.getElementById('new-user-btn').onclick = () => openUserModal(null);
-}
-
-function renderUsersTable(users) {
   const tbody = document.getElementById('admin-tbody');
   tbody.innerHTML = '';
-  
-  // Paginación
-  const totalPages = Math.ceil(users.length / USERS_PER_PAGE);
-  const startIdx = (currentPage - 1) * USERS_PER_PAGE;
-  const endIdx = startIdx + USERS_PER_PAGE;
-  const paginatedUsers = users.slice(startIdx, endIdx);
-  
-  const pagination = document.getElementById('users-pagination');
-  const prevBtn = document.getElementById('prev-page');
-  const nextBtn = document.getElementById('next-page');
-  const pageCurrent = document.getElementById('page-current');
-  const pageTotal = document.getElementById('page-total');
-  
-  if (totalPages > 1) {
-    pagination.classList.remove('hidden');
-    prevBtn.disabled = currentPage === 1;
-    nextBtn.disabled = currentPage === totalPages;
-    pageCurrent.textContent = currentPage;
-    pageTotal.textContent = totalPages;
-    
-    prevBtn.onclick = () => {
-      if (currentPage > 1) {
-        currentPage--;
-        renderUsersTable(users);
-      }
-    };
-    
-    nextBtn.onclick = () => {
-      if (currentPage < totalPages) {
-        currentPage++;
-        renderUsersTable(users);
-      }
-    };
-  } else {
-    pagination.classList.add('hidden');
-  }
-  
-  function getInitials(name) {
-    if (!name) return '?';
-    const parts = name.trim().split(/\s+/);
-    if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
-    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  }
-  
-  paginatedUsers.forEach(u => {
+  users.forEach(u => {
     const tr = document.createElement('tr');
-    if (u.activo === false) tr.classList.add('user-inactive');
     const rolesHtml = u.roles.map(r => `<span class="badge-role">${escapeHtmlLocal((ROLES[r] && ROLES[r].label) || r)}</span>`).join('');
-    const initials = getInitials(u.nombre || u.usuario);
     tr.innerHTML = `
-      <td><span class="user-avatar" title="${escapeHtmlLocal(u.nombre || '')}">${initials}</span>${escapeHtmlLocal(u.nombre || '')}</td>
+      <td>${escapeHtmlLocal(u.nombre || '')}</td>
       <td>${escapeHtmlLocal(u.usuario)}</td>
       <td>${rolesHtml || '<span class="badge-role badge-off">Sin rol</span>'}</td>
       <td>${u.activo !== false ? 'Activo' : '<span class="badge-role badge-off">Inactivo</span>'}</td>
@@ -483,56 +436,67 @@ function renderUsersTable(users) {
     editBtn.addEventListener('click', () => openUserModal(u));
     actionsTd.appendChild(editBtn);
 
-    const toggleBtn = document.createElement('button');
-    toggleBtn.className = 'btn-secondary';
-    toggleBtn.style.marginRight = '6px';
-    toggleBtn.textContent = u.activo !== false ? 'Desactivar' : 'Activar';
-    toggleBtn.addEventListener('click', () => {
-      if (u.id === currentUser.id && u.activo !== false) {
-        alert('No puedes desactivar tu propia cuenta mientras tienes la sesión iniciada.');
-        return;
-      }
-      const action = u.activo !== false ? 'desactivar' : 'activar';
-      if (!confirm(`¿${action.charAt(0).toUpperCase() + action.slice(1)} a "${u.usuario}"? ${u.activo !== false ? 'No podrá iniciar sesión hasta que se reactive.' : 'Podrá iniciar sesión nuevamente.'}`)) return;
-      u.activo = !(u.activo !== false);
-      const all = loadUsers().map(x => x.id === u.id ? u : x);
-      saveUsers(all);
-      allUsersCache = all;
-      renderUsersTable(all);
+    const isSelf = u.usuario === currentUser.usuario;
+    const isFirstAdmin = users[0].id === u.id;
+    
+    if (!isSelf && !isFirstAdmin) {
+      const willActivate = u.activo === false;
+      const toggleBtn = document.createElement('button');
+      toggleBtn.className = willActivate ? 'btn-secondary' : 'btn-warn';
+      toggleBtn.style.marginRight = '6px';
+      toggleBtn.textContent = willActivate ? 'Activar' : 'Desactivar';
+      toggleBtn.addEventListener('click', async () => {
+        if (!willActivate) {
+          const ok = await showConfirm(
+            `¿Desactivar a ${u.nombre || u.usuario}?`,
+            'No podrá iniciar sesión hasta que se reactive.'
+          );
+          if (!ok) return;
+        }
+        u.activo = willActivate;
+        const all = loadUsers().map(x => x.id === u.id ? u : x);
+        saveUsers(all);
+        renderAdmin();
+        logActivity(`Usuario ${willActivate ? 'activado' : 'desactivado'}: ${u.nombre || u.usuario}`);
+        showShellToast(`Usuario ${willActivate ? 'activado' : 'desactivado'}.`);
+      });
+      actionsTd.appendChild(toggleBtn);
       
-      addAuditLog(action === 'desactivar' ? 'usuario_desactivado' : 'usuario_activado', {
-        usuarioId: u.id,
-        usuario: u.usuario
-      }, currentUser.usuario);
-      
-      showShellToast(`Usuario ${action === 'desactivar' ? 'desactivado' : 'activado'}.`);
-    });
-    actionsTd.appendChild(toggleBtn);
-
-    if (u.usuario !== currentUser.usuario) {
-      const delBtn = document.createElement('button');
-      delBtn.className = 'btn-danger';
-      delBtn.textContent = 'Eliminar';
-      delBtn.addEventListener('click', () => {
-        if (!confirm(`¿Eliminar al usuario "${u.usuario}"? Esta acción no se puede deshacer.`)) return;
-        
-        addAuditLog('usuario_eliminado', {
-          usuarioId: u.id,
-          usuario: u.usuario,
-          nombre: u.nombre
-        }, currentUser.usuario);
-        
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'btn-danger';
+      deleteBtn.textContent = 'Eliminar';
+      deleteBtn.addEventListener('click', async () => {
+        const ok = await showConfirm(
+          `¿Eliminar a ${u.nombre || u.usuario}?`,
+          'Esta acción no se puede deshacer.'
+        );
+        if (!ok) return;
         const all = loadUsers().filter(x => x.id !== u.id);
         saveUsers(all);
-        allUsersCache = all;
-        renderUsersTable(all);
+        renderAdmin();
+        logActivity(`Eliminó al usuario: ${u.nombre || u.usuario}`);
         showShellToast('Usuario eliminado.');
       });
-      actionsTd.appendChild(delBtn);
+      actionsTd.appendChild(deleteBtn);
+    } else if (isSelf) {
+      const selfLabel = document.createElement('span');
+      selfLabel.textContent = 'Tu usuario';
+      selfLabel.style.fontSize = '13px';
+      selfLabel.style.color = 'var(--text-muted)';
+      actionsTd.appendChild(selfLabel);
+    } else if (isFirstAdmin) {
+      const protectedLabel = document.createElement('span');
+      protectedLabel.textContent = 'Admin principal (protegido)';
+      protectedLabel.style.fontSize = '13px';
+      protectedLabel.style.color = 'var(--text-muted)';
+      actionsTd.appendChild(protectedLabel);
     }
-
+    
     tbody.appendChild(tr);
   });
+  
+  renderActivityLog();
+  document.getElementById('new-user-btn').onclick = () => openUserModal(null);
 }
 
 function openUserModal(existingUser) {
@@ -590,12 +554,12 @@ function openUserModal(existingUser) {
 
   const rolesWrap = document.getElementById('um-roles');
   rolesWrap.innerHTML = '';
+  const isFirstAdminMod = existingUser && existingUser.id === loadUsers()[0].id;
   Object.keys(ROLES).forEach(roleKey => {
     const id = 'role_' + roleKey;
-    const checked = existingUser && existingUser.roles.includes(roleKey);
-    rolesWrap.innerHTML += `
-      <label><input type="checkbox" id="${id}" value="${roleKey}" ${checked ? 'checked' : ''}/> ${escapeHtmlLocal(ROLES[roleKey].label)}</label>
-    `;
+    const checked = (existingUser && existingUser.roles.includes(roleKey)) || (isFirstAdminMod && roleKey === 'administrador');
+    const lockAttr = (isFirstAdminMod && roleKey === 'administrador') ? 'disabled' : '';
+    rolesWrap.innerHTML += `<label><input type="checkbox" id="${id}" value="${roleKey}" ${checked ? 'checked' : ''} ${lockAttr}/> ${escapeHtmlLocal(ROLES[roleKey].label)}</label>`;
   });
 
   const modalCard = backdrop.querySelector('.modal-card');
@@ -643,31 +607,31 @@ function openUserModal(existingUser) {
     const selectedRoles = Array.from(rolesWrap.querySelectorAll('input[type=checkbox]:checked')).map(i => i.value);
 
     if (!nombre) { 
-      alert('El nombre completo es obligatorio.'); 
+      showToast('El nombre completo es obligatorio.'); 
       saveBtn.disabled = false;
       saveBtn.textContent = originalText;
       return; 
     }
     if (!usuario) { 
-      alert('El nombre de usuario es obligatorio.'); 
+      showToast('El nombre de usuario es obligatorio.'); 
       saveBtn.disabled = false;
       saveBtn.textContent = originalText;
       return; 
     }
     if (!existingUser && !clave) { 
-      alert('La contraseña es obligatoria para un usuario nuevo.'); 
+      showToast('La contraseña es obligatoria para un usuario nuevo.'); 
       saveBtn.disabled = false;
       saveBtn.textContent = originalText;
       return; 
     }
     if (clave && clave.length < 6) { 
-      alert('La contraseña debe tener al menos 6 caracteres.'); 
+      showToast('La contraseña debe tener al menos 6 caracteres.'); 
       saveBtn.disabled = false;
       saveBtn.textContent = originalText;
       return; 
     }
     if (selectedRoles.length === 0) { 
-      alert('Asigna al menos un rol para que el usuario pueda acceder a sus herramientas.'); 
+      showToast('Asigna al menos un rol para que el usuario pueda acceder a sus herramientas.'); 
       saveBtn.disabled = false;
       saveBtn.textContent = originalText;
       return; 
@@ -678,16 +642,15 @@ function openUserModal(existingUser) {
       const idx = users.findIndex(u => u.id === existingUser.id);
       users[idx].nombre = nombre;
       users[idx].roles = selectedRoles;
-      if (clave) users[idx].passwordHash = await hashPassword(clave);
+      if (clave) {
+        users[idx].passwordHash = await hashPassword(clave);
+        users[idx].mustChangePassword = false;
+      }
       
-      addAuditLog('usuario_editado', {
-        usuarioId: existingUser.id,
-        usuario: existingUser.usuario,
-        cambios: { nombre, roles: selectedRoles, cambioContrasena: !!clave }
-      }, currentUser.usuario);
+      logActivity(`Editó al usuario "${nombre || usuario}"${clave ? ' (incluyendo contraseña)' : ''}`);
     } else {
       if (users.some(u => u.usuario.toLowerCase() === usuario.toLowerCase())) {
-        alert('Ya existe un usuario con ese nombre.');
+        showToast('Ya existe un usuario con ese nombre.');
         saveBtn.disabled = false;
         saveBtn.textContent = originalText;
         return;
@@ -698,15 +661,11 @@ function openUserModal(existingUser) {
         passwordHash: await hashPassword(clave),
         roles: selectedRoles,
         activo: true,
+        mustChangePassword: true,
       };
       users.push(newUser);
       
-      addAuditLog('usuario_creado', {
-        usuarioId: newUser.id,
-        usuario: newUser.usuario,
-        nombre: newUser.nombre,
-        roles: selectedRoles
-      }, currentUser.usuario);
+      logActivity(`Creó al usuario "${nombre || usuario}"`);
     }
     saveUsers(users);
     
@@ -729,3 +688,134 @@ function escapeHtmlLocal(str) {
     '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
   }[c]));
 }
+/* ---------- MODAL DE CONFIRMACIÓN PERSONALIZADO ---------- */
+function showConfirm(title, body) {
+  const backdrop = document.getElementById('confirm-modal-backdrop');
+  if (!backdrop) return Promise.resolve(false);
+  
+  document.getElementById('confirm-modal-title').textContent = title;
+  document.getElementById('confirm-modal-body').textContent = body;
+  backdrop.classList.remove('hidden');
+
+  return new Promise((resolve) => {
+    const cancelBtn = document.getElementById('confirm-modal-cancel');
+    const acceptBtn = document.getElementById('confirm-modal-accept');
+    const cleanup = (result) => {
+      backdrop.classList.add('hidden');
+      cancelBtn.removeEventListener('click', onCancel);
+      acceptBtn.removeEventListener('click', onAccept);
+      resolve(result);
+    };
+    const onCancel = () => cleanup(false);
+    const onAccept = () => cleanup(true);
+    cancelBtn.addEventListener('click', onCancel);
+    acceptBtn.addEventListener('click', onAccept);
+  });
+}
+
+/* ---------- CAMBIO DE CONTRASEÑA OBLIGATORIO (primer login) ---------- */
+async function onForcePasswordSave() {
+  const clave = document.getElementById('fp-clave').value;
+  const clave2 = document.getElementById('fp-clave2').value;
+  const errorBox = document.getElementById('force-pw-error');
+  errorBox.classList.add('hidden');
+
+  if (!clave || clave.length < 6) {
+    errorBox.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+    errorBox.classList.remove('hidden');
+    return;
+  }
+  if (clave !== clave2) {
+    errorBox.textContent = 'Las dos contraseñas no coinciden.';
+    errorBox.classList.remove('hidden');
+    return;
+  }
+
+  const users = loadUsers();
+  const idx = users.findIndex(u => u.id === currentUser.id);
+  if (idx >= 0) {
+    users[idx].passwordHash = await hashPassword(clave);
+    users[idx].mustChangePassword = false;
+    saveUsers(users);
+    logActivity('Cambió su contraseña (primer login obligatorio)');
+  }
+  document.getElementById('fp-clave').value = '';
+  document.getElementById('fp-clave2').value = '';
+  showApp();
+}
+
+/* ---------- RESPALDO Y RESTAURACIÓN ---------- */
+async function onBackupExport() {
+  const status = document.getElementById('backup-status');
+  if (!status) return;
+  status.textContent = 'Generando archivo…';
+  try {
+    await downloadBackupFile();
+    status.textContent = 'Listo — revisa tus descargas.';
+    logActivity('Exportó un respaldo completo de datos');
+  } catch (e) {
+    status.textContent = 'No se pudo generar el respaldo.';
+  }
+}
+
+async function onBackupImport(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const status = document.getElementById('backup-status');
+  if (!status) return;
+  
+  const ok = await showConfirm(
+    '¿Restaurar este respaldo?',
+    'Se reemplazarán TODOS los datos actuales (usuarios y los 7 módulos) por los del archivo. Esta acción no se puede deshacer.'
+  );
+  if (!ok) { e.target.value = ''; return; }
+  
+  try {
+    status.textContent = 'Restaurando…';
+    await restoreBackupFile(file);
+    logActivity('Restauró un respaldo de datos completo');
+    status.textContent = 'Listo — recargando…';
+    setTimeout(() => location.reload(), 900);
+  } catch (err) {
+    status.textContent = 'El archivo no es un respaldo válido de Africa Tools.';
+  }
+  e.target.value = '';
+}
+
+/* ---------- LOG DE ACTIVIDAD (renderizado en Administración) ---------- */
+function renderActivityLog() {
+  const tbody = document.getElementById('activity-log-tbody');
+  if (!tbody) return;
+  
+  const log = loadActivityLog();
+  if (log.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="3" class="activity-log-empty">Sin actividad registrada todavía.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = log.slice(0, 50).map(entry => {
+    const d = new Date(entry.ts);
+    const when = d.toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
+    return `<tr>
+      <td>${escapeHtmlLocal(when)}</td>
+      <td>${escapeHtmlLocal(entry.actor)}</td>
+      <td>${escapeHtmlLocal(entry.action)}</td>
+    </tr>`;
+  }).join('');
+}
+
+
+
+setTimeout(() => {
+  const isIos = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+  const isInStandaloneMode = ('standalone' in window.navigator) && (window.navigator.standalone);
+  if (isIos && !isInStandaloneMode && !localStorage.getItem('ios_prompt_dismissed')) {
+    const p = document.getElementById('ios-install-prompt');
+    if (p) {
+      p.classList.remove('hidden');
+      document.getElementById('ios-prompt-close').addEventListener('click', () => {
+        p.classList.add('hidden');
+        localStorage.setItem('ios_prompt_dismissed', 'true');
+      });
+    }
+  }
+}, 3000);

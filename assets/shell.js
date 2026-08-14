@@ -173,3 +173,143 @@ function setTheme(theme) {
     iframe.contentWindow.postMessage({ type: 'africa-tools-set-theme', theme: normalizedTheme }, '*');
   }
 }
+
+/* ---------- Cierre de sesión por inactividad ----------
+   Pensado para equipos compartidos (tablet de recepción, PC de bodega).
+   30 minutos sin ningún clic/tecla/scroll cierra la sesión automáticamente. */
+const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
+let lastActivityAt = Date.now();
+let idleCheckInterval = null;
+
+function markActivity() { lastActivityAt = Date.now(); }
+
+function startIdleWatcher(onIdleTimeout) {
+  stopIdleWatcher();
+  lastActivityAt = Date.now();
+  ['click', 'keydown', 'touchstart', 'scroll', 'mousemove'].forEach(evt =>
+    document.addEventListener(evt, markActivity, { passive: true })
+  );
+  idleCheckInterval = setInterval(() => {
+    if (Date.now() - lastActivityAt > IDLE_TIMEOUT_MS) {
+      stopIdleWatcher();
+      onIdleTimeout();
+    }
+  }, 30 * 1000);
+}
+
+function stopIdleWatcher() {
+  if (idleCheckInterval) clearInterval(idleCheckInterval);
+  idleCheckInterval = null;
+  ['click', 'keydown', 'touchstart', 'scroll', 'mousemove'].forEach(evt =>
+    document.removeEventListener(evt, markActivity)
+  );
+}
+
+/* ---------- Log de actividad administrativa ----------
+   Registro simple de qué se hizo desde Administración (usuarios/roles), quién
+   y cuándo. Solo se ve dentro del panel de Administración. */
+const STORAGE_ACTIVITY_LOG = 'africa_tools_activity_log';
+const ACTIVITY_LOG_MAX = 200;
+
+function logActivity(action) {
+  try {
+    const raw = localStorage.getItem(STORAGE_ACTIVITY_LOG);
+    const log = raw ? JSON.parse(raw) : [];
+    log.unshift({
+      ts: Date.now(),
+      actor: (typeof currentUser !== 'undefined' && currentUser && (currentUser.nombre || currentUser.usuario)) || 'Sistema',
+      action,
+    });
+    if (log.length > ACTIVITY_LOG_MAX) log.length = ACTIVITY_LOG_MAX;
+    localStorage.setItem(STORAGE_ACTIVITY_LOG, JSON.stringify(log));
+  } catch { }
+}
+
+function loadActivityLog() {
+  try { return JSON.parse(localStorage.getItem(STORAGE_ACTIVITY_LOG)) || []; } catch { return []; }
+}
+
+/* ---------- Respaldo y restauración de todos los datos ----------
+   Africa Tools vive enteramente en este navegador (localStorage +
+   IndexedDB del módulo Líder África). Esto empaqueta todo en un único
+   .json descargable, y lo restaura leyendo ese mismo archivo. */
+const LIDER_DB_NAME = 'panel-lider-seguridad';
+const LIDER_STORE_NAME = 'kv';
+
+function readIndexedDbStore(dbName, storeName) {
+  return new Promise((resolve) => {
+    let req;
+    try { req = indexedDB.open(dbName); } catch { resolve(null); return; }
+    req.onerror = () => resolve(null);
+    req.onsuccess = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains(storeName)) { db.close(); resolve(null); return; }
+      const tx = db.transaction(storeName, 'readonly');
+      const store = tx.objectStore(storeName);
+      const keysReq = store.getAllKeys();
+      const valsReq = store.getAll();
+      tx.oncomplete = () => {
+        const out = {};
+        keysReq.result.forEach((k, i) => { out[k] = valsReq.result[i]; });
+        db.close();
+        resolve(out);
+      };
+      tx.onerror = () => { db.close(); resolve(null); };
+    };
+  });
+}
+
+function writeIndexedDbStore(dbName, storeName, obj) {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(dbName, 1);
+    req.onupgradeneeded = () => {
+      if (!req.result.objectStoreNames.contains(storeName)) req.result.createObjectStore(storeName);
+    };
+    req.onsuccess = () => {
+      const db = req.result;
+      const tx = db.transaction(storeName, 'readwrite');
+      const store = tx.objectStore(storeName);
+      Object.keys(obj).forEach(k => store.put(obj[k], k));
+      tx.oncomplete = () => { db.close(); resolve(); };
+      tx.onerror = () => { db.close(); reject(tx.error); };
+    };
+    req.onerror = () => reject(req.error);
+  });
+}
+
+async function buildBackupData() {
+  const data = { app: 'africa-tools', version: 1, exportedAt: new Date().toISOString(), localStorage: {}, indexedDB: {} };
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    data.localStorage[k] = localStorage.getItem(k);
+  }
+  const liderData = await readIndexedDbStore(LIDER_DB_NAME, LIDER_STORE_NAME);
+  if (liderData) data.indexedDB[LIDER_DB_NAME + '__' + LIDER_STORE_NAME] = liderData;
+  return data;
+}
+
+async function downloadBackupFile() {
+  const data = await buildBackupData();
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const stamp = new Date().toISOString().slice(0, 10);
+  a.href = url;
+  a.download = `africa-tools-respaldo-${stamp}.json`;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function restoreBackupFile(file) {
+  const text = await file.text();
+  let data;
+  try { data = JSON.parse(text); } catch { throw new Error('invalid_json'); }
+  if (!data || data.app !== 'africa-tools' || !data.localStorage) throw new Error('not_a_backup');
+  Object.keys(data.localStorage).forEach(k => localStorage.setItem(k, data.localStorage[k]));
+  const liderKey = LIDER_DB_NAME + '__' + LIDER_STORE_NAME;
+  if (data.indexedDB && data.indexedDB[liderKey]) {
+    await writeIndexedDbStore(LIDER_DB_NAME, LIDER_STORE_NAME, data.indexedDB[liderKey]);
+  }
+}

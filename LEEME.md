@@ -5,7 +5,7 @@
 2. Como es una PWA con Service Worker, **no la abras con doble clic** (`file://`) — los navegadores bloquean Service Workers ahí. Sirve la carpeta con cualquier servidor local, por ejemplo:
    - VSCode: extensión "Live Server", clic derecho sobre `index.html` → "Open with Live Server".
    - O en terminal, dentro de la carpeta: `python3 -m http.server 8080` y abre `http://localhost:8080`.
-3. Ingresa con: **usuario** `admin` / **contraseña** `africa2026`.
+3. Ingresa con las credenciales de administrador (usuario: `admin`, contraseña: la configurada inicialmente).
 4. Ve a **Administración → Usuarios** y crea tus usuarios reales (supervisor, líder de seguridad, etc.), y cambia la contraseña del admin.
 
 ## Desplegar en Netlify
@@ -25,7 +25,7 @@ Si quieres que te genere estos 4 archivos automáticamente a partir de otro logo
 ## Roles actuales
 - **Administrador**: acceso a todos los módulos + Administración de usuarios.
 - **Supervisor**: acceso a todos los módulos.
-- **Líder de Seguridad**: acceso solo a "Líder África".
+- **Líder de Seguridad**: acceso solo a "Líder de Seguridad".
 
 ## Agregar un rol nuevo (ej. Entrenador, Anfitrión, Técnico)
 Edita únicamente `assets/permissions.js`:
@@ -66,4 +66,19 @@ Ambos cambios fueron verificados: repliqué el bug de Live Server exacto (inyect
 
 ## Limitación conocida (no corregida, informativa)
 África Inventario y Habladores Winner dependen de una librería externa (`pdf.js`) cargada desde un CDN público. Si el navegador/red del usuario bloquea ese CDN (poco común, pero puede pasar con algunos firewalls corporativos o extensiones de bloqueo agresivas), esos dos módulos no podrán leer PDFs — el resto de Africa Tools seguiría funcionando con normalidad. No se tocó el código de esos módulos porque no es un problema de la integración, sino una dependencia que ya existía en los artefactos originales.
+
+## Rediseño UI/UX (Fase 3, 5 rondas) — resumen
+Después de una auditoría completa (documento `AUDITORIA_Y_PROPUESTA_UIUX_Africa_Tools.md`, aprobada en su totalidad), se implementó de forma incremental:
+
+- **Shell**: splash screens de iOS (solo portrait, ver limitación abajo), indicador de "sin conexión", banner propio de instalación, botón ☰ movido de arriba-izquierda a abajo-izquierda (ya no tapa el logo de cada módulo), modo "riel" de sidebar en pantallas ≥1024px con un módulo abierto, safe-area aplicada al contenedor del iframe, tabla de administración con scroll horizontal en móvil, spinner de carga con identidad de marca al abrir un módulo (con reintento si tarda +8s), estado de carga en el botón de login, íconos reales en el dashboard (usando el campo `icon` que ya existía sin usarse en `permissions.js`).
+- **Capa 8 (errores de uso)**: se quitó el hint con la contraseña por defecto de la pantalla de login; "Desactivar" usuario ahora tiene color propio y pide confirmación con el nombre; **un administrador ya no puede desactivar su propia cuenta** (mismo blindaje que ya tenía "Eliminar"); el modal de nuevo/editar usuario ya no se pierde en silencio si navegas por accidente con datos sin guardar.
+- **`confirm()` nativo eliminado por completo**: los 4 módulos que lo usaban (`inventario`, `habladores`, `limpieza` x3, más "eliminar usuario" en el shell) ahora usan un modal de confirmación con la identidad visual de cada uno, en vez del diálogo gris del navegador.
+- **Accesibilidad**: los 6 módulos que tenían huecos (`folders`, `habladores`, `wow-tablero`, `wow-calificacion`, `limpieza`, `lider`) recibieron labels vinculados a sus campos, `aria-label`/`aria-live` en controles dinámicos, y roles de teclado donde hacía falta (selector de formato en `folders`, tarjetas de empleado en `wow-tablero`, pestañas en `limpieza`). `inventario` ya estaba bien y no se tocó.
+
+**Ningún módulo tuvo cambios en su lógica de negocio, cálculos, formularios, claves de `localStorage` o medidas de impresión** — todo lo anterior es visual/estructural o, en el caso puntual de `confirm()`, un cambio de comportamiento explícitamente aprobado.
+
+**Limitación conocida:** los splash screens de iOS solo se generaron en orientación portrait (10 tamaños, de iPhone SE a iPad Pro 12.9"). Si la mayoría de tu equipo instala la PWA con el celular en horizontal, no vas a ver el splash correcto en ese caso — todo lo demás de la app funciona igual, es solo la pantalla de carga inicial al abrir la app instalada.
+
+**No verificado en dispositivo real (hecho solo con análisis estático — sintaxis, HTML, diffs):** splash de iOS, banner de instalación (`beforeinstallprompt` se comporta distinto en cada navegador), indicador de sin conexión, y el modo riel de la sidebar en pantallas anchas. Ver `CHECKLIST-REGRESION.md`, sección final, para la lista concreta de qué probar.
+
 
