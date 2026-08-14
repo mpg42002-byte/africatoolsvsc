@@ -1,6 +1,6 @@
 /* AFRICA TOOLS · SERVICE WORKER */
 
-const CACHE_NAME = 'africa-tools-v10';
+const CACHE_NAME = 'africa-tools-v11';
 
 const CORE_ASSETS = [
   './',
