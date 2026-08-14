@@ -9,7 +9,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@700&display=swap');
 :root {
   --af-orange: #E85D25; --af-amber: #F5A623; --af-red: #D9481F;
   --af-coffee: #4A2F1F; --af-yellow: #F5D414; --af-green: #7CB342;
@@ -268,7 +267,7 @@ button{
 .tag-box .tag-desc{
   height:41.1%;   /* 2 of 9 template rows */
   flex-shrink:0;
-  font-family:"Century Gothic","Poppins","Arial", sans-serif;
+  font-family:"Century Gothic","Arial", sans-serif;
   font-weight:700;
   font-size:12pt;
   display:flex;
@@ -289,7 +288,7 @@ button{
   padding:0 0.08in;
 }
 .tag-box .tag-ticket{
-  font-family:"Century Gothic","Poppins","Arial", sans-serif;
+  font-family:"Century Gothic","Arial", sans-serif;
   font-weight:700;
   font-size:44pt;
   color:#000;
@@ -739,10 +738,10 @@ function fitAllTicketNumbers(){
     const text = el.textContent;
     const availablePx = wrap.clientWidth - (0.05*96);
     let fontPt = TICKET_MAX_FONT_PT;
-    let w = measureTextWidthPx(text, 700, fontPt*96/72, 'Century Gothic, Poppins, Arial');
+    let w = measureTextWidthPx(text, 700, fontPt*96/72, 'Century Gothic, Arial');
     while(w > availablePx && fontPt > TICKET_MIN_FONT_PT){
       fontPt -= 1;
-      w = measureTextWidthPx(text, 700, fontPt*96/72, 'Century Gothic, Poppins, Arial');
+      w = measureTextWidthPx(text, 700, fontPt*96/72, 'Century Gothic, Arial');
     }
     el.style.fontSize = fontPt + 'pt';
     el.style.width = Math.min(Math.ceil(w)+2, availablePx) + 'px';
