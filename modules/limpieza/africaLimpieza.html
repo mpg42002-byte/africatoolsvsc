@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<script>(function(){try{var t=new URLSearchParams(location.search).get('theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"/>
+<title>City Park Africa – Limpieza</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --af-orange: #E85D25; --af-amber: #F5A623; --af-red: #D9481F; 
+  --af-coffee: #4A2F1F; --af-yellow: #F5D414; --af-green: #7CB342; 
+  --af-cream: #EDE0C8; --af-white: #FFFFFF;
+  --font-heading: 'Fredoka', sans-serif; --font-body: 'Nunito', sans-serif; --font-mono: 'Nunito', monospace;
+  --bg-body: var(--af-coffee);
+  --bg-pattern: radial-gradient(rgba(245, 166, 35, 0.15) 2px, transparent 2px);
+  --text-main: var(--af-cream);
+  --card-bg: var(--af-cream); --card-bg-hover: #F8F1E1; --card-border: #D8B37C;
+  --card-shadow: #26170E; --text-card: var(--af-coffee); --text-muted: #68452C;
+  --primary: var(--af-orange); --primary-shadow: #B54215; --primary-text: var(--af-white);
+  --secondary: var(--af-amber); --secondary-shadow: #C48214; --secondary-text: var(--af-coffee);
+  --accent-badge: var(--af-green); --danger: var(--af-red); --success: var(--af-green);
+  --line: #D8B37C; --input-bg: var(--af-white);
+  
+  --alta: #FFCCCC; --media: #FFF3CD; --baja: #D4EDDA; --solo: #FFE0CC;
+  --radius: 24px;
+}
+[data-theme="dark"] {
+  --bg-body: #1E1610;
+  --bg-pattern: radial-gradient(rgba(245, 166, 35, 0.05) 2px, transparent 2px);
+  --text-main: #F5EBDA;
+  --card-bg: #2A1E14; --card-bg-hover: #33261A; --card-border: #4A3624;
+  --card-shadow: #0F0A07; --text-card: #F5EBDA; --text-muted: #D9BE9D;
+  --primary: var(--af-orange); --primary-shadow: #A33A10; --primary-text: var(--af-white);
+  --secondary: var(--af-amber); --secondary-text: var(--af-coffee);
+  --line: #4A3624; --input-bg: #1E1610;
+}
+[data-theme="dark"] .badge-pair{background:rgba(124,179,66,0.32);color:#A6D785}
+[data-theme="dark"] .badge-solo{background:rgba(232,93,37,0.32);color:#FFAD7A}
+[data-theme="dark"] { --alta: #5C1414; --media: #5A4712; --baja: #1F4A2C; }
+[data-theme="dark"] .badge-alta{color:#FF9E9E}
+[data-theme="dark"] .badge-media{color:#F5D97A}
+[data-theme="dark"] .badge-baja{color:#8FDCA8}
+
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-body);background-color:var(--bg-body);background-image:var(--bg-pattern);background-size:30px 30px;color:var(--text-main);min-height:100vh;font-size:15px;line-height:1.4;transition:background-color .3s,color .3s}
+
+/* NAV */
+nav{background:var(--card-bg);border-bottom:3px solid var(--card-border);position:sticky;top:0;z-index:100;padding:0 24px;display:flex;align-items:center;height:70px;gap:16px;box-shadow:0 4px 12px rgba(0,0,0,0.15)}
+.logo{font-family:var(--font-heading);font-size:24px;color:var(--primary);letter-spacing:1px;white-space:nowrap;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.btn-export-nav{padding:8px 14px;background:var(--accent-badge);color:white;border:2px solid #5D9E2F;border-radius:16px;cursor:pointer;font-weight:700;font-size:12px;box-shadow:0 3px 0 #5D9E2F;transition:all .2s;font-family:var(--font-heading);text-transform:uppercase;white-space:nowrap}
+.btn-export-nav:hover{transform:translateY(-2px)}
+.btn-export-nav:active{transform:translateY(3px);box-shadow:0 0 0 #5D9E2F}
+.nav-tabs{display:flex;gap:8px;margin-left:auto;flex-wrap:wrap}
+.nav-tab{padding:8px 16px;border-radius:var(--radius);border:2px solid transparent;background:transparent;color:var(--text-muted);font-family:var(--font-heading);font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;white-space:nowrap;text-transform:uppercase}
+.nav-tab:hover{background:var(--card-bg-hover);color:var(--text-card);border-color:var(--card-border)}
+.nav-tab.active{background:var(--primary);color:var(--primary-text);border-color:var(--primary-shadow);box-shadow:0 3px 0 var(--primary-shadow)}
+
+/* THEME TOGGLE */
+.theme-toggle{background:var(--secondary);border:2px solid var(--secondary-shadow);color:var(--secondary-text);width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;transition:all .2s;box-shadow:0 3px 0 var(--secondary-shadow);margin-left:8px}
+.theme-toggle:hover{transform:translateY(-2px)}
+.theme-toggle:active{transform:translateY(3px);box-shadow:0 0 0 var(--secondary-shadow)}
+
+/* LAYOUT */
+main{max-width:1200px;margin:0 auto;padding:32px 20px;width:100%}
+.page{display:none;opacity:0;transition:opacity .2s}.page.active{display:block;opacity:1}
+
+/* CARDS */
+.card{background:var(--card-bg);border:3px solid var(--card-border);border-radius:var(--radius);padding:24px;margin-bottom:20px;box-shadow:0 8px 0 var(--card-shadow);transition:background-color .3s,border-color .3s}
+.card-title{font-family:var(--font-body);font-size:13px;font-weight:700;letter-spacing:.4px;color:var(--text-muted);margin-bottom:16px}
+.section-title{font-family:var(--font-heading);font-size:32px;letter-spacing:1px;color:var(--primary);margin-bottom:6px;text-transform:uppercase;text-shadow:2px 2px 0 rgba(0,0,0,0.1)}
+.section-sub{font-family:var(--font-body);font-size:15px;color:var(--text-muted);margin-bottom:24px;font-weight:600}
+
+/* FORM */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-group label{font-family:var(--font-heading);font-size:13px;color:var(--text-muted);font-weight:600;text-transform:uppercase}
+input[type=text],select{background:var(--input-bg);border:2px solid var(--card-border);border-radius:var(--radius);color:var(--text-card);font-family:var(--font-body);font-size:14px;padding:12px 16px;outline:none;transition:border-color .15s;width:100%;font-weight:600}
+input[type=text]:focus,select:focus{border-color:var(--primary)}
+select{-webkit-appearance:none;appearance:none;padding-right:38px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%237A5A3D' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;background-size:16px}
+select option{background:var(--card-bg);color:var(--text-card)}
+
+/* BUTTONS */
+.btn-export {
+  padding: 10px 18px;
+  background: var(--accent-badge);
+  color: white;
+  border: 2px solid #5D9E2F;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 14px;
+  box-shadow: 0 4px 0 #5D9E2F;
+  transition: all 0.2s;
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+}
+.btn-export:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 0 #5D9E2F;
+}
+.btn-export:active {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 #5D9E2F;
+}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 24px;border-radius:var(--radius);border:2px solid transparent;font-family:var(--font-heading);font-size:14px;font-weight:700;cursor:pointer;transition:all .15s;white-space:nowrap;text-transform:uppercase;box-shadow:0 5px 0 var(--primary-shadow);transform:translateY(0)}
+.btn-primary{background:var(--primary);color:var(--primary-text);border-color:var(--primary-shadow)}
+.btn-primary:hover{transform:translateY(-2px);background:#f06a32}
+.btn-primary:active{transform:translateY(5px);box-shadow:0 0 0 var(--primary-shadow)}
+
+.btn-ghost{background:var(--card-bg-hover);color:var(--text-card);border:2px solid var(--card-border);box-shadow:0 5px 0 var(--card-border)}
+.btn-ghost:hover{transform:translateY(-2px);border-color:var(--primary);color:var(--primary)}
+.btn-ghost:active{transform:translateY(5px);box-shadow:0 0 0 var(--card-border)}
+
+.btn-danger{background:rgba(217,72,31,0.15);color:var(--danger);border:2px solid var(--danger);box-shadow:0 3px 0 var(--danger)}
+.btn-danger:hover{background:rgba(217,72,31,0.25);transform:translateY(-2px)}
+.btn-danger:active{transform:translateY(3px);box-shadow:0 0 0 var(--danger)}
+
+.btn:focus-visible,.nav-tab:focus-visible,.theme-toggle:focus-visible{outline:3px solid var(--primary);outline-offset:2px}
+.btn-sm{padding:6px 14px;font-size:12px;box-shadow:0 3px 0 var(--primary-shadow)}
+.btn-sm.btn-danger{box-shadow:0 3px 0 var(--danger)}
+.btn-row{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px}
+
+/* SCHEDULE TABLE */
+.sched-wrap{position:relative;overflow-x:auto;border-radius:var(--radius);border:3px solid var(--card-border);background:var(--input-bg);-webkit-overflow-scrolling:touch;scroll-behavior:smooth}
+.sched-wrap::after{content:'';position:absolute;top:0;right:0;bottom:0;width:100%;pointer-events:none;box-shadow:inset -14px 0 12px -12px rgba(0,0,0,0.25),inset 14px 0 12px -12px rgba(0,0,0,0.25);border-radius:var(--radius)}
+table.sched{width:100%;border-collapse:collapse;font-size:13px;min-width:700px}
+table.sched th{background:var(--card-bg);color:var(--text-muted);font-family:var(--font-body);font-weight:700;padding:12px 10px;text-align:center;border-bottom:3px solid var(--card-border);border-right:2px solid var(--card-border);white-space:nowrap}
+table.sched td{border-bottom:2px solid var(--card-border);border-right:2px solid var(--card-border);padding:0}
+table.sched tr:last-child td{border-bottom:none}
+.worker-cell{padding:10px;font-weight:700;font-size:14px;background:var(--card-bg);color:var(--text-card);white-space:nowrap;min-width:150px;font-family:var(--font-body);text-align:center}
+.time-cell input{background:transparent;border:none;color:var(--text-card);font-family:var(--font-body);font-size:13px;width:90px;padding:10px 8px;text-align:center;outline:none;font-weight:700}
+.time-cell input:focus{background:rgba(232,93,37,0.1)}
+.day-hdr{background:#C24D1A!important;color:#fff!important;font-size:12px;font-family:var(--font-heading);font-weight:700;letter-spacing:.5px;text-transform:uppercase;border-right:2px solid rgba(255,255,255,0.2)!important}
+
+/* RESULTS */
+.days-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px;margin-bottom:24px}
+.day-card{border-radius:var(--radius);overflow:hidden;border:3px solid var(--card-border);background:var(--input-bg);box-shadow:0 2px 0 var(--card-shadow)}
+.day-card-hdr{padding:10px 16px;font-family:var(--font-heading);font-weight:700;font-size:14px;color:#fff;text-transform:uppercase}
+.pair-item{padding:10px 16px;font-size:13px;font-weight:600;line-height:1.3;display:flex;align-items:center;justify-content:space-between;border-top:2px solid var(--card-border)}
+.badge{padding:4px 10px;border-radius:12px;font-size:11px;font-family:var(--font-heading);font-weight:700;text-transform:uppercase;letter-spacing:.5px}
+.badge-pair{background:rgba(124,179,66,0.2);color:var(--af-green);border:1px solid var(--af-green)}
+.badge-solo{background:rgba(232,93,37,0.2);color:var(--af-orange);border:1px solid var(--af-orange)}
+.badge-alta{background:var(--alta);color:#8B0000;border:1px solid #d9481f}
+.badge-media{background:var(--media);color:#7A5800;border:1px solid #f5a623}
+.badge-baja{background:var(--baja);color:#1A5C30;border:1px solid #7cb342}
+
+.mach-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.mach-block{border:3px solid var(--card-border);border-radius:var(--radius);overflow:hidden;background:var(--input-bg);box-shadow:0 2px 0 var(--card-shadow)}
+.mach-block-hdr{padding:12px 16px;background:var(--card-bg);display:flex;justify-content:space-between;align-items:center;font-family:var(--font-body);font-size:14px;font-weight:700;color:var(--text-card);border-bottom:3px solid var(--card-border)}
+.pts{font-size:12px;color:var(--text-muted);font-family:var(--font-body);font-weight:700}
+.mach-item{padding:8px 16px;border-top:2px solid var(--card-border);display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;line-height:1.3}
+
+/* EMPLOYEE / MACHINE LISTS */
+.list-item{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:2px solid var(--card-border);font-size:14px;font-weight:700;font-family:var(--font-heading);gap:10px;flex-wrap:wrap}
+.list-item:last-child{border-bottom:none}
+.add-row{display:flex;gap:12px;align-items:flex-end;flex-wrap:wrap}
+.add-row input[type=text],.add-row select{flex:1 1 200px;min-width:140px}
+.add-row>label{flex:0 1 auto}
+.add-row>button{flex:1 1 100px}
+
+/* TOAST */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--card-bg);border:3px solid var(--primary);border-left:8px solid var(--primary);padding:14px 20px;border-radius:var(--radius);font-family:var(--font-heading);font-size:14px;font-weight:700;transform:translateY(100px);opacity:0;transition:all .3s cubic-bezier(0.175, 0.885, 0.32, 1.275);z-index:999;max-width:320px;box-shadow:0 10px 25px rgba(0,0,0,0.3);color:var(--text-card)}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* CUSTOM CHECKBOX */
+.cb-custom{-webkit-appearance:none;appearance:none;width:20px;height:20px;min-width:20px;border:2px solid var(--card-border);border-radius:6px;background:var(--input-bg);cursor:pointer;position:relative;transition:border-color .15s,background-color .15s}
+.cb-custom:hover{border-color:var(--primary)}
+.cb-custom:checked{background:var(--input-bg);border-color:var(--primary)}
+.cb-custom:checked::after{content:'';position:absolute;left:5px;top:1px;width:6px;height:11px;border:solid var(--primary);border-width:0 3px 3px 0;transform:rotate(45deg)}
+
+/* LEGEND */
+.legend{display:flex;gap:16px;flex-wrap:wrap;margin-top:10px}
+.legend-item{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:700;color:var(--text-card);font-family:var(--font-heading)}
+.legend-dot{width:14px;height:14px;border-radius:50%;border:2px solid rgba(0,0,0,0.2)}
+
+/* SCHEDULE CARDS (solo visible en móvil) */
+.sched-cards{display:none;flex-direction:column;gap:12px}
+.emp-card{border:2.5px solid var(--card-border);border-radius:var(--radius);background:var(--input-bg);box-shadow:0 4px 0 var(--card-shadow);overflow:hidden}
+.emp-card-hdr{background:var(--card-bg);padding:12px 14px;font-family:var(--font-heading);font-weight:700;font-size:14px;color:var(--text-card);border-bottom:2.5px solid var(--card-border);text-transform:uppercase;letter-spacing:.3px}
+.emp-card-days{display:grid;grid-template-columns:1fr 1fr;gap:0}
+.emp-day{padding:10px 12px;border-bottom:2px solid var(--card-border);border-right:2px solid var(--card-border);display:flex;flex-direction:column;gap:6px}
+.emp-day:nth-child(2n){border-right:none}
+.emp-day:nth-last-child(-n+2){border-bottom:none}
+.emp-day:nth-last-child(1):nth-child(odd){grid-column:1/-1;border-right:none}
+.emp-day-name{font-family:var(--font-heading);font-size:11px;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.4px}
+.emp-day-inputs{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.emp-day-inputs input{background:var(--input-bg);border:1.5px solid var(--card-border);border-radius:8px;color:var(--text-card);font-family:var(--font-body);font-size:13px;padding:6px 8px;outline:none;font-weight:700;width:100%;text-align:center;min-width:0}
+.emp-day-inputs input:focus{border-color:var(--primary);background:rgba(232,93,37,0.06)}
+.emp-day-inputs .ilbl{font-size:9px;color:var(--text-muted);text-align:center;font-family:var(--font-heading);font-weight:700;text-transform:uppercase;letter-spacing:.3px;display:block;margin-top:1px}
+.emp-day-input-wrap{display:flex;flex-direction:column;gap:2px}
+
+
+
+/* Tablet landscape / pantallas medianas */
+@media(max-width:1100px){
+  .days-grid{grid-template-columns:repeat(auto-fill,minmax(200px,1fr))}
+  .mach-grid{grid-template-columns:repeat(auto-fill,minmax(240px,1fr))}
+  main{padding:28px 18px}
+}
+
+/* Tablet portrait */
+@media(max-width:900px){
+  .days-grid{grid-template-columns:repeat(auto-fill,minmax(180px,1fr))}
+  .mach-grid{grid-template-columns:repeat(auto-fill,minmax(220px,1fr))}
+  .section-title{font-size:28px}
+  .card{padding:20px}
+  .sched-wrap{box-shadow:inset -10px 0 10px -10px rgba(0,0,0,0.2),inset 10px 0 10px -10px rgba(0,0,0,0.2)}
+  .sched-wrap::after{display:none}
+  /* Sticky first column (empleado) en la tabla */
+  table.sched{font-size:12.5px;min-width:680px}
+  .worker-cell{position:sticky;left:0;z-index:2;box-shadow:2px 0 4px rgba(0,0,0,0.08)}
+  table.sched th:first-child{position:sticky;left:0;z-index:3;background:var(--card-bg)}
+}
+
+/* Mobile grande */
+@media(max-width:768px){
+  body{font-size:14px}
+  nav{padding:8px 14px;min-height:62px;height:auto;gap:10px;flex-wrap:wrap}
+  .logo{font-size:20px}
+  .logo span{display:none}
+  .nav-tabs{order:3;width:100%;margin-left:0;justify-content:flex-start;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;padding-bottom:4px;scrollbar-width:thin}
+  .nav-tabs::-webkit-scrollbar{height:4px}
+  .nav-tabs::-webkit-scrollbar-thumb{background:var(--card-border);border-radius:4px}
+  .nav-tab{padding:7px 14px;font-size:13px;flex-shrink:0}
+  .theme-toggle{order:2;margin-left:auto;width:38px;height:38px;font-size:16px}
+  main{padding:18px 14px}
+  .section-title{font-size:24px;letter-spacing:.5px}
+  .section-sub{font-size:14px;margin-bottom:18px}
+  .card{padding:18px;border-width:2.5px;box-shadow:0 6px 0 var(--card-shadow);margin-bottom:16px}
+  .card-title{font-size:12px;margin-bottom:12px}
+  .form-row{grid-template-columns:1fr;gap:12px;margin-bottom:12px}
+  input[type=text],select{font-size:15px;padding:11px 14px}
+  .btn{padding:11px 18px;font-size:13px}
+  .btn-sm{padding:6px 12px;font-size:11.5px}
+  .btn-row{gap:10px;margin-top:16px}
+  /* Tabla → Cards en móvil */
+  .sched-wrap{display:none}
+  .sched-cards{display:flex}
+  .days-grid{grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px}
+  .mach-grid{grid-template-columns:1fr;gap:12px}
+  .pair-item{padding:9px 12px;font-size:12.5px}
+  .mach-block-hdr{padding:10px 14px;font-size:13px;flex-wrap:wrap;gap:6px}
+  .mach-item{padding:8px 14px;font-size:12.5px}
+  .list-item{padding:11px 14px;font-size:13.5px}
+  .add-row{gap:10px}
+  .add-row input,.add-row select{min-width:140px;flex:1 1 100%}
+  .add-row label{font-size:12.5px!important}
+  .toast{left:12px;right:12px;bottom:12px;max-width:none;padding:12px 16px;font-size:13px}
+  .legend{gap:12px}
+  .legend-item{font-size:12.5px}
+  /* Tabs scrollable indicator */
+  .nav-tabs{position:relative;mask-image:linear-gradient(to right,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%);-webkit-mask-image:linear-gradient(to right,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%)}
+}
+
+/* Mobile pequeño */
+@media(max-width:480px){
+  body{font-size:13.5px}
+  nav{padding:6px 10px;min-height:56px;gap:8px}
+  .logo{font-size:18px}
+  .theme-toggle{width:36px;height:36px;font-size:15px}
+  .nav-tab{padding:6px 12px;font-size:12.5px;border-radius:18px}
+  main{padding:14px 10px}
+  .section-title{font-size:21px}
+  .section-sub{font-size:13px;margin-bottom:14px}
+  .card{padding:14px;border-width:2px;box-shadow:0 5px 0 var(--card-shadow);border-radius:18px;margin-bottom:14px}
+  .card-title{font-size:11.5px;margin-bottom:10px;letter-spacing:.3px}
+  .form-row{grid-template-columns:1fr;gap:10px}
+  input[type=text],select{font-size:14px;padding:10px 12px;border-radius:18px}
+  .btn{padding:10px 16px;font-size:12.5px;border-radius:18px;box-shadow:0 4px 0 var(--primary-shadow)}
+  .btn-sm{padding:5px 10px;font-size:11px}
+  .btn-row{flex-direction:column;gap:8px}
+  .btn-row .btn{width:100%;justify-content:center}
+  /* Tabla oculta, cards visibles (regla reforzada) */
+  .sched-wrap{display:none}
+  .sched-cards{display:flex;gap:10px}
+  .emp-card{border-width:2px;box-shadow:0 4px 0 var(--card-shadow);border-radius:18px}
+  .emp-card-hdr{padding:10px 12px;font-size:13px}
+  .emp-card-days{grid-template-columns:1fr}
+  .emp-day{border-right:none!important;padding:9px 10px;flex-direction:row;align-items:center;gap:10px}
+  .emp-day:nth-last-child(1):nth-child(odd){grid-column:auto}
+  .emp-day:nth-last-child(-n+2){border-bottom:2px solid var(--card-border)}
+  .emp-day:last-child{border-bottom:none}
+  .emp-day-name{flex:0 0 70px;font-size:10.5px}
+  .emp-day-inputs{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .emp-day-inputs input{font-size:12.5px;padding:7px 6px;border-radius:7px}
+  .days-grid{grid-template-columns:1fr 1fr;gap:10px}
+  .day-card-hdr{font-size:12.5px;padding:8px 12px}
+  .pair-item{padding:8px 10px;font-size:12px}
+  .badge{padding:3px 8px;font-size:10px}
+  .mach-block-hdr{padding:9px 12px;font-size:12.5px}
+  .pts{font-size:11px}
+  .mach-item{padding:7px 12px;font-size:12px;gap:8px}
+  .list-item{padding:10px 12px;font-size:13px;flex-wrap:wrap;gap:8px}
+  .add-row input,.add-row select{min-width:0;font-size:14px}
+  .legend{gap:10px;flex-direction:column;align-items:flex-start}
+  .legend-item{font-size:12px}
+  .toast{font-size:12.5px;padding:10px 14px}
+}
+
+/* Móviles muy pequeños (iPhone SE etc.) */
+@media(max-width:360px){
+  .logo{font-size:16px}
+  .section-title{font-size:19px}
+  .days-grid{grid-template-columns:1fr}
+  .nav-tab{padding:6px 10px;font-size:12px}
+}
+
+/* Landscape en móvil */
+@media(max-width:900px) and (orientation:landscape){
+  nav{min-height:54px}
+  main{padding:14px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *{transition-duration:0.01ms!important;animation-duration:0.01ms!important}
+}
+</style>
+</head>
+<body data-theme="dark">
+<nav>
+  <div class="logo">🦁 AFRICA <span style="font-size:12px;font-family:var(--font-body);font-weight:700;color:var(--text-muted);letter-spacing:0;margin-left:6px;text-transform:none">limpieza</span></div>
+  <button class="btn-export-nav" id="export-csv-btn" title="Exportar datos a CSV">📊 EXPORTAR</button>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('horario')">📋 Horario</button>
+    <button class="nav-tab" onclick="showPage('resultado')">📊 Resultado</button>
+    <button class="nav-tab" onclick="showPage('empleados')">👥 Empleados</button>
+    <button class="nav-tab" onclick="showPage('maquinas')">🎮 Máquinas</button>
+    <button class="nav-tab" onclick="showPage('tareas')">🧺 Tareas</button>
+  </div>
+  <button class="theme-toggle" onclick="toggleTheme()" title="Cambiar tema claro/oscuro" aria-label="Cambiar a modo claro">🌙</button>
+</nav>
+
+<main>
+
+<!-- HORARIO -->
+<div class="page active" id="page-horario">
+  <div class="section-title">Horario semanal</div>
+  <div class="section-sub">Ingresa las horas de entrada y salida. Escribe D para descanso o vacaciones.</div>
+  <div class="card">
+    <div class="card-title">Semana</div>
+    <div class="form-row">
+      <div class="form-group"><label for="week-from">Del</label><input type="text" id="week-from" placeholder="Ej: 06 Jul 2026"></div>
+      <div class="form-group"><label for="week-to">Al</label><input type="text" id="week-to" placeholder="Ej: 10 Jul 2026"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Entradas y salidas (formato: 1:00 PM / 8:00 PM / D)</div>
+    <div class="sched-wrap"><table class="sched" id="sched-table"></table></div>
+    <div class="sched-cards" id="sched-cards"></div>
+  </div>
+  <div class="card" id="task-selector-card" style="display:none">
+    <div class="card-title">Tareas periódicas de esta semana</div>
+    <div class="section-sub" style="margin-bottom:14px">Actívalas solo la(s) semana(s) que correspondan (ej: cada 15 días). Se desmarcan solas después de generar.</div>
+    <div id="task-selector-list"></div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-primary" onclick="generate()">⚡ Generar asignación</button>
+    <button class="btn btn-ghost" onclick="clearSched()">🔄 Limpiar tabla</button>
+  </div>
+</div>
+
+<!-- RESULTADO -->
+<div class="page" id="page-resultado">
+  <div class="section-title">Resultado</div>
+  <div class="section-sub" id="result-week-label">Genera el horario primero</div>
+  <div id="result-body"><div style="color:var(--text-muted);text-align:center;padding:40px;font-family:var(--font-heading);font-weight:700">Aún no hay resultados. Ve a Horario y genera la asignación.</div></div>
+  <div id="result-actions" style="display:none" class="btn-row">
+    <button class="btn btn-primary" onclick="printResult()">🖨️ Imprimir / Guardar PDF</button>
+  </div>
+</div>
+
+<!-- EMPLEADOS -->
+<div class="page" id="page-empleados">
+  <div class="section-title">Empleados</div>
+  <div class="section-sub">Agrega o quita personas del equipo.</div>
+  <div class="card">
+    <div class="card-title">Nuevo empleado</div>
+    <div class="add-row">
+      <input type="text" id="new-emp" placeholder="Nombre completo" onkeydown="if(event.key==='Enter')addEmp()">
+      <button class="btn btn-primary" onclick="addEmp()">+ Agregar</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Equipo activo</div>
+    <div id="emp-list"></div>
+  </div>
+</div>
+
+<!-- MAQUINAS -->
+<div class="page" id="page-maquinas">
+  <div class="section-title">Máquinas</div>
+  <div class="section-sub">Agrega, quita o cambia la dificultad de cada máquina.</div>
+  <div class="card">
+    <div class="card-title">Nueva máquina</div>
+    <div class="add-row">
+      <input type="text" id="new-maq" placeholder="Nombre de la máquina" onkeydown="if(event.key==='Enter')addMaq()">
+      <select id="new-diff">
+        <option value="alta">🔴 Alta</option>
+        <option value="media" selected>🟡 Media</option>
+        <option value="baja">🟢 Baja</option>
+      </select>
+      <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-card);cursor:pointer;white-space:nowrap;font-family:var(--font-heading);font-weight:700">
+        <input type="checkbox" id="new-doble" class="cb-custom"> Doble (x2 pts)
+      </label>
+      <button class="btn btn-primary" onclick="addMaq()">+ Agregar</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Lista de máquinas (<span id="maq-count">0</span>)</div>
+    <div id="maq-list"></div>
+  </div>
+</div>
+
+<!-- TAREAS -->
+<div class="page" id="page-tareas">
+  <div class="section-title">Tareas periódicas</div>
+  <div class="section-sub">Tareas que no son máquinas y que se activan solo algunas semanas (ej: manteles, taquilla, snack). Sus puntos se suman a la carga de esa persona para mantener la equidad.</div>
+  <div class="card">
+    <div class="card-title">Nueva tarea</div>
+    <div class="add-row">
+      <input type="text" id="new-task" placeholder="Nombre de la tarea" onkeydown="if(event.key==='Enter')addTask()">
+      <input type="text" id="new-task-pts" placeholder="Puntos (ej: 10)" style="max-width:140px">
+      <select id="new-task-mode" onchange="toggleTaskPersonField()">
+        <option value="rotativa">🔄 Rotativa (cualquiera)</option>
+        <option value="fija">📌 Fija (siempre la misma persona)</option>
+      </select>
+      <select id="new-task-person" style="display:none"></select>
+      <button class="btn btn-primary" onclick="addTask()">+ Agregar</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Lista de tareas (<span id="task-count">0</span>)</div>
+    <div id="task-list"></div>
+  </div>
+</div>
+
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+<script>
+// ── THEME TOGGLE ───────────────────────────────────────────────────────────
+function toggleTheme(){
+  const body = document.body;
+  const currentTheme = body.getAttribute('data-theme');
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  body.setAttribute('data-theme', newTheme);
+  const btn = document.querySelector('.theme-toggle');
+  btn.textContent = newTheme === 'dark' ? '🌙' : '☀️';
+  btn.setAttribute('aria-label', newTheme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
+  try { localStorage.setItem('af_theme', newTheme); } catch(e){}
+}
+(function(){
+  try {
+    const saved = localStorage.getItem('af_theme');
+    if(saved){
+      document.body.setAttribute('data-theme', saved);
+      const themeBtn = document.querySelector('.theme-toggle');
+      themeBtn.textContent = saved === 'dark' ? '🌙' : '☀️';
+      themeBtn.setAttribute('aria-label', saved === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
+    }
+  }catch(e){}
+})();
+
+// ── CONSTANTS ──────────────────────────────────────────────────────────────
+const DAYS = ['Lunes','Martes','Miércoles','Jueves','Viernes'];
+const DAY_COLORS = ['#E85D25','#F5A623','#7CB342','#A3752E','#D9481F'];
+const DIFF_W = {alta:3, media:2, baja:1};
+function maqPts(m){ return DIFF_W[m.d] * (m.x2 ? 2 : 1); }
+const ALTA_NAMES = [
+  'BALLOON CARNIVAL 1 / BALLOON CARNIVAL 2',
+  'GAME ON BASKETBALL 1 / GAME ON BASKETBALL 2',
+  'BIKERS MADRESS',
+  'POWER PUCK FEVER 1 (Arriba) / POWER PUCK FEVER 2 (Abajo)'
+];
+
+// ── DEFAULT DATA ───────────────────────────────────────────────────────────
+const DEF_EMP = ['Yoiler','Thomas Mejia','Laura Julieth','Maria Isabel','Laura Melissa','Sofia Cardozo','Liceth Lozano','Deisy Vargas'];
+
+const DEF_MAQ = [
+  {n:'ACE SHOOTER PRO',d:'media',x2:false},{n:'AIRCOMBAT1',d:'media',x2:false},
+  {n:'BALLOON CARNIVAL 1 / BALLOON CARNIVAL 2',d:'alta',x2:true},
+  {n:'BIKERS MADRESS',d:'alta',x2:false},
+  {n:'BOXEO CAGE FIGHTER',d:'media',x2:false},{n:'BOXING',d:'media',x2:false},
+  {n:'CARRUSEL - Carnival Park',d:'media',x2:false},{n:'COOL BOY',d:'media',x2:false},
+  {n:'Dance Dance Revolution',d:'baja',x2:false},{n:'Deadstorm Pirates',d:'media',x2:false},
+  {n:'DIRTY DRIVIN 1 / DIRTY DRIVEIN 2',d:'baja',x2:true},{n:'Ducky 3 SplasH',d:'media',x2:false},
+  {n:'FAST RACING',d:'media',x2:false},{n:'Fun Stop Photos',d:'media',x2:false},
+  {n:'GAME ON BASKETBALL 1 / GAME ON BASKETBALL 2',d:'alta',x2:true},
+  {n:'GELATO - ICE CREAMS',d:'media',x2:false},{n:'GO! G0! BASKETBALL',d:'media',x2:false},
+  {n:'GODZILLA vs KOHG',d:'media',x2:false},{n:'Heli Copter',d:'baja',x2:false},
+  {n:'HOCKEY DOBLE EVO',d:'baja',x2:false},{n:'HOCKEY SLALOM',d:'baja',x2:false},
+  {n:'JUMPIN SPACE',d:'media',x2:false},{n:'JURASSIC PARK',d:'media',x2:false},
+  {n:'LANE MASTER',d:'media',x2:false},
+  {n:'POWER PUCK FEVER 1 (Arriba) / POWER PUCK FEVER 2 (Abajo)',d:'media',x2:true},
+  {n:'PROZE BOX emoji',d:'baja',x2:false},{n:'RACCOON RAMPAGE',d:'media',x2:false},
+  {n:'Rainbow 2.0',d:'media',x2:false},{n:'SILLA DE MASAJES',d:'media',x2:false},
+  {n:'SKULL of SHADOW',d:'media',x2:false},{n:'SKULL OF SHADOW CABINA',d:'media',x2:false},
+  {n:'SPACE GRUA',d:'baja',x2:false},{n:'Star Catcher',d:'baja',x2:false},
+  {n:'Surf - Summer',d:'media',x2:false},{n:'T.REX PARK',d:'media',x2:false},
+  {n:'TARGET ZERO avion',d:'baja',x2:false},{n:'TYPHON',d:'media',x2:false},
+  {n:'ZoMBiE ROLLING',d:'media',x2:false},
+];
+
+// Tareas periódicas: 'fija' = siempre la misma persona, 'rotativa' = cualquiera del equipo (o elegida manualmente esa semana)
+const DEF_TASKS = [
+  {n:'Limpieza de manteles', pts:10, mode:'rotativa', person:null},
+  {n:'Limpieza de taquilla', pts:6, mode:'fija', person:'Deisy Vargas'},
+  {n:'Limpieza de snack', pts:6, mode:'fija', person:'Liceth Lozano'},
+];
+
+const DEF_HIST = {
+  'Deisy Vargas':['BOXEO CAGE FIGHTER','COOL BOY','FAST RACING','RACCOON RAMPAGE','T.REX PARK','GAME ON BASKETBALL 1 / GAME ON BASKETBALL 2','LANE MASTER','ZoMBiE ROLLING','BALLOON CARNIVAL 1 / BALLOON CARNIVAL 2','Rainbow 2.0','Heli Copter','Star Catcher','ACE SHOOTER PRO','BOXING','DIRTY DRIVIN 1 / DIRTY DRIVEIN 2','GO! G0! BASKETBALL','SILLA DE MASAJES','HOCKEY DOBLE EVO','TYPHON'],
+  'Laura Julieth':['AIRCOMBAT1','DIRTY DRIVIN 1 / DIRTY DRIVEIN 2','Fun Stop Photos','Rainbow 2.0','Dance Dance Revolution','Star Catcher','BIKERS MADRESS','Deadstorm Pirates','GO! G0! BASKETBALL','Surf - Summer','HOCKEY DOBLE EVO','POWER PUCK FEVER 1 (Arriba) / POWER PUCK FEVER 2 (Abajo)','FAST RACING','LANE MASTER','T.REX PARK','BOXEO CAGE FIGHTER','CARRUSEL - Carnival Park','Ducky 3 SplasH','GODZILLA vs KOHG','SKULL of SHADOW'],
+  'Laura Melissa':['BIKERS MADRESS','Ducky 3 SplasH','GODZILLA vs KOHG','SKULL of SHADOW','SPACE GRUA','ACE SHOOTER PRO','BOXEO CAGE FIGHTER','DIRTY DRIVIN 1 / DIRTY DRIVEIN 2','JURASSIC PARK','HOCKEY SLALOM','Star Catcher','AIRCOMBAT1','CARRUSEL - Carnival Park','Fun Stop Photos','RACCOON RAMPAGE','ZoMBiE ROLLING','BALLOON CARNIVAL 1 / BALLOON CARNIVAL 2','JUMPIN SPACE','SKULL OF SHADOW CABINA'],
+  'Liceth Lozano':['BOXING','Deadstorm Pirates','GO! G0! BASKETBALL','LANE MASTER','HOCKEY DOBLE EVO','POWER PUCK FEVER 1 (Arriba) / POWER PUCK FEVER 2 (Abajo)','Fun Stop Photos','Rainbow 2.0','Dance Dance Revolution','TYPHON','BIKERS MADRESS','Ducky 3 SplasH','GODZILLA vs KOHG','SKULL OF SHADOW CABINA','TARGET ZERO avion','AIRCOMBAT1','COOL BOY','FAST RACING','JURASSIC PARK','Surf - Summer'],
+  'Sofia Cardozo':['BALLOON CARNIVAL 1 / BALLOON CARNIVAL 2','SKULL OF SHADOW CABINA','HOCKEY SLALOM','TYPHON','AIRCOMBAT1','BOXING','GELATO - ICE CREAMS','SILLA DE MASAJES','PROZE BOX emoji','TARGET ZERO avion','ACE SHOOTER PRO','COOL BOY','GO! G0! BASKETBALL','SKULL of SHADOW','HOCKEY DOBLE EVO','GAME ON BASKETBALL 1 / GAME ON BASKETBALL 2','LANE MASTER','ZoMBiE ROLLING'],
+  'Thomas Mejia':['GAME ON BASKETBALL 1 / GAME ON BASKETBALL 2','SILLA DE MASAJES','PROZE BOX emoji','TARGET ZERO avion','COOL BOY','Ducky 3 SplasH','JUMPIN SPACE','SKULL OF SHADOW CABINA','Heli Copter','BOXEO CAGE FIGHTER','Deadstorm Pirates','GELATO - ICE CREAMS','Surf - Summer','HOCKEY SLALOM','TYPHON','POWER PUCK FEVER 1 (Arriba) / POWER PUCK FEVER 2 (Abajo)','Fun Stop Photos','RACCOON RAMPAGE','ZoMBiE ROLLING'],
+  'Yoiler':['POWER PUCK FEVER 1 (Arriba) / POWER PUCK FEVER 2 (Abajo)','JURASSIC PARK','Surf - Summer','Heli Copter','CARRUSEL - Carnival Park','FAST RACING','GODZILLA vs KOHG','SKULL of SHADOW','SPACE GRUA','BOXING','DIRTY DRIVIN 1 / DIRTY DRIVEIN 2','JUMPIN SPACE','SILLA DE MASAJES','PROZE BOX emoji','BIKERS MADRESS','Deadstorm Pirates','GELATO - ICE CREAMS','Rainbow 2.0','Dance Dance Revolution'],
+};
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+function load(k,def){try{const v=localStorage.getItem('cp2_'+k);return v?JSON.parse(v):def;}catch(e){return def;}}
+function save(k,v){try{localStorage.setItem('cp2_'+k,JSON.stringify(v));}catch(e){}}
+
+let employees = load('emp', DEF_EMP);
+let machines  = load('maq', DEF_MAQ);
+let history   = load('hist', DEF_HIST);
+let tasks     = load('tasks', DEF_TASKS);
+let taskSel   = load('taskSel', {}); // {taskName: {active:bool, person:'auto'|nombre}}
+let lastSolo  = null;
+let lastResult = null;
+
+// ── TOAST ──────────────────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────
+function showPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  const idx={'horario':0,'resultado':1,'empleados':2,'maquinas':3,'tareas':4}[p];
+  document.querySelectorAll('.nav-tab')[idx].classList.add('active');
+  if(p==='horario') renderTaskSelector();
+  if(p==='empleados') renderEmp();
+  if(p==='maquinas') renderMaq();
+  if(p==='tareas') renderTasks();
+}
+
+// ── SCHEDULE TABLE ─────────────────────────────────────────────────────────
+function buildTable(){
+  const sched = load('sched',{});
+  let h='<thead><tr><th rowspan="2" style="text-align:center;padding:12px 10px;min-width:150px;font-family:var(--font-heading);color:var(--text-card)">Empleado</th>';
+  DAYS.forEach(d=>h+=`<th colspan="2" class="day-hdr">${d}</th>`);
+  h+='</tr><tr>';
+  DAYS.forEach(()=>h+='<th style="font-size:12px;color:var(--text-muted);padding:8px 0;font-family:var(--font-heading)">Entrada</th><th style="font-size:12px;color:var(--text-muted);padding:8px 0;font-family:var(--font-heading)">Salida</th>');
+  h+='</tr></thead><tbody>';
+  let cards='';
+  employees.forEach(w=>{
+    h+=`<tr><td class="worker-cell">${w}</td>`;
+    cards+=`<div class="emp-card"><div class="emp-card-hdr">${w}</div><div class="emp-card-days">`;
+    DAYS.forEach((day,i)=>{
+      const ev=sched[w]&&sched[w][i]?sched[w][i]:{e:'',s:''};
+      const key=w.replace(/\s/g,'_');
+      h+=`<td class="time-cell"><input type="text" id="e_${i}_${key}" aria-label="${w} - ${day} - Entrada" placeholder="D" value="${ev.e}"></td>`;
+      h+=`<td class="time-cell"><input type="text" id="s_${i}_${key}" aria-label="${w} - ${day} - Salida" placeholder="D" value="${ev.s}"></td>`;
+      cards+=`<div class="emp-day"><span class="emp-day-name">${day}</span><div class="emp-day-inputs"><div class="emp-day-input-wrap"><input type="text" id="ce_${i}_${key}" data-mirror="e_${i}_${key}" aria-label="${w} - ${day} - Entrada" placeholder="—" value="${ev.e}"><span class="ilbl">Entra</span></div><div class="emp-day-input-wrap"><input type="text" id="cs_${i}_${key}" data-mirror="s_${i}_${key}" aria-label="${w} - ${day} - Salida" placeholder="—" value="${ev.s}"><span class="ilbl">Sale</span></div></div></div>`;
+    });
+    h+='</tr>';
+    cards+='</div></div>';
+  });
+  h+='</tbody>';
+  document.getElementById('sched-table').innerHTML=h;
+  const cardsEl=document.getElementById('sched-cards');
+  if(cardsEl){
+    cardsEl.innerHTML=cards;
+    cardsEl.querySelectorAll('input[data-mirror]').forEach(inp=>{
+      inp.addEventListener('input',e=>{const t=document.getElementById(e.target.dataset.mirror);if(t)t.value=e.target.value;});
+    });
+    document.querySelectorAll('#sched-table input').forEach(inp=>{
+      inp.addEventListener('input',e=>{const m=document.getElementById('c'+e.target.id);if(m)m.value=e.target.value;});
+    });
+  }
+}
+
+function saveSched(){
+  const d={};
+  employees.forEach(w=>{
+    d[w]={};
+    DAYS.forEach((_,i)=>{
+      const key=w.replace(/\s/g,'_');
+      d[w][i]={
+        e:document.getElementById(`e_${i}_${key}`)?.value||'',
+        s:document.getElementById(`s_${i}_${key}`)?.value||''
+      };
+    });
+  });
+  save('sched',d);
+}
+
+function clearSched(){if(!confirm('¿Limpiar la tabla de asignación? Se eliminarán los horarios guardados.'))return;save('sched',{});buildTable();toast('Tabla limpiada');}
+
+// ── TIME PARSING ───────────────────────────────────────────────────────────
+function parseTime(t){
+  if(!t||['d','v',''].includes(t.trim().toLowerCase())) return null;
+  const m=t.trim().toUpperCase().match(/(\d+):(\d+)\s*(AM|PM)/);
+  if(!m) return null;
+  let h=parseInt(m[1]),min=parseInt(m[2]),ap=m[3];
+  if(ap==='PM'&&h!==12)h+=12;
+  if(ap==='AM'&&h===12)h=0;
+  return h*60+min;
+}
+function after430(s){const t=parseTime(s);return t!==null&&t>16*60+30;}
+
+// ── PAIRS ──────────────────────────────────────────────────────────────────
+function makePairs(avail, dayIdx){
+  const pairs=[];
+  if(!avail.length) return pairs;
+  const arr=[...avail].sort(()=>Math.random()-.5);
+  if(arr.length%2===0){
+    for(let i=0;i<arr.length;i+=2) pairs.push([arr[i],arr[i+1]]);
+    lastSolo=null;
+  } else {
+    const cands=arr.filter(w=>w!==lastSolo);
+    const solo=cands[dayIdx%cands.length];
+    lastSolo=solo;
+    const rest=arr.filter(w=>w!==solo);
+    for(let i=0;i<rest.length;i+=2) pairs.push([rest[i],rest[i+1]]);
+    pairs.push([solo,null]);
+  }
+  return pairs;
+}
+
+// ── MACHINE ASSIGNMENT ─────────────────────────────────────────────────────
+const REDUCED_MIN_DAYS = 3;   // menos de esto = "va pocos días"
+const REDUCED_BAJA = 2;       // máquinas baja fijas para esos casos
+const REDUCED_MEDIA = 2;      // máquinas media fijas para esos casos
+
+// Elige `count` máquinas de dificultad `diff` para el trabajador w, priorizando
+// las que NO están en su historial reciente (o las más antiguas si todas lo están).
+function pickByDiff(w, diff, count, usedNames){
+  const hw=history[w]||[];
+  const pool=machines
+    .filter(m=>m.d===diff && !usedNames.has(m.n))
+    .sort((a,b)=>{
+      if(a.x2!==b.x2) return a.x2?1:-1; // prefiere las NO dobles, para mantener el esfuerzo predecible (~6 pts)
+      const ra=hw.indexOf(a.n), rb=hw.indexOf(b.n);
+      const scoreA=ra===-1?Infinity:ra, scoreB=rb===-1?Infinity:rb;
+      return scoreB-scoreA; // nunca-hecha o más antigua primero
+    });
+  return pool.slice(0,count);
+}
+
+function assignMachines(workers, attendance={}, initialLoad={}){
+  const hist=history;
+  const altaCount={};
+  workers.forEach(w=>{altaCount[w]=(hist[w]||[]).filter(n=>ALTA_NAMES.includes(n)).length;});
+
+  const load=Object.fromEntries(workers.map(w=>[w,initialLoad[w]||0]));
+  const assigned=Object.fromEntries(workers.map(w=>[w,[]]));
+  const usedNames=new Set();
+
+  // 1) Quienes asisten menos de REDUCED_MIN_DAYS días reciben una carga fija y liviana
+  const reduced=workers.filter(w=>(attendance[w]||0)>0 && attendance[w]<REDUCED_MIN_DAYS);
+  const normal=workers.filter(w=>!reduced.includes(w));
+
+  reduced.forEach(w=>{
+    let picks=[...pickByDiff(w,'baja',REDUCED_BAJA,usedNames), ...pickByDiff(w,'media',REDUCED_MEDIA,usedNames)];
+    // Si no alcanzan máquinas baja/media disponibles, se completa con lo más liviano que quede (nunca alta)
+    const faltan=(REDUCED_BAJA+REDUCED_MEDIA)-picks.length;
+    if(faltan>0){
+      const fallback=machines
+        .filter(m=>m.d!=='alta' && !usedNames.has(m.n) && !picks.includes(m))
+        .sort((a,b)=>maqPts(a)-maqPts(b))
+        .slice(0,faltan);
+      picks=[...picks,...fallback];
+    }
+    picks.forEach(m=>{
+      usedNames.add(m.n);
+      assigned[w].push(m);
+      load[w]+=maqPts(m);
+    });
+  });
+
+  // 2) El resto de las máquinas se reparte equitativamente entre quienes SÍ cumplen
+  //    los días mínimos (igual que antes: por carga acumulada y balance de historial)
+  const targets=normal.length?normal:workers; // si por algún motivo todos son "reducidos", igual se reparte el resto
+  const remaining=machines.filter(m=>!usedNames.has(m.n));
+  const sorted=[...remaining].sort((a,b)=>maqPts(b)-maqPts(a));
+
+  sorted.forEach(m=>{
+    const isAlta=ALTA_NAMES.includes(m.n);
+    let bestW=null, bestLoad=Infinity, bestTie=Infinity;
+    targets.forEach(w=>{
+      const l=load[w];
+      const tie=(hist[w]||[]).includes(m.n)?1000:0 + (isAlta?altaCount[w]:0);
+      if(l<bestLoad||(l===bestLoad&&tie<bestTie)){
+        bestLoad=l; bestTie=tie; bestW=w;
+      }
+    });
+    assigned[bestW].push(m);
+    load[bestW]+=maqPts(m);
+    if(isAlta) altaCount[bestW]++;
+  });
+  return assigned;
+}
+
+// ── GENERATE ───────────────────────────────────────────────────────────────
+function generate(){
+  saveSched();
+  const sched=load('sched',{});
+  const weekFrom=document.getElementById('week-from').value||'?';
+  const weekTo=document.getElementById('week-to').value||'?';
+
+  lastSolo=null;
+  const pairsByDay={};
+  DAYS.forEach((day,di)=>{
+    const avail=employees.filter(w=>{
+      const s=sched[w]&&sched[w][di];
+      return s&&after430(s.s);
+    });
+    pairsByDay[day]=makePairs(avail,di);
+  });
+
+  const inPairs=new Set(Object.values(pairsByDay).flat().flat().filter(Boolean));
+  const machWorkers=[...inPairs];
+
+  // Asistencia = en cuántos días de la semana la persona quedó disponible (pareja o solo/a)
+  const attendance={};
+  machWorkers.forEach(w=>attendance[w]=0);
+  DAYS.forEach(day=>{
+    (pairsByDay[day]||[]).forEach(([p1,p2])=>{
+      if(p1) attendance[p1]++;
+      if(p2) attendance[p2]++;
+    });
+  });
+
+  // ── TAREAS PERIÓDICAS ACTIVAS ESTA SEMANA ──
+  // Estos puntos se suman ANTES de repartir máquinas, para que quien hace
+  // la tarea reciba automáticamente menos máquinas y todo quede equilibrado.
+  // Se procesan primero las FIJAS y luego las ROTATIVAS automáticas, así el
+  // reparto automático no le cae a alguien que ya tiene una tarea fija esta semana.
+  const initialLoad={};
+  const taskAssignments=[];
+  const normalAttendance=machWorkers.filter(w=>!((attendance[w]||0)>0 && attendance[w]<REDUCED_MIN_DAYS));
+  const activeTasks=tasks.filter(t=>taskSel[t.n]&&taskSel[t.n].active);
+  const fixedTasks=activeTasks.filter(t=>t.mode==='fija');
+  const rotativeTasks=activeTasks.filter(t=>t.mode!=='fija');
+
+  function applyTask(t, person){
+    if(!person) return;
+    initialLoad[person]=(initialLoad[person]||0)+t.pts;
+    taskAssignments.push({name:t.n, pts:t.pts, person, mode:t.mode});
+  }
+  fixedTasks.forEach(t=>applyTask(t, t.person||null));
+  rotativeTasks.forEach(t=>{
+    const sel=taskSel[t.n];
+    let person;
+    if(sel.person && sel.person!=='auto'){
+      person=sel.person;
+    } else {
+      // Automático: prioriza a quien SÍ cumple días mínimos y tiene menos carga acumulada hasta ahora
+      const candidates=normalAttendance.length?normalAttendance:(machWorkers.length?machWorkers:employees);
+      person=candidates.reduce((best,w)=>(initialLoad[w]||0)<(initialLoad[best]||0)?w:best, candidates[0]);
+    }
+    applyTask(t, person);
+  });
+
+  const assigned=machWorkers.length?assignMachines(machWorkers,attendance,initialLoad):{};
+
+  lastResult={weekFrom,weekTo,pairsByDay,assigned,attendance,taskAssignments};
+  renderResult(lastResult);
+
+  const newHist={...history};
+  machWorkers.forEach(w=>{
+    if(!newHist[w]) newHist[w]=[];
+    const added=(assigned[w]||[]).map(m=>m.n);
+    newHist[w]=[...added,...newHist[w]].slice(0,40);
+  });
+  history=newHist;
+  save('hist',history);
+
+  // Las tareas periódicas se desmarcan solas: la próxima semana hay que elegirlas de nuevo
+  tasks.forEach(t=>{ if(taskSel[t.n]) taskSel[t.n].active=false; });
+  save('taskSel',taskSel);
+  renderTaskSelector();
+
+  showPage('resultado');
+  toast('✅ Asignación generada');
+}
+
+// ── RENDER RESULT ──────────────────────────────────────────────────────────
+function renderResult({weekFrom,weekTo,pairsByDay,assigned,attendance={},taskAssignments=[]}){
+  document.getElementById('result-week-label').textContent=`Semana del ${weekFrom} al ${weekTo}`;
+
+  let html='<div class="card"><div class="card-title">Parejas de limpieza por día</div><div class="days-grid">';
+  DAYS.forEach((day,di)=>{
+    const pairs=pairsByDay[day]||[];
+    if(!pairs.length) return;
+    const col=DAY_COLORS[di];
+    html+=`<div class="day-card"><div class="day-card-hdr" style="background:${col}">${day}</div>`;
+    pairs.forEach(([p1,p2])=>{
+      const bg=p2?'transparent':'rgba(232,93,37,0.08)';
+      html+=`<div class="pair-item" style="background:${bg}">
+        <span style="color:var(--text-card)">${p1}${p2?` & ${p2}`:''}</span>
+        <span class="badge ${p2?'badge-pair':'badge-solo'}">${p2?'Pareja':'Solo/a'}</span>
+      </div>`;
+    });
+    html+='</div>';
+  });
+  html+='</div></div>';
+
+  const peopleSet=new Set([...Object.keys(assigned), ...taskAssignments.map(t=>t.person)]);
+  if(peopleSet.size){
+    html+='<div class="card"><div class="card-title">Asignación de limpieza</div><div class="mach-grid">';
+    peopleSet.forEach(w=>{
+      const machs=assigned[w]||[];
+      const myTasks=taskAssignments.filter(t=>t.person===w);
+      const pts=machs.reduce((s,m)=>s+maqPts(m),0)+myTasks.reduce((s,t)=>s+t.pts,0);
+      const isReduced=(attendance[w]||0)>0 && attendance[w]<REDUCED_MIN_DAYS;
+      const reducedTag=isReduced?`<span class="pts" style="color:var(--af-orange)">🕒 ${attendance[w]} día${attendance[w]===1?'':'s'}</span>`:'';
+      html+=`<div class="mach-block"><div class="mach-block-hdr">${w}${reducedTag}<span class="pts">${pts} pts</span></div>`;
+      myTasks.forEach(t=>{
+        html+=`<div class="mach-item"><span class="badge" style="background:var(--secondary);color:var(--secondary-text);border:1px solid var(--secondary-shadow)">${t.mode==='fija'?'📌':'🔄'} tarea</span><span style="color:var(--text-card)">${t.name} <span class="pts">(${t.pts} pts)</span></span></div>`;
+      });
+      machs.forEach(m=>{
+        html+=`<div class="mach-item"><span class="badge badge-${m.d}">${m.d}</span><span style="color:var(--text-card)">${m.n}</span></div>`;
+      });
+      html+='</div>';
+    });
+    html+='</div></div>';
+  }
+
+  html+=`<div class="card"><div class="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--alta)"></div><span>Alta – Limpieza exigente</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--media)"></div><span>Media – Limpieza estándar</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--baja)"></div><span>Baja – Limpieza rápida</span></div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--secondary)"></div><span>Tarea periódica</span></div>
+  </div></div>`;
+
+  document.getElementById('result-body').innerHTML=html;
+  document.getElementById('result-actions').style.display='flex';
+}
+
+// ── PRINT RESULT ───────────────────────────────────────────────────────────
+function printResult(){
+  if(!lastResult){toast('Genera primero');return;}
+  const {weekFrom,weekTo,pairsByDay,assigned,taskAssignments=[]}=lastResult;
+  const DAY_COLORS_P=['#E85D25','#F5A623','#7CB342','#7B6FE0','#D9481F'];
+  const DAY_ROW_P=['#FFF0E6','#FFFBEA','#E8FAF3','#F0EFFE','#FFF0F5'];
+  const DIFF_BG_P={alta:'#FFCCCC',media:'#FFF3CD',baja:'#D4EDDA'};
+  const SOLO_BG_P='#FFE0CC';
+
+  const workers=[...new Set([...Object.keys(assigned), ...taskAssignments.map(t=>t.person)])];
+  const half=Math.ceil(workers.length/2);
+  const leftW=workers.slice(0,half);
+  const rightW=workers.slice(half);
+
+  function pairsHtml(){
+    let h='';
+    DAYS.forEach((day,di)=>{
+      const pairs=pairsByDay[day]||[];
+      if(!pairs.length) return;
+      const hdrCol=DAY_COLORS_P[di];
+      const rowCol=DAY_ROW_P[di];
+      pairs.forEach(([p1,p2],i)=>{
+        const bg=p2?rowCol:SOLO_BG_P;
+        h+=`<tr>
+          <td style="background:${i===0?hdrCol:bg};color:${i===0?'#fff':'#333'};font-weight:${i===0?700:400};text-align:center;padding:3px 6px;border:0.5px solid #ddd;font-size:8px">${i===0?day:''}</td>
+          <td style="background:${bg};color:#333;padding:3px 6px;border:0.5px solid #ddd;font-size:8px">${p1}</td>
+          <td style="background:${bg};color:#333;padding:3px 6px;border:0.5px solid #ddd;font-size:8px">${p2||'—'}</td>
+          <td style="background:${bg};color:#333;text-align:center;padding:3px 6px;border:0.5px solid #ddd;font-size:8px">${p2?'Pareja':'Solo/a'}</td>
+        </tr>`;
+      });
+    });
+    return h;
+  }
+
+  function machBlockHtml(w){
+    const machs=assigned[w]||[];
+    const wtasks=taskAssignments.filter(t=>t.person===w);
+    let rows='';
+    let first=true;
+    wtasks.forEach(t=>{
+      rows+=`<tr>
+        <td style="background:#FBE3B4;font-weight:${first?700:400};text-align:center;padding:2px 5px;border:0.5px solid #ddd;font-size:7.5px">${first?w:''}</td>
+        <td style="background:#FBE3B4;padding:2px 5px;border:0.5px solid #ddd;font-size:7.5px">${t.mode==='fija'?'📌':'🔄'} ${t.name}</td>
+        <td style="background:#FBE3B4;text-align:center;padding:2px 5px;border:0.5px solid #ddd;font-size:7.5px">TAREA · ${t.pts}p</td>
+        <td style="background:#FBE3B4;text-align:center;padding:2px 5px;border:0.5px solid #ddd;font-size:11px">⬜</td>
+      </tr>`;
+      first=false;
+    });
+    machs.forEach(m=>{
+      rows+=`<tr>
+        <td style="background:${DIFF_BG_P[m.d]};font-weight:${first?700:400};text-align:center;padding:2px 5px;border:0.5px solid #ddd;font-size:7.5px">${first?w:''}</td>
+        <td style="background:${DIFF_BG_P[m.d]};padding:2px 5px;border:0.5px solid #ddd;font-size:7.5px">${m.n}</td>
+        <td style="background:${DIFF_BG_P[m.d]};text-align:center;padding:2px 5px;border:0.5px solid #ddd;font-size:7.5px">${m.d.toUpperCase()}</td>
+        <td style="background:${DIFF_BG_P[m.d]};text-align:center;padding:2px 5px;border:0.5px solid #ddd;font-size:11px">⬜</td>
+      </tr>`;
+      first=false;
+    });
+    return rows;
+  }
+
+  function machTableHtml(ws){
+    if(!ws.length) return '';
+    return `<table style="width:100%;border-collapse:collapse">
+      <tr>
+        <td style="background:#E85D25;color:#fff;font-weight:700;text-align:center;padding:3px 5px;border:0.5px solid #ccc;font-size:8px">EMPLEADO</td>
+        <td style="background:#E85D25;color:#fff;font-weight:700;padding:3px 5px;border:0.5px solid #ccc;font-size:8px">MÁQUINA(S)</td>
+        <td style="background:#E85D25;color:#fff;font-weight:700;text-align:center;padding:3px 5px;border:0.5px solid #ccc;font-size:8px">DIFIC.</td>
+        <td style="background:#E85D25;color:#fff;font-weight:700;text-align:center;padding:3px 5px;border:0.5px solid #ccc;font-size:8px">✓</td>
+      </tr>
+      ${ws.map(w=>machBlockHtml(w)).join('')}
+    </table>`;
+  }
+
+  const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
+  <style>
+    @page{size:A4 landscape;margin:6mm}
+    body{font-family:Arial,sans-serif;margin:0;padding:0}
+    *{box-sizing:border-box}
+  <\/style>
+  <\/head><body>
+  <div style="background:#E85D25;color:#fff;font-weight:700;font-size:13px;padding:5px 10px;text-align:center;margin-bottom:4px">
+    🦁 AFRICA – LIMPIEZA SEMANAL &nbsp;|&nbsp; ${weekFrom} – ${weekTo}
+  </div>
+  <table style="width:100%;border-collapse:collapse;table-layout:fixed">
+    <tr>
+      <td style="width:22%;vertical-align:top;padding-right:4px">
+        <div style="background:#D9481F;color:#fff;font-weight:700;font-size:9px;padding:3px 6px;text-align:center;margin-bottom:2px">PAREJAS DE LIMPIEZA POR DÍA</div>
+        <table style="width:100%;border-collapse:collapse">
+          <tr>
+            <td style="background:#E85D25;color:#fff;font-weight:700;text-align:center;padding:3px 5px;border:0.5px solid #ccc;font-size:8px">DÍA</td>
+            <td style="background:#E85D25;color:#fff;font-weight:700;padding:3px 5px;border:0.5px solid #ccc;font-size:8px">PERSONA 1</td>
+            <td style="background:#E85D25;color:#fff;font-weight:700;padding:3px 5px;border:0.5px solid #ccc;font-size:8px">PERSONA 2</td>
+            <td style="background:#E85D25;color:#fff;font-weight:700;text-align:center;padding:3px 5px;border:0.5px solid #ccc;font-size:8px">NOTA</td>
+          </tr>
+          ${pairsHtml()}
+        </table>
+      </td>
+      <td style="width:1%"></td>
+      <td style="width:38.5%;vertical-align:top;padding-right:4px">
+        <div style="background:#D9481F;color:#fff;font-weight:700;font-size:9px;padding:3px 6px;text-align:center;margin-bottom:2px">ASIGNACIÓN DE MÁQUINAS (1)</div>
+        ${machTableHtml(leftW)}
+      </td>
+      <td style="width:1%"></td>
+      <td style="width:38.5%;vertical-align:top">
+        <div style="background:#D9481F;color:#fff;font-weight:700;font-size:9px;padding:3px 6px;text-align:center;margin-bottom:2px">ASIGNACIÓN DE MÁQUINAS (2)</div>
+        ${machTableHtml(rightW)}
+      </td>
+    </tr>
+  </table>
+  <div style="background:#E85D25;color:#fff;font-size:7px;padding:2px 8px;text-align:center;margin-top:4px">
+    🔴 ALTA – Limpieza exigente &nbsp;&nbsp; 🟡 MEDIA – Limpieza estándar &nbsp;&nbsp; 🟢 BAJA – Limpieza rápida &nbsp;&nbsp; 🟠 TAREA – Tarea periódica
+  </div>
+  <\/body><\/html>`;
+
+  const win=window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  win.onload=()=>win.print();
+}
+
+// ── EMPLOYEES ──────────────────────────────────────────────────────────────
+function renderEmp(){
+  const el=document.getElementById('emp-list');
+  if(!employees.length){el.innerHTML='<div style="border:2px dashed var(--card-border);border-radius:var(--radius);padding:24px 16px;text-align:center"><div style="font-size:32px;margin-bottom:8px">🧹</div><div style="color:var(--text-muted);font-family:var(--font-heading);font-weight:700">No hay empleados</div></div>';return;}
+  el.innerHTML=employees.map(w=>`
+    <div class="list-item">
+      <span style="color:var(--text-card)">${w}</span>
+      <button class="btn btn-sm btn-danger" onclick="removeEmp('${w.replace(/'/g,"\\'")}')">🗑 Quitar</button>
+    </div>`).join('');
+}
+
+function addEmp(){
+  const v=document.getElementById('new-emp').value.trim();
+  if(!v){toast('Escribe un nombre');return;}
+  if(employees.includes(v)){toast('Ya existe');return;}
+  employees.push(v); save('emp',employees);
+  document.getElementById('new-emp').value='';
+  renderEmp(); buildTable(); renderTaskSelector(); renderTasks();
+  toast(`✅ ${v} agregado`);
+}
+
+function removeEmp(w){
+  if(!confirm(`¿Quitar a ${w} del equipo?`)) return;
+  employees=employees.filter(e=>e!==w); save('emp',employees);
+  renderEmp(); buildTable(); renderTaskSelector(); renderTasks();
+  toast(`${w} eliminado`);
+}
+
+// ── MACHINES ───────────────────────────────────────────────────────────────
+function renderMaq(){
+  document.getElementById('maq-count').textContent=machines.length;
+  const el=document.getElementById('maq-list');
+  if(!machines.length){el.innerHTML='<div style="border:2px dashed var(--card-border);border-radius:var(--radius);padding:24px 16px;text-align:center"><div style="font-size:32px;margin-bottom:8px">🧹</div><div style="color:var(--text-muted);font-family:var(--font-heading);font-weight:700">No hay máquinas</div></div>';return;}
+  el.innerHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:14px">
+    <thead><tr>
+      <th style="text-align:left;padding:10px 14px;color:var(--text-muted);font-weight:700;font-size:12px;border-bottom:2px solid var(--card-border);font-family:var(--font-heading)">Máquina</th>
+      <th style="text-align:center;padding:8px;color:var(--text-muted);font-weight:700;font-size:12px;border-bottom:2px solid var(--card-border);width:130px;font-family:var(--font-heading)">Dificultad</th>
+      <th style="text-align:center;padding:8px;color:var(--text-muted);font-weight:700;font-size:12px;border-bottom:2px solid var(--card-border);width:100px;font-family:var(--font-heading)">Doble</th>
+      <th style="text-align:center;padding:8px;color:var(--text-muted);font-weight:700;font-size:12px;border-bottom:2px solid var(--card-border);width:80px;font-family:var(--font-heading)">Pts</th>
+      <th style="width:70px;border-bottom:2px solid var(--card-border)"></th>
+    </tr></thead>
+    <tbody>`+machines.map((m,i)=>`
+    <tr>
+      <td style="padding:10px 14px;border-bottom:2px solid var(--card-border);color:var(--text-card);font-weight:700">${m.n}</td>
+      <td style="padding:8px;text-align:center;border-bottom:2px solid var(--card-border)">
+        <select onchange="changeDiff(${i},this.value)" style="font-size:13px;padding:6px 10px;width:auto">
+          <option value="alta" ${m.d==='alta'?'selected':''}>🔴 Alta</option>
+          <option value="media" ${m.d==='media'?'selected':''}>🟡 Media</option>
+          <option value="baja" ${m.d==='baja'?'selected':''}>🟢 Baja</option>
+        </select>
+      </td>
+      <td style="padding:8px;text-align:center;border-bottom:2px solid var(--card-border)">
+        <input type="checkbox" ${m.x2?'checked':''} onchange="toggleDoble(${i},this.checked)" class="cb-custom">
+      </td>
+      <td style="padding:8px;text-align:center;border-bottom:2px solid var(--card-border);color:var(--text-muted);font-size:13px;font-weight:700">
+        ${maqPts(m)} pts
+      </td>
+      <td style="padding:8px;text-align:center;border-bottom:2px solid var(--card-border)">
+        <button class="btn btn-sm btn-danger" aria-label="Eliminar máquina" onclick="removeMaq(${i})">🗑</button>
+      </td>
+    </tr>`).join('')+'</tbody></table></div>';
+}
+
+function changeDiff(i,v){
+  machines[i].d=v; save('maq',machines);
+  renderMaq();
+  toast('Dificultad actualizada');
+}
+
+function toggleDoble(i,val){
+  machines[i].x2=val; save('maq',machines);
+  renderMaq();
+  toast(val?'Marcada como doble (x2 pts)':'Marcada como simple');
+}
+
+function addMaq(){
+  const n=document.getElementById('new-maq').value.trim();
+  const d=document.getElementById('new-diff').value;
+  const x2=document.getElementById('new-doble').checked;
+  if(!n){toast('Escribe el nombre');return;}
+  if(machines.find(m=>m.n===n)){toast('Ya existe');return;}
+  machines.push({n,d,x2}); save('maq',machines);
+  document.getElementById('new-maq').value='';
+  document.getElementById('new-doble').checked=false;
+  renderMaq();
+  toast(`✅ ${n} agregada (${maqPts({d,x2})} pts)`);
+}
+
+function removeMaq(i){
+  if(!confirm(`¿Eliminar "${machines[i].n}"?`)) return;
+  const name=machines[i].n;
+  machines.splice(i,1); save('maq',machines);
+  renderMaq();
+  toast(`${name} eliminada`);
+}
+
+// ── TASKS (tareas periódicas) ────────────────────────────────────────────────
+function renderTaskSelector(){
+  const card=document.getElementById('task-selector-card');
+  const list=document.getElementById('task-selector-list');
+  if(!card||!list) return;
+  if(!tasks.length){card.style.display='none';return;}
+  card.style.display='block';
+  list.innerHTML=tasks.map(t=>{
+    const sel=taskSel[t.n]||{active:false,person:'auto'};
+    const safeName=t.n.replace(/'/g,"\\'");
+    const personField = t.mode==='rotativa'
+      ? `<select onchange="updateTaskSel('${safeName}',null,this.value)" ${sel.active?'':'disabled'} style="max-width:230px">
+           <option value="auto" ${sel.person==='auto'||!sel.person?'selected':''}>🔄 Automático (equitativo)</option>
+           ${employees.map(e=>`<option value="${e}" ${sel.person===e?'selected':''}>${e}</option>`).join('')}
+         </select>`
+      : `<span style="color:var(--text-muted);font-weight:700;font-size:13px;white-space:nowrap">📌 ${t.person||'(sin asignar)'}</span>`;
+    return `<div class="list-item">
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;flex:1 1 220px">
+        <input type="checkbox" class="cb-custom" ${sel.active?'checked':''} onchange="updateTaskSel('${safeName}',this.checked,null)">
+        <span style="color:var(--text-card)">${t.n} <span class="pts">(${t.pts} pts)</span></span>
+      </label>
+      ${personField}
+    </div>`;
+  }).join('');
+}
+
+function updateTaskSel(name, active, person){
+  const cur=taskSel[name]||{active:false,person:'auto'};
+  if(active!==null) cur.active=active;
+  if(person!==null) cur.person=person;
+  taskSel[name]=cur;
+  save('taskSel',taskSel);
+  renderTaskSelector();
+}
+
+function renderTasks(){
+  document.getElementById('task-count').textContent=tasks.length;
+  const el=document.getElementById('task-list');
+  toggleTaskPersonField();
+  if(!tasks.length){el.innerHTML='<div style="border:2px dashed var(--card-border);border-radius:var(--radius);padding:24px 16px;text-align:center"><div style="font-size:32px;margin-bottom:8px">🧺</div><div style="color:var(--text-muted);font-family:var(--font-heading);font-weight:700">No hay tareas</div></div>';return;}
+  el.innerHTML=`<div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;font-size:14px">
+    <thead><tr>
+      <th style="text-align:left;padding:10px 14px;color:var(--text-muted);font-weight:700;font-size:12px;border-bottom:2px solid var(--card-border);font-family:var(--font-heading)">Tarea</th>
+      <th style="text-align:center;padding:8px;color:var(--text-muted);font-weight:700;font-size:12px;border-bottom:2px solid var(--card-border);width:160px;font-family:var(--font-heading)">Modo</th>
+      <th style="text-align:center;padding:8px;color:var(--text-muted);font-weight:700;font-size:12px;border-bottom:2px solid var(--card-border);width:180px;font-family:var(--font-heading)">Persona fija</th>
+      <th style="text-align:center;padding:8px;color:var(--text-muted);font-weight:700;font-size:12px;border-bottom:2px solid var(--card-border);width:90px;font-family:var(--font-heading)">Pts</th>
+      <th style="width:70px;border-bottom:2px solid var(--card-border)"></th>
+    </tr></thead>
+    <tbody>`+tasks.map((t,i)=>`
+    <tr>
+      <td style="padding:10px 14px;border-bottom:2px solid var(--card-border);color:var(--text-card);font-weight:700">${t.n}</td>
+      <td style="padding:8px;text-align:center;border-bottom:2px solid var(--card-border)">
+        <select onchange="changeTaskMode(${i},this.value)" style="font-size:13px;padding:6px 10px;width:auto">
+          <option value="rotativa" ${t.mode==='rotativa'?'selected':''}>🔄 Rotativa</option>
+          <option value="fija" ${t.mode==='fija'?'selected':''}>📌 Fija</option>
+        </select>
+      </td>
+      <td style="padding:8px;text-align:center;border-bottom:2px solid var(--card-border)">
+        ${t.mode==='fija'
+          ? `<select onchange="changeTaskPerson(${i},this.value)" style="font-size:13px;padding:6px 10px;width:auto">
+              <option value="">—</option>
+              ${employees.map(e=>`<option value="${e}" ${t.person===e?'selected':''}>${e}</option>`).join('')}
+             </select>`
+          : `<span style="color:var(--text-muted)">—</span>`}
+      </td>
+      <td style="padding:8px;text-align:center;border-bottom:2px solid var(--card-border)">
+        <input type="text" value="${t.pts}" style="width:60px;text-align:center;padding:6px;border-radius:10px" onchange="changeTaskPts(${i},this.value)">
+      </td>
+      <td style="padding:8px;text-align:center;border-bottom:2px solid var(--card-border)">
+        <button class="btn btn-sm btn-danger" aria-label="Eliminar tarea" onclick="removeTask(${i})">🗑</button>
+      </td>
+    </tr>`).join('')+'</tbody></table></div>';
+}
+
+function toggleTaskPersonField(){
+  const modeEl=document.getElementById('new-task-mode');
+  const sel=document.getElementById('new-task-person');
+  if(!modeEl||!sel) return;
+  if(modeEl.value==='fija'){
+    sel.innerHTML=employees.map(e=>`<option value="${e}">${e}</option>`).join('');
+    sel.style.display='block';
+  } else {
+    sel.style.display='none';
+  }
+}
+
+function changeTaskMode(i,v){
+  tasks[i].mode=v;
+  if(v==='rotativa') tasks[i].person=null;
+  save('tasks',tasks);
+  renderTasks(); renderTaskSelector();
+  toast('Modo actualizado');
+}
+
+function changeTaskPerson(i,v){
+  tasks[i].person=v||null;
+  save('tasks',tasks);
+  renderTasks(); renderTaskSelector();
+  toast('Persona actualizada');
+}
+
+function changeTaskPts(i,v){
+  const n=parseInt(v)||0;
+  tasks[i].pts=n;
+  save('tasks',tasks);
+  renderTasks();
+  toast('Puntos actualizados');
+}
+
+function addTask(){
+  const n=document.getElementById('new-task').value.trim();
+  const pts=parseInt(document.getElementById('new-task-pts').value)||0;
+  const mode=document.getElementById('new-task-mode').value;
+  const person=mode==='fija'?(document.getElementById('new-task-person').value||null):null;
+  if(!n){toast('Escribe el nombre de la tarea');return;}
+  if(tasks.find(t=>t.n===n)){toast('Ya existe');return;}
+  if(!pts){toast('Escribe los puntos de esfuerzo');return;}
+  if(mode==='fija'&&!person){toast('Elige la persona fija');return;}
+  tasks.push({n,pts,mode,person});
+  save('tasks',tasks);
+  document.getElementById('new-task').value='';
+  document.getElementById('new-task-pts').value='';
+  renderTasks(); renderTaskSelector();
+  toast(`✅ ${n} agregada`);
+}
+
+function removeTask(i){
+  const name=tasks[i].n;
+  if(!confirm(`¿Eliminar la tarea "${name}"?`)) return;
+  tasks.splice(i,1); save('tasks',tasks);
+  delete taskSel[name]; save('taskSel',taskSel);
+  renderTasks(); renderTaskSelector();
+  toast(`${name} eliminada`);
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+buildTable();
+renderTaskSelector();
+</script>
+
+<script>
+window.addEventListener('message', function(e){
+  if(!e.data || e.data.type !== 'africa-tools-set-theme') return;
+  var theme = e.data.theme === 'dark' ? 'dark' : 'light';
+  document.body.setAttribute('data-theme', theme);
+  var btn = document.querySelector('.theme-toggle');
+  if(btn){
+    btn.textContent = theme === 'dark' ? '🌙' : '☀️';
+    btn.setAttribute('aria-label', theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
+  }
+  try { localStorage.setItem('af_theme', theme); } catch(err){}
+});
+if (window.parent !== window) { var localToggle = document.querySelector('.theme-toggle'); if (localToggle) localToggle.style.display = 'none'; }
+
+</script>
+</body>
+</html>

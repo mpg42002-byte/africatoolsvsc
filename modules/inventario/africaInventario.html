@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+<script>(function(){try{var t=new URLSearchParams(location.search).get('theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>PDF → Excel · África Parque de Diversiones</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+
+<!-- Fuentes de Google: Fredoka (Headings) y Nunito (Body) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --af-orange: #E85D25;
+    --af-amber: #F5A623;
+    --af-red: #D9481F;
+    --af-coffee: #4A2F1F;
+    --af-yellow: #F5D414;
+    --af-green: #7CB342;
+    --af-cream: #EDE0C8;
+    --af-white: #FFFFFF;
+    --bg-body: var(--af-coffee);
+    --bg-pattern: radial-gradient(rgba(245, 166, 35, 0.15) 2px, transparent 2px);
+    
+    --text-main: var(--af-cream);
+    
+    --card-bg: var(--af-cream);
+    --card-bg-hover: #F8F1E1;
+    --card-border: #D8B37C;
+    --card-shadow: #26170E;
+    
+    --text-card: var(--af-coffee);
+    --text-muted: #5C3A22;
+    
+    --primary: var(--af-orange);
+    --primary-shadow: #B54215;
+    --primary-text: var(--af-white);
+    --primary-btn-bg: #D14E1C;
+    
+    --secondary: var(--af-amber);
+    --secondary-shadow: #C48214;
+    --secondary-text: var(--af-coffee);
+    
+    --accent-badge: var(--af-yellow);
+    --danger: var(--af-red);
+    --success: var(--af-green);
+    --warning: var(--af-yellow);
+    --warning-text: var(--af-coffee);
+    --info: #2F8FA3;
+    --info-text: var(--af-white);
+    
+    --line: #D8B37C;
+    --input-bg: var(--af-white);
+    
+    --font-heading: 'Fredoka', sans-serif;
+    --font-body: 'Nunito', sans-serif;
+    --font-mono: 'Nunito', monospace;
+
+    --space-1: 4px;
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-5: 24px;
+    --space-5-5: 28px;
+    --space-6: 32px;
+    --space-7: 48px;
+
+    --radius-sm: 8px;
+    --radius-md: 16px;
+    --radius-lg: 24px;
+    --radius-pill: 999px;
+  }
+  [data-theme="dark"] {
+    --bg-body: #1E1610;
+    --bg-pattern: radial-gradient(rgba(245, 166, 35, 0.05) 2px, transparent 2px);
+    
+    --text-main: #F5EBDA;
+    
+    --card-bg: #2A1E14;
+    --card-bg-hover: #33261A;
+    --card-border: #4A3624;
+    --card-shadow: #0F0A07;
+    
+    --text-card: #F5EBDA;
+    --text-muted: #D9BE9D;
+    
+    --primary: var(--af-orange);
+    --primary-shadow: #A33A10;
+    --primary-text: var(--af-white);
+    
+    --secondary: var(--af-amber);
+    --secondary-text: var(--af-coffee);
+    
+    --line: #4A3624;
+    --input-bg: #1E1610;
+  }
+  * { box-sizing: border-box; }
+  
+  body {
+    margin: 0;
+    background-color: var(--bg-body);
+    background-image: var(--bg-pattern);
+    background-size: 30px 30px;
+    background-position: 0 0;
+    color: var(--text-main);
+    font-family: var(--font-body);
+    padding: var(--space-6) var(--space-5) 80px; /* 80px excede la escala; se conserva literal para no alterar el layout */
+    min-height: 100vh;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  .wrap { max-width: 920px; margin: 0 auto; position: relative; }
+  .header-tools {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .stamp { display: flex; align-items: center; gap: 14px; }
+  
+  .stamp .box {
+    background: var(--card-bg);
+    border: 3px dashed var(--secondary);
+    color: var(--primary);
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.05em;
+    padding: 8px 14px;
+    border-radius: 12px;
+    box-shadow: 0 4px 0 var(--secondary);
+    transform: rotate(-3deg);
+    transition: all 0.3s ease;
+  }
+
+  .theme-toggle {
+    background: var(--card-bg);
+    border: 2px solid var(--card-border);
+    color: var(--text-card);
+    font-size: 20px;
+    width: 46px;
+    height: 46px;
+    min-width: 46px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 0 var(--card-shadow);
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .theme-toggle svg {
+    display: block;
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    color: var(--text-card);
+    stroke: currentColor;
+  }
+  .theme-toggle:hover { transform: translateY(-2px); box-shadow: 0 6px 0 var(--card-shadow); }
+  .theme-toggle:active { transform: translateY(4px); box-shadow: 0 0 0 var(--card-shadow); }
+
+  h1 {
+    font-family: var(--font-heading);
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-size: 32px;
+    margin: 16px 0 8px;
+    color: var(--text-main);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+  
+  .subtitle { 
+    color: var(--text-main); 
+    opacity: 0.9;
+    font-size: 16px; 
+    margin: 0 0 36px; 
+    max-width: 60ch; 
+    line-height: 1.6; 
+    font-weight: 600;
+  }
+  .card {
+    background: var(--card-bg);
+    border: 3px solid var(--card-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5-5);
+    margin-bottom: var(--space-5-5);
+    position: relative;
+    box-shadow: 0 8px 0 var(--card-shadow);
+    color: var(--text-card);
+    transition: opacity .3s ease, filter .3s ease, transform .3s ease;
+  }
+  .card.disabled { 
+    opacity: 0.6; 
+    filter: grayscale(0.8); 
+    pointer-events: none; 
+    box-shadow: 0 4px 0 var(--card-shadow);
+    transform: translateY(4px);
+  }
+  
+  .step-tag {
+    font-family: var(--font-heading);
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    color: var(--af-coffee);
+    background: var(--accent-badge);
+    display: inline-block;
+    padding: var(--space-2) var(--space-4);
+    border-radius: var(--radius-pill);
+    margin-bottom: var(--space-4);
+    text-transform: uppercase;
+    box-shadow: 0 3px 0 rgba(0,0,0,0.15);
+  }
+  
+  .card h2 {
+    font-size: 22px; 
+    margin: 0 0 8px; 
+    font-family: var(--font-heading); 
+    text-transform: uppercase;
+    color: var(--text-card);
+  }
+
+  .help-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--card-bg-hover);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: var(--font-body);
+    text-transform: none;
+    letter-spacing: normal;
+    vertical-align: middle;
+    cursor: help;
+    margin-left: 4px;
+  }
+  
+  .card p.hint { 
+    color: var(--text-muted); 
+    font-size: 15px; 
+    margin: 0 0 var(--space-5); 
+    line-height: 1.5; 
+    font-weight: 500;
+  }
+  .drop {
+    border: 2px dashed var(--line);
+    border-radius: var(--radius-md);
+    background: var(--card-bg-hover);
+    padding: var(--space-6);
+    text-align: center;
+    cursor: pointer;
+    transition: all .2s ease;
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 16px;
+    color: var(--text-muted);
+  }
+  .drop:hover, .drop.drag {
+    border-color: var(--secondary);
+    background: rgba(245, 166, 35, 0.12);
+    color: var(--text-card);
+    transform: scale(1.01);
+  }
+  .drop .fname { color: var(--primary); font-weight: 800; }
+  input[type=file] { display: none; }
+  button {
+    font-family: var(--font-heading);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-radius: var(--radius-pill);
+    border: 2px solid transparent;
+    padding: var(--space-3) var(--space-5);
+    cursor: pointer;
+    transition: all .15s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  button:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none !important; transform: none !important; }
+
+  .icon-btn {
+    font-family: inherit;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    text-transform: none;
+    letter-spacing: normal;
+    box-shadow: none;
+  }
+  .icon-btn:disabled { opacity: 1; }
+  
+  .btn-primary { 
+    background: var(--primary-btn-bg); 
+    color: var(--primary-text);
+    box-shadow: 0 5px 0 var(--primary-shadow);
+  }
+  .btn-primary:hover:not(:disabled) { 
+    transform: translateY(-2px);
+    box-shadow: 0 7px 0 var(--primary-shadow);
+    filter: brightness(1.05);
+  }
+  .btn-primary:active:not(:disabled) { 
+    transform: translateY(5px);
+    box-shadow: 0 0 0 var(--primary-shadow);
+  }
+  
+  .btn-ghost { 
+    background: transparent; 
+    border: 2px solid var(--line); 
+    color: var(--text-card);
+    box-shadow: 0 4px 0 var(--line);
+  }
+  .btn-ghost:hover:not(:disabled) { 
+    border-color: var(--secondary); 
+    color: var(--secondary);
+    box-shadow: 0 4px 0 var(--secondary);
+    transform: translateY(-2px);
+  }
+  .btn-ghost:active:not(:disabled) { 
+    transform: translateY(4px);
+    box-shadow: 0 0 0 var(--secondary);
+  }
+
+  .status { font-family: var(--font-body); font-weight: 700; font-size: 14px; color: var(--text-muted); margin-top: var(--space-4); min-height: 20px; display: flex; align-items: center; gap: var(--space-2); }
+  .status.err { color: var(--danger); }
+  .status.ok { color: var(--success); }
+  .status.warn { color: var(--warning); }
+  .status.info { color: var(--info); }
+
+  /* Spinner de carga (sin dependencias externas) */
+  .status .spinner {
+    width: 14px; height: 14px; border-radius: 50%;
+    border: 2px solid currentColor; border-top-color: transparent;
+    animation: spin .7s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .table-scroll { 
+    overflow: auto; 
+    max-height: 420px; 
+    border: 2px solid var(--line); 
+    border-radius: var(--radius-md); 
+    margin-top: var(--space-3);
+    position: relative;
+  }
+  
+  table.grid { 
+    border-collapse: collapse; 
+    width: 100%; 
+    font-family: var(--font-body); 
+    font-size: 14px; 
+  }
+  table.grid th, table.grid td {
+    border: 1px solid var(--line);
+    padding: 10px 12px;
+    white-space: nowrap;
+    min-width: 90px;
+    font-weight: 600;
+  }
+  table.grid thead th {
+    background: var(--card-bg-hover);
+    position: sticky; top: 0;
+    color: var(--primary);
+    font-family: var(--font-heading);
+    font-size: 15px;
+    letter-spacing: 0.02em;
+    z-index: 2;
+    cursor: grab;
+  }
+  table.grid thead th.dragging { opacity: 0.4; cursor: grabbing; }
+  table.grid thead th.drag-over { box-shadow: inset 3px 0 0 var(--secondary); }
+  table.grid td[contenteditable="true"] { outline: none; transition: background 0.2s; }
+  table.grid td[contenteditable="true"]:focus { background: rgba(245, 166, 35, 0.2); box-shadow: inset 0 0 0 2px var(--secondary); border-radius: 4px; }
+  
+  table.grid td.rowdel-cell {
+    background: var(--card-bg-hover); text-align: center; min-width: 40px;
+  }
+  button.rowdel {
+    width: 100%; text-align: center; cursor: pointer; color: var(--text-muted); font-size: 16px;
+  }
+  button.rowdel:hover { color: var(--danger); background: rgba(217, 72, 31, 0.1); }
+  
+  button.col-x { cursor: pointer; margin-left: var(--space-2); color: var(--danger); font-weight: 900; font-size: 16px;}
+  button.col-x:hover { transform: scale(1.2); }
+  
+  button.col-move { cursor: pointer; color: var(--text-muted); font-weight: 900; padding: 0 4px; font-size: 14px;}
+  button.col-move:hover { color: var(--secondary); }
+  button.col-move.disabled { opacity: .25; pointer-events: none; }
+  
+  th .col-actions { display: inline-flex; align-items: center; margin-left: 8px; gap: 4px; }
+  .row-actions { display: flex; gap: 12px; margin-top: 20px; flex-wrap: wrap; }
+  .col-list { display: flex; flex-wrap: wrap; gap: 10px; margin: 10px 0 24px; }
+  
+  .col-chip {
+    display: flex; align-items: center; gap: var(--space-2);
+    border: 2px solid var(--line);
+    border-radius: var(--radius-pill);
+    padding: var(--space-2) var(--space-4) var(--space-2) var(--space-3);
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    background: var(--card-bg);
+    color: var(--text-muted);
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 0 var(--line);
+  }
+  .col-chip:active { transform: translateY(2px); box-shadow: 0 0 0 var(--line); }
+  .col-chip input { accent-color: var(--secondary); width: 16px; height: 16px; cursor: pointer; }
+  .col-chip.on { 
+    border-color: var(--secondary); 
+    color: var(--text-card); 
+    background: rgba(245, 166, 35, 0.2); 
+    box-shadow: 0 2px 0 var(--secondary);
+  }
+  label.field-label {
+    display: block; font-size: 13px; font-weight: 700;
+    color: var(--text-muted); margin-bottom: 8px; font-family: var(--font-heading); text-transform: uppercase;
+  }
+  
+  select {
+    background: var(--input-bg); color: var(--text-card); border: 2px solid var(--line);
+    padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); font-family: var(--font-body); font-weight: 600; font-size: 15px; min-width: 240px;
+    cursor: pointer;
+    box-shadow: 0 3px 0 var(--line);
+    transition: all 0.2s;
+  }
+  select:focus { border-color: var(--secondary); }
+  
+  .order-toggle { display: flex; gap: 10px; margin-top: 14px; }
+  .order-toggle button { flex: 1; }
+  .order-toggle button.active { 
+    background: var(--secondary); 
+    color: var(--af-coffee); 
+    border-color: var(--secondary);
+    box-shadow: 0 4px 0 #C48214;
+    font-weight: 800;
+  }
+
+  .two-col-row { display: flex; gap: 28px; flex-wrap: wrap; margin-top: 8px; }
+  .two-col-row > div { flex: 1; min-width: 240px; }
+  .preview-count {
+    font-family: var(--font-body); font-size: 14px; font-weight: 700; color: var(--primary); margin: 24px 0 8px;
+  }
+  
+  .split-preview { display: flex; gap: 16px; margin-top: 12px; }
+  
+  .split-block {
+    flex: 1; border: 2px dashed var(--line); border-radius: 16px; padding: 14px 16px;
+    font-family: var(--font-mono); font-size: 13px; color: var(--text-muted); max-height: 160px; overflow: auto;
+    background: var(--card-bg-hover);
+    line-height: 1.6;
+  }
+  .split-block b { color: var(--primary); font-family: var(--font-heading); text-transform: uppercase; font-size: 12px; letter-spacing: 0.05em; display: block; margin-bottom: 6px; }
+
+  footer { 
+    text-align: center; color: var(--text-main); opacity: 0.8; font-size: 13px; font-weight: 600; margin-top: 48px; font-family: var(--font-body); 
+  }
+  .stepper {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    margin-bottom: var(--space-2);
+  }
+  .stepper .step-dot {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-family: var(--font-heading);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-main);
+    opacity: 0.6;
+  }
+  .stepper .step-dot .dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--line);
+    border: 2px solid var(--line);
+    flex-shrink: 0;
+  }
+  .stepper .step-dot.pending { opacity: 0.5; }
+  .stepper .step-dot.current { opacity: 1; }
+  .stepper .step-dot.current .dot { background: var(--secondary); border-color: var(--secondary); }
+  .stepper .step-dot.done { opacity: 0.85; }
+  .stepper .step-dot.done .dot { background: var(--success); border-color: var(--success); }
+  button:focus-visible,
+  select:focus-visible,
+  .col-chip input:focus-visible,
+  td[contenteditable="true"]:focus-visible,
+  span[contenteditable="true"]:focus-visible {
+    outline: 3px solid var(--secondary);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+    }
+  }
+
+  /* =========================================
+     RESPONSIVE
+     ========================================= */
+  @media (max-width: 640px) {
+    body { padding: 20px 12px 60px; }
+    .card { padding: var(--space-4); }
+    h1 { font-size: 24px; }
+    button { padding: 8px 16px; font-size: 13px; }
+    .table-scroll { position: relative; }
+    .table-scroll::after {
+      content: '';
+      position: sticky;
+      right: 0;
+      top: 0;
+      display: block;
+      width: 24px;
+      height: 100%;
+      background: linear-gradient(to right, transparent, var(--card-bg-hover));
+      pointer-events: none;
+    }
+    .stamp { overflow: visible; }
+  }
+
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="header-tools">
+    <div class="stamp">
+      <div class="box"><span aria-hidden="true">🦁</span> ÁFRICA · PDF→XLS</div>
+    </div>
+    <!-- BOTÓN TOGGLE DE TEMA -->
+    <button id="themeToggle" class="theme-toggle" aria-label="Cambiar tema">
+      <svg id="themeIconMoon" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>
+      <svg id="themeIconSun" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+    </button>
+  </header>
+
+  <div class="stepper" id="stepper" aria-hidden="true">
+    <div class="step-dot current" id="stepDot1"><span class="dot"></span>Paso 1</div>
+    <div class="step-dot pending" id="stepDot2"><span class="dot"></span>Paso 2</div>
+    <div class="step-dot pending" id="stepDot3"><span class="dot"></span>Paso 3</div>
+  </div>
+
+  <h1>Convertidor de inventario</h1>
+  <p class="subtitle">Sube un PDF con tabla, revisa y corrige los datos detectados, elige qué columnas conservar y por cuál ordenar alfabéticamente, y exporta un Excel dividido en dos bloques listos para imprimir.</p>
+
+  <main>
+  <!-- STEP 1 -->
+  <div class="card" id="card1">
+    <span class="step-tag">PASO 01</span>
+    <h2>Subir PDF <span class="help-icon" tabindex="0" title="Sube un PDF con una tabla de bordes visibles y texto seleccionable (no una imagen escaneada). El sistema detecta filas y columnas automáticamente." aria-label="Ayuda: formato de PDF esperado">ⓘ</span></h2>
+    <p class="hint">Funciona mejor con tablas de bordes visibles y texto seleccionable (no escaneadas como imagen).</p>
+    <div class="drop" id="drop">
+      <div id="dropText">Arrastra el PDF aquí o haz clic para elegir el archivo</div>
+    </div>
+    <input type="file" id="fileInput" accept="application/pdf">
+    <div class="status" id="status1" aria-live="polite"></div>
+  </div>
+
+  <!-- STEP 2 -->
+  <div class="card disabled" id="card2">
+    <span class="step-tag">PASO 02</span>
+    <h2>Revisar y corregir datos detectados <span class="help-icon" tabindex="0" title="La primera fila es el encabezado. Edita cualquier celda, agrega o elimina filas/columnas, y usa las flechas para reordenar columnas." aria-label="Ayuda: cómo editar los datos">ⓘ</span></h2>
+    <p class="hint">La primera fila se toma como encabezado. Edita cualquier celda directamente, agrega/elimina filas o columnas si la detección no fue perfecta, y usa ◀ ▶ en el encabezado para reordenar columnas. "+ Columna" agrega una columna vacía (útil para que alguien marque un check o anote una diferencia a mano).</p>
+    <div class="table-scroll"><table class="grid" id="editTable"></table></div>
+    <div class="row-actions">
+      <button class="btn-ghost" id="addRow">+ Fila</button>
+      <button class="btn-ghost" id="addCol">+ Columna</button>
+      <button class="btn-primary" id="confirmData">Confirmar datos →</button>
+    </div>
+  </div>
+
+  <!-- STEP 3 -->
+  <div class="card disabled" id="card3">
+    <span class="step-tag">PASO 03</span>
+    <h2>Elegir columnas y orden <span class="help-icon" tabindex="0" title="Marca las columnas que quieres conservar en el Excel final y elige por cuál columna ordenar los datos, en orden A→Z o Z→A." aria-label="Ayuda: selección y orden de columnas">ⓘ</span></h2>
+    <p class="hint">Marca las columnas que quieres conservar en el archivo final.</p>
+    <div class="col-list" id="colList"></div>
+
+    <div class="two-col-row">
+      <div>
+        <label class="field-label">Ordenar alfabéticamente por</label>
+        <select id="sortSelect"></select>
+      </div>
+      <div>
+        <label class="field-label">Dirección</label>
+        <div class="order-toggle">
+          <button class="btn-ghost active" data-order="asc" id="ordAsc" aria-pressed="true">A → Z</button>
+          <button class="btn-ghost" data-order="desc" id="ordDesc" aria-pressed="false">Z → A</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-count" id="previewCount"></div>
+    <div class="split-preview" id="splitPreview"></div>
+
+    <div class="row-actions">
+      <button class="btn-primary" id="exportBtn">Generar y descargar Excel</button>
+    </div>
+    <div class="status" id="status3" aria-live="polite"></div>
+  </div>
+  </main>
+
+  <footer>Los datos se procesan en tu navegador — el PDF no se sube a ningún servidor. <span aria-hidden="true">🌿</span> África Parque de Diversiones</footer>
+</div>
+
+<script>
+// --- SCRIPT PARA EL TOGGLE DE TEMA (Solo UI) ---
+const themeToggle = document.getElementById('themeToggle');
+const themeIconMoon = document.getElementById('themeIconMoon');
+const themeIconSun = document.getElementById('themeIconSun');
+themeToggle.addEventListener('click', () => {
+  const root = document.documentElement;
+  const isDark = root.getAttribute('data-theme') === 'dark';
+  root.setAttribute('data-theme', isDark ? 'light' : 'dark');
+  themeIconMoon.style.display = isDark ? '' : 'none';
+  themeIconSun.style.display = isDark ? 'none' : '';
+});
+// ----------------------------------------------
+
+// ---------- STEPPER DE PROGRESO ----------
+function updateStepper(step){
+  for (let i = 1; i <= 3; i++){
+    const dot = document.getElementById('stepDot' + i);
+    dot.classList.remove('done', 'current', 'pending');
+    if (i < step) dot.classList.add('done');
+    else if (i === step) dot.classList.add('current');
+    else dot.classList.add('pending');
+  }
+}
+
+// ---------- Íconos SVG en línea (reemplazan emoji de control) ----------
+const ICON_TRASH = '<svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
+const ICON_CHEVRON_LEFT = '<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>';
+const ICON_CHEVRON_RIGHT = '<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
+const ICON_X = '<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>';
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+let rawTable = []; // array of arrays of strings, [0] = header row
+
+// ---------- STEP 1: PDF parsing ----------
+const drop = document.getElementById('drop');
+const fileInput = document.getElementById('fileInput');
+const status1 = document.getElementById('status1');
+const dropText = document.getElementById('dropText');
+
+drop.addEventListener('click', () => fileInput.click());
+['dragover','dragenter'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('drag'); }));
+['dragleave','drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('drag'); }));
+drop.addEventListener('drop', e => {
+  const f = e.dataTransfer.files[0];
+  if (f) handleFile(f);
+});
+fileInput.addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (f) handleFile(f);
+});
+
+function handleFile(file){
+  const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+  if (!isPdf){
+    setStatus(status1, 'Ese archivo no es un PDF.', 'err');
+    return;
+  }
+  dropText.innerHTML = 'Archivo: <span class="fname">' + file.name + '</span>';
+  setStatus(status1, 'Leyendo PDF…', '', true);
+  const reader = new FileReader();
+  reader.onload = async function(e){
+    try{
+      const table = await parsePdf(e.target.result);
+      if (table.length < 2){
+        setStatus(status1, 'No se detectó una tabla con suficientes filas. Revisa que el PDF tenga texto seleccionable (no una imagen escaneada).', 'err');
+        return;
+      }
+      rawTable = table;
+      setStatus(status1, 'Tabla detectada: ' + (table.length-1) + ' filas de datos, ' + table[0].length + ' columnas. Revísala en el paso 2.', 'ok');
+      renderEditableTable(rawTable);
+      document.getElementById('card2').classList.remove('disabled');
+      document.getElementById('card3').classList.add('disabled');
+      updateStepper(2);
+    }catch(err){
+      console.error(err);
+      setStatus(status1, 'No se pudo leer el PDF: ' + err.message, 'err');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function nearestCol(x, anchors){
+  let best = 0, bestDist = Infinity;
+  for (let c = 0; c < anchors.length; c++){
+    const d = Math.abs(x - anchors[c]);
+    if (d < bestDist){ bestDist = d; best = c; }
+  }
+  return best;
+}
+
+async function parsePdf(arrayBuffer){
+  const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+  let headerAnchors = null;
+  let headerTextsJoined = '';
+  const rows = [];
+  let currentRow = null;
+
+  const pageMarkerRe = /^\d+\/\d+$/;
+
+  for (let p = 1; p <= pdf.numPages; p++){
+    const page = await pdf.getPage(p);
+    const content = await page.getTextContent();
+    const items = content.items
+      .map(it => ({str: it.str, x: it.transform[4], y: it.transform[5]}))
+      .filter(it => it.str.trim().length > 0);
+    if (items.length === 0) continue;
+
+    items.sort((a,b) => (b.y - a.y) || (a.x - b.x));
+
+    const pageLines = [];
+    let current = [items[0]];
+    for (let i = 1; i < items.length; i++){
+      const prevY = current[current.length-1].y;
+      if (Math.abs(items[i].y - prevY) > 4){
+        pageLines.push(current);
+        current = [items[i]];
+      } else {
+        current.push(items[i]);
+      }
+    }
+    pageLines.push(current);
+
+    for (const lineItems of pageLines){
+      lineItems.sort((a,b) => a.x - b.x);
+
+      const flatText = lineItems.map(it => it.str.trim()).join('').replace(/\s+/g, '');
+      if (pageMarkerRe.test(flatText)) continue;
+
+      if (!headerAnchors){
+        headerAnchors = lineItems.map(it => it.x);
+        const headerCells = lineItems.map(it => it.str.trim());
+        headerTextsJoined = headerCells.join('|').toLowerCase();
+        rows.push(headerCells);
+        continue;
+      }
+
+      const rowText = lineItems.map(it => it.str.trim()).join('|').toLowerCase();
+      if (rowText === headerTextsJoined) continue;
+
+      const hasFirstCol = lineItems.some(it => nearestCol(it.x, headerAnchors) === 0);
+
+      const cells = new Array(headerAnchors.length).fill('');
+      for (const it of lineItems){
+        const col = nearestCol(it.x, headerAnchors);
+        cells[col] = cells[col] ? (cells[col] + ' ' + it.str.trim()) : it.str.trim();
+      }
+      if (!cells.some(c => c !== '')) continue;
+
+      if (hasFirstCol || !currentRow){
+        rows.push(cells);
+        currentRow = cells;
+      } else {
+        for (let c = 0; c < cells.length; c++){
+          if (cells[c]) currentRow[c] = currentRow[c] ? (currentRow[c] + ' ' + cells[c]) : cells[c];
+        }
+      }
+    }
+  }
+  return rows;
+}
+
+function setStatus(el, msg, cls, loading){
+  let prefix = '';
+  if (cls === 'ok') prefix = '✓ ';
+  else if (cls === 'err') prefix = '✕ ';
+  else if (cls === 'warn') prefix = '⚠ ';
+  else if (cls === 'info') prefix = 'ℹ ';
+  const spinnerHtml = loading ? '<span class="spinner" aria-hidden="true"></span>' : '';
+  el.innerHTML = spinnerHtml + escapeHtml(prefix + msg);
+  el.className = 'status' + (cls ? ' ' + cls : '');
+}
+
+// ---------- STEP 2: editable preview ----------
+const editTableEl = document.getElementById('editTable');
+
+function renderEditableTable(table){
+  editTableEl.innerHTML = '';
+  const thead = document.createElement('thead');
+  const trh = document.createElement('tr');
+  table[0].forEach((h, ci) => {
+    const th = document.createElement('th');
+    th.draggable = true;
+    th.dataset.colIndex = ci;
+
+    th.addEventListener('dragstart', (ev) => {
+      ev.dataTransfer.effectAllowed = 'move';
+      ev.dataTransfer.setData('text/plain', String(ci));
+      th.classList.add('dragging');
+    });
+    th.addEventListener('dragend', () => th.classList.remove('dragging'));
+    th.addEventListener('dragover', (ev) => {
+      ev.preventDefault();
+      ev.dataTransfer.dropEffect = 'move';
+      th.classList.add('drag-over');
+    });
+    th.addEventListener('dragleave', () => th.classList.remove('drag-over'));
+    th.addEventListener('drop', (ev) => {
+      ev.preventDefault();
+      th.classList.remove('drag-over');
+      const fromIdx = parseInt(ev.dataTransfer.getData('text/plain'), 10);
+      const toIdx = parseInt(th.dataset.colIndex, 10);
+      if (!isNaN(fromIdx) && !isNaN(toIdx) && fromIdx !== toIdx) reorderColumn(fromIdx, toIdx);
+    });
+
+    const textSpan = document.createElement('span');
+    textSpan.className = 'th-text';
+    textSpan.contentEditable = true;
+    textSpan.draggable = false;
+    textSpan.textContent = h;
+
+    const actions = document.createElement('span');
+    actions.className = 'col-actions';
+    actions.contentEditable = false;
+
+    const left = document.createElement('button');
+    left.type = 'button';
+    left.className = 'icon-btn col-move' + (ci === 0 ? ' disabled' : '');
+    left.innerHTML = ICON_CHEVRON_LEFT;
+    left.title = 'Mover columna a la izquierda';
+    left.setAttribute('aria-label', 'Mover columna a la izquierda');
+    left.onclick = (ev) => { ev.stopPropagation(); moveColumn(ci, -1); };
+
+    const right = document.createElement('button');
+    right.type = 'button';
+    right.className = 'icon-btn col-move' + (ci === table[0].length - 1 ? ' disabled' : '');
+    right.innerHTML = ICON_CHEVRON_RIGHT;
+    right.title = 'Mover columna a la derecha';
+    right.setAttribute('aria-label', 'Mover columna a la derecha');
+    right.onclick = (ev) => { ev.stopPropagation(); moveColumn(ci, 1); };
+
+    const x = document.createElement('button');
+    x.type = 'button';
+    x.className = 'icon-btn col-x';
+    x.innerHTML = ICON_X;
+    x.title = 'Eliminar columna';
+    x.setAttribute('aria-label', 'Eliminar columna');
+    x.onclick = (ev) => { ev.stopPropagation(); removeColumn(ci); };
+
+    actions.appendChild(left);
+    actions.appendChild(right);
+    actions.appendChild(x);
+    th.appendChild(textSpan);
+    th.appendChild(actions);
+    trh.appendChild(th);
+  });
+  trh.appendChild(document.createElement('th'));
+  thead.appendChild(trh);
+  editTableEl.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  for (let r = 1; r < table.length; r++){
+    tbody.appendChild(buildRow(table[r]));
+  }
+  editTableEl.appendChild(tbody);
+}
+
+function buildRow(rowData){
+  const tr = document.createElement('tr');
+  rowData.forEach(val => {
+    const td = document.createElement('td');
+    td.contentEditable = true;
+    td.textContent = val;
+    tr.appendChild(td);
+  });
+  const delTd = document.createElement('td');
+  delTd.className = 'rowdel-cell';
+  const del = document.createElement('button');
+  del.type = 'button';
+  del.className = 'icon-btn rowdel';
+  del.innerHTML = ICON_TRASH;
+  del.title = 'Eliminar fila';
+  del.setAttribute('aria-label', 'Eliminar fila');
+  del.onclick = () => {
+    if (!confirm('¿Eliminar esta fila? Esta acción no se puede deshacer.')) return;
+    tr.remove();
+  };
+  delTd.appendChild(del);
+  tr.appendChild(delTd);
+  return tr;
+}
+
+document.getElementById('addRow').onclick = () => {
+  const cols = editTableEl.querySelector('thead tr').children.length - 1;
+  editTableEl.querySelector('tbody').appendChild(buildRow(new Array(cols).fill('')));
+};
+
+document.getElementById('addCol').onclick = () => {
+  const table = readEditableTable();
+  table.forEach((row, ri) => row.push(ri === 0 ? 'Columna nueva' : ''));
+  renderEditableTable(table);
+};
+
+function removeColumn(ci){
+  const trh = editTableEl.querySelector('thead tr');
+  if (trh.children.length - 1 <= 1) return;
+  const table = readEditableTable();
+  table.forEach(row => row.splice(ci, 1));
+  renderEditableTable(table);
+}
+
+function moveColumn(ci, dir){
+  const newIdx = ci + dir;
+  const table = readEditableTable();
+  if (newIdx < 0 || newIdx >= table[0].length) return;
+  table.forEach(row => {
+    const tmp = row[ci];
+    row[ci] = row[newIdx];
+    row[newIdx] = tmp;
+  });
+  renderEditableTable(table);
+}
+
+function reorderColumn(fromIdx, toIdx){
+  const table = readEditableTable();
+  if (fromIdx < 0 || fromIdx >= table[0].length || toIdx < 0 || toIdx >= table[0].length) return;
+  table.forEach(row => {
+    const [moved] = row.splice(fromIdx, 1);
+    row.splice(toIdx, 0, moved);
+  });
+  renderEditableTable(table);
+}
+
+function readEditableTable(){
+  const table = [];
+  const headerCells = Array.from(editTableEl.querySelectorAll('thead th'));
+  headerCells.pop();
+  table.push(headerCells.map(th => {
+    const span = th.querySelector('.th-text');
+    return (span ? span.textContent : th.textContent).trim();
+  }));
+  editTableEl.querySelectorAll('tbody tr').forEach(tr => {
+    const cells = Array.from(tr.children);
+    cells.pop();
+    table.push(cells.map(td => td.textContent.trim()));
+  });
+  return table;
+}
+
+// ---------- STEP 3: columns + sort ----------
+let sortOrder = 'asc';
+
+document.getElementById('confirmData').onclick = () => {
+  rawTable = readEditableTable();
+  buildColumnStep(rawTable[0]);
+  document.getElementById('card3').classList.remove('disabled');
+  document.getElementById('card3').scrollIntoView({behavior:'smooth', block:'start'});
+  updateStepper(3);
+};
+
+function buildColumnStep(headers){
+  const colList = document.getElementById('colList');
+  colList.innerHTML = '';
+  headers.forEach((h, i) => {
+    const label = document.createElement('label');
+    label.className = 'col-chip on';
+    label.innerHTML = '<input type="checkbox" checked data-idx="' + i + '"> ' + escapeHtml(h || '(sin nombre ' + (i+1) + ')');
+    const cb = label.querySelector('input');
+    cb.addEventListener('change', () => {
+      label.classList.toggle('on', cb.checked);
+      updatePreview();
+    });
+    colList.appendChild(label);
+  });
+
+  const sortSelect = document.getElementById('sortSelect');
+  sortSelect.innerHTML = '';
+  headers.forEach((h, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = h || '(sin nombre ' + (i+1) + ')';
+    sortSelect.appendChild(opt);
+  });
+  sortSelect.addEventListener('change', updatePreview);
+
+  updatePreview();
+}
+
+document.getElementById('ordAsc').onclick = () => setOrder('asc');
+document.getElementById('ordDesc').onclick = () => setOrder('desc');
+function setOrder(o){
+  sortOrder = o;
+  const ordAsc = document.getElementById('ordAsc');
+  const ordDesc = document.getElementById('ordDesc');
+  ordAsc.classList.toggle('active', o==='asc');
+  ordDesc.classList.toggle('active', o==='desc');
+  ordAsc.setAttribute('aria-pressed', o==='asc' ? 'true' : 'false');
+  ordDesc.setAttribute('aria-pressed', o==='desc' ? 'true' : 'false');
+  updatePreview();
+}
+
+function getSelectedColumns(){
+  return Array.from(document.querySelectorAll('#colList input[type=checkbox]'))
+    .filter(cb => cb.checked)
+    .map(cb => parseInt(cb.dataset.idx, 10));
+}
+
+function getProcessedData(){
+  const cols = getSelectedColumns();
+  const sortIdx = parseInt(document.getElementById('sortSelect').value, 10);
+  const header = cols.map(c => rawTable[0][c]);
+  let dataRows = rawTable.slice(1).map(r => cols.map(c => r[c] || ''));
+
+  const sortColPos = cols.indexOf(sortIdx);
+  const sortSourceCol = sortColPos >= 0 ? sortColPos : 0;
+  dataRows.sort((a,b) => {
+    const cmp = (a[sortSourceCol]||'').localeCompare((b[sortSourceCol]||''), 'es', {numeric:true, sensitivity:'base'});
+    return sortOrder === 'asc' ? cmp : -cmp;
+  });
+
+  const mid = Math.ceil(dataRows.length / 2);
+  const left = dataRows.slice(0, mid);
+  const right = dataRows.slice(mid);
+  return {header, left, right};
+}
+
+function updatePreview(){
+  const {header, left, right} = getProcessedData();
+  document.getElementById('previewCount').textContent =
+    left.length + ' filas en el bloque izquierdo · ' + right.length + ' filas en el bloque derecho · ' + header.length + ' columna(s) conservada(s)';
+
+  const sp = document.getElementById('splitPreview');
+  sp.innerHTML = '';
+  [['Bloque izquierdo', left], ['Bloque derecho', right]].forEach(([label, rows]) => {
+    const div = document.createElement('div');
+    div.className = 'split-block';
+    let html = '<b>' + label + '</b><br>' + escapeHtml(header.join(' · ')) + '<br>';
+    rows.slice(0,5).forEach(r => html += escapeHtml(r.join(' · ')) + '<br>');
+    if (rows.length > 5) html += '… (+' + (rows.length-5) + ' más)';
+    div.innerHTML = html;
+    sp.appendChild(div);
+  });
+}
+
+function escapeHtml(s){
+  return (s+'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+// ---------- Export ----------
+const THIN = {style:'thin', color:{argb:'FF8C8C8C'}};
+const CELL_BORDER = {top:THIN, left:THIN, bottom:THIN, right:THIN};
+const HEADER_FILL = {type:'pattern', pattern:'solid', fgColor:{argb:'FFD9D9D9'}};
+const HEADER_FONT = {bold:true, color:{argb:'FF1A1A1A'}, size:11};
+
+function colWidthFor(values){
+  let max = 8;
+  for (const v of values){
+    const len = (v === undefined || v === null ? '' : String(v)).length;
+    if (len > max) max = len;
+  }
+  return Math.min(Math.max(max + 3, 10), 42);
+}
+
+document.getElementById('exportBtn').onclick = async () => {
+  const status3 = document.getElementById('status3');
+  const btn = document.getElementById('exportBtn');
+  btn.disabled = true;
+  setStatus(status3, 'Generando Excel…', '', true);
+  try{
+    const {header, left, right} = getProcessedData();
+    const n = header.length;
+    const rowCount = Math.max(left.length, right.length);
+
+    const wb = new ExcelJS.Workbook();
+    const ws = wb.addWorksheet('Inventario', {
+      views: [{state:'frozen', ySplit:1}],
+      // Equivalente exacto a Diseño de página → Márgenes → Estrecho de Excel.
+      pageSetup: {orientation:'portrait', fitToPage:true, fitToWidth:1, fitToHeight:0, margins:{left:0.7,right:0.7,top:0.75,bottom:0.75,header:0.3,footer:0.3}}
+    });
+
+    const totalCols = n * 2 + 1;
+    const spacerCol = n + 1;
+
+    for (let c = 1; c <= totalCols; c++){
+      if (c === spacerCol){ ws.getColumn(c).width = 3; continue; }
+      const isLeft = c <= n;
+      const idx = isLeft ? c - 1 : c - n - 2;
+      const values = [header[idx], ...(isLeft ? left : right).map(r => r[idx])];
+      ws.getColumn(c).width = colWidthFor(values);
+    }
+
+    const headerRow = ws.addRow([...header, '', ...header]);
+    headerRow.height = 22;
+    headerRow.eachCell({includeEmpty:true}, (cell, colNumber) => {
+      if (colNumber === spacerCol) return;
+      cell.font = HEADER_FONT;
+      cell.fill = HEADER_FILL;
+      cell.border = CELL_BORDER;
+      cell.alignment = {vertical:'middle', horizontal:'left', wrapText:false};
+    });
+
+    for (let i = 0; i < rowCount; i++){
+      const l = left[i] || new Array(n).fill('');
+      const r = right[i] || new Array(n).fill('');
+      const row = ws.addRow([...l, '', ...r]);
+      row.height = 18;
+      row.eachCell({includeEmpty:true}, (cell, colNumber) => {
+        if (colNumber === spacerCol) return;
+        cell.border = CELL_BORDER;
+        cell.alignment = {vertical:'middle', horizontal:'left', wrapText:false};
+        if (i % 2 === 1){
+          cell.fill = {type:'pattern', pattern:'solid', fgColor:{argb:'FFF2F2F2'}};
+        }
+      });
+    }
+
+    const buffer = await wb.xlsx.writeBuffer();
+    const blob = new Blob([buffer], {type:'application/octet-stream'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'inventario_procesado.xlsx';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    setStatus(status3, 'Excel generado y descargado, con bordes, encabezado en negrita y columnas autoajustadas.', 'ok');
+  }catch(err){
+    console.error(err);
+    setStatus(status3, 'Error al generar el Excel: ' + err.message, 'err');
+  } finally {
+    btn.disabled = false;
+  }
+};
+</script>
+
+<script>
+window.addEventListener('message', function(e){
+  if(!e.data || e.data.type !== 'africa-tools-set-theme') return;
+  var theme = e.data.theme === 'dark' ? 'dark' : 'light';
+  var root = document.documentElement;
+  root.setAttribute('data-theme', theme);
+  var moon = document.getElementById('themeIconMoon');
+  var sun = document.getElementById('themeIconSun');
+  if(moon && sun){
+    moon.style.display = theme === 'dark' ? 'none' : '';
+    sun.style.display = theme === 'dark' ? '' : 'none';
+  }
+});
+if (window.parent !== window) { var localToggle = document.getElementById('themeToggle'); if (localToggle) localToggle.style.display = 'none'; }
+
+</script>
+</body>
+</html>

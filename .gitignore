@@ -1,0 +1,22 @@
+# Archivos de desarrollo - no desplegar a producción
+_backups/
+node_modules/
+.DS_Store
+Thumbs.db
+*.log
+
+# Documentación de desarrollo - opcional
+server.js
+CHANGELOG-PAQUETE-A.md
+CHECKLIST-REGRESION.md
+ESTRUCTURA-DATOS.md
+INSTRUCCIONES-SERVIDOR.md
+PAQUETE-B-COMPLETADO.md
+PAQUETE-B-PENDIENTE.md
+PROPUESTA-MEJORAS.md
+
+# Archivos temporales
+*.tmp
+*.temp
+.env
+.env.local

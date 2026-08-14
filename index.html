@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Africa Tools · Africa Parque de Diversiones</title>
+<meta name="theme-color" content="#4A2F1F" />
+  <meta name="theme-color" content="#1E1610" media="(prefers-color-scheme: dark)" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Africa Tools" />
+  <script>
+    (function () { try { document.documentElement.setAttribute('data-theme', localStorage.getItem('africa_tools_theme') === 'dark' ? 'dark' : 'light'); } catch (e) {} })();
+  </script>
+
+<link rel="manifest" href="manifest.json" />
+<link rel="icon" type="image/svg+xml" href="assets/icons/icon.svg" />
+<link rel="apple-touch-icon" href="assets/icons/icon-192.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/design-tokens.css" />
+<link rel="stylesheet" href="assets/shell.css" />
+</head>
+<body>
+
+<div id="view-announcer" role="status" aria-live="polite" aria-atomic="true" class="sr-only"></div>
+
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-brand">
+      <img class="logo-badge" src="assets/icons/icon.svg" alt="Africa Tools">
+      <div>
+        <h1>Africa Tools</h1>
+        <p>Africa Parque de Diversiones</p>
+      </div>
+    </div>
+
+    <div id="login-error" class="login-error hidden"></div>
+
+    <form id="login-form">
+      <div class="field">
+        <label for="login-usuario">Usuario</label>
+        <input id="login-usuario" type="text" autocomplete="username" required />
+      </div>
+      <div class="field">
+        <label for="login-clave">Contraseña</label>
+        <input id="login-clave" type="password" autocomplete="current-password" required />
+      </div>
+      <div class="checkbox-row">
+        <input id="login-remember" type="checkbox" />
+        <label for="login-remember">Mantener sesión iniciada en este dispositivo</label>
+      </div>
+      <button type="submit" class="btn-primary">Ingresar</button>
+    </form>
+
+  </div>
+</div>
+
+
+<div id="app-shell" class="hidden">
+  <div id="sidebar-backdrop"></div>
+
+  <button id="menu-fab" type="button" aria-label="Abrir menú de Africa Tools" aria-expanded="false" aria-controls="sidebar"><span aria-hidden="true">☰</span><span class="menu-fab-label">Menú</span></button>
+
+  <header id="module-chrome" class="hidden" aria-label="Navegación del módulo">
+    <button id="module-menu-btn" type="button" aria-label="Abrir menú de Africa Tools" aria-expanded="false" aria-controls="sidebar">☰</button>
+    <div class="module-chrome-context"><span>África Tools</span><strong id="module-chrome-title"></strong></div>
+    <button id="module-chrome-theme" type="button" aria-label="Cambiar tema">🌓</button>
+  </header>
+  <div id="module-loading" class="module-loading hidden" role="status" aria-live="polite"><div class="module-loading-card"><span class="module-loading-mark" aria-hidden="true">🦁</span><strong>Cargando herramienta</strong><span>Preparando tu espacio de trabajo…</span></div></div>
+
+  <aside id="sidebar">
+    <div class="sidebar-brand">
+      <img class="logo-badge" src="assets/icons/icon.svg" alt="Africa Tools">
+      <span>Africa Tools</span>
+    </div>
+
+    <nav id="nav-modules"></nav>
+    <div id="nav-admin-section"></div>
+
+    <div class="sidebar-footer">
+      <button id="theme-toggle" class="navlink theme-toggle" style="margin-bottom:6px;">🌓 Cambiar tema</button>
+      <div id="user-chip" class="user-chip"></div>
+      <button id="logout-btn" class="navlink" style="margin-top:6px;">Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <div id="main">
+    <div id="content-area">
+      <div id="dashboard-view" class="dash-wrap hidden">
+        <div class="dash-greeting">
+          <h2>Hola, <span id="dash-greeting-name"></span> 👋</h2>
+          <p>Estos son tus módulos disponibles.</p>
+        </div>
+        <div id="module-grid" class="module-grid"></div>
+      </div>
+
+      <div id="admin-view" class="admin-wrap hidden">
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+          <div><h2 style="margin:0;">Administración de usuarios</h2><p class="view-description">Gestiona los accesos de tu equipo.</p></div>
+          <div style="display:flex; gap:8px;">
+            <select id="filter-role" style="padding:8px; border-radius:6px; border:1px solid var(--color-border); background:var(--card-bg); color:var(--text-main);">
+              <option value="">Todos los roles</option>
+            </select>
+            <select id="filter-status" style="padding:8px; border-radius:6px; border:1px solid var(--color-border); background:var(--card-bg); color:var(--text-main);">
+              <option value="">Todos</option>
+              <option value="active">Activos</option>
+              <option value="inactive">Inactivos</option>
+            </select>
+            <button id="new-user-btn" class="btn-primary" style="width:auto; padding:10px 16px;">+ Nuevo usuario</button>
+          </div>
+        </div>
+        <!-- Campo de búsqueda -->
+        <div class="field" style="max-width:400px; margin-bottom:16px;">
+          <label for="user-search">Buscar usuario</label>
+          <input id="user-search" type="search" placeholder="Busca por nombre, usuario o rol..." />
+        </div>
+        <div class="admin-table-scroll"><table class="admin-table">
+          <thead><tr>
+            <th class="sortable" data-sort="nombre">Nombre <span class="sort-indicator"></span></th>
+            <th class="sortable" data-sort="usuario">Usuario <span class="sort-indicator"></span></th>
+            <th class="sortable" data-sort="roles">Roles <span class="sort-indicator"></span></th>
+            <th class="sortable" data-sort="activo">Estado <span class="sort-indicator"></span></th>
+            <th>Acciones</th>
+          </tr></thead>
+          <tbody id="admin-tbody"></tbody>
+        </table></div>
+        <div id="users-pagination" class="pagination hidden">
+          <button id="prev-page" disabled>‹ Anterior</button>
+          <span class="page-info"><span id="page-current">1</span> de <span id="page-total">1</span></span>
+          <button id="next-page" disabled>Siguiente ›</button>
+        </div>
+      </div>
+
+      <div id="module-frame-wrap" class="hidden">
+        <iframe id="module-frame" title="Módulo Africa Tools"></iframe>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div id="user-modal-backdrop" class="modal-backdrop hidden">
+  <div class="modal-card">
+    <h3 id="user-modal-title">Nuevo usuario</h3>
+    <div class="field">
+      <label for="um-nombre">Nombre completo *</label>
+      <input id="um-nombre" type="text" required aria-required="true" />
+    </div>
+    <div class="field">
+      <label for="um-usuario">Usuario *</label>
+      <input id="um-usuario" type="text" required aria-required="true" autocomplete="username" />
+    </div>
+    <div class="field">
+      <label for="um-clave">Contraseña <span style="font-weight:400; font-size:12px;">(mín. 6 caracteres)</span></label>
+      <input id="um-clave" type="password" autocomplete="new-password" aria-describedby="password-strength" />
+      <div id="password-strength" class="password-strength hidden">
+        <div class="password-strength-bar">
+          <div id="password-strength-fill" class="password-strength-fill"></div>
+        </div>
+        <span id="password-strength-text" class="password-strength-text"></span>
+      </div>
+    </div>
+    <label style="font-size:13px; font-weight:700; color:var(--text-muted);">Roles *</label>
+    <div id="um-roles" class="role-checks"></div>
+    <div class="modal-actions">
+      <button id="user-modal-cancel" class="btn-secondary">Cancelar</button>
+      <button id="user-modal-save" class="btn-primary" style="width:auto; padding:10px 18px;">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script src="assets/permissions.js"></script>
+<script src="assets/shell.js"></script>
+<script src="assets/app.js"></script>
+<script>
+  (function () {
+    let deferredPrompt;
+    const notice = document.createElement('div');
+    notice.id = 'pwa-notice';
+    notice.className = 'pwa-notice hidden';
+    notice.setAttribute('role', 'status');
+    document.body.appendChild(notice);
+
+    function showNotice(message, actionLabel, action) {
+      notice.innerHTML = '';
+      const text = document.createElement('span'); text.textContent = message; notice.appendChild(text);
+      if (actionLabel) { const button = document.createElement('button'); button.type = 'button'; button.textContent = actionLabel; button.onclick = action; notice.appendChild(button); }
+      const close = document.createElement('button'); close.type = 'button'; close.className = 'pwa-notice-close'; close.setAttribute('aria-label', 'Cerrar aviso'); close.textContent = '×'; close.onclick = () => notice.classList.add('hidden'); notice.appendChild(close);
+      notice.classList.remove('hidden');
+    }
+    window.addEventListener('offline', () => showNotice('Sin conexión. Tus herramientas cargadas seguirán disponibles.', null, null));
+    window.addEventListener('online', () => { notice.classList.add('hidden'); });
+    window.addEventListener('beforeinstallprompt', (event) => {
+      event.preventDefault(); deferredPrompt = event;
+      if (!localStorage.getItem('africa_tools_install_dismissed')) showNotice('Instala Africa Tools para acceder más rápido.', 'Instalar', async () => {
+        deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; notice.classList.add('hidden');
+      });
+    });
+    window.addEventListener('appinstalled', () => { notice.classList.add('hidden'); });
+    if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('service-worker.js').catch(() => {}));
+  })();
+</script>
+</body>
+</html>

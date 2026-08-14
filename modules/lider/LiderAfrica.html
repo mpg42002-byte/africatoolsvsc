@@ -1,0 +1,1918 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<script>(function(){try{var t=new URLSearchParams(location.search).get('theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Panel del Líder de Seguridad · África Parque de Diversiones</title>
+<meta name="description" content="Panel de gestión para líderes de seguridad de África Parque de Diversiones: semáforo de EPP, misiones, checklist mensual y recursos SST.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234A2F1F'/%3E%3Cpath d='M16 6c-2.2 0-4 1.8-4 4 0 1 .3 1.9.9 2.7C10.9 13.9 10 16 10 18.5c0 1 .2 1.9.6 2.7C9.6 22 9 23.4 9 25h4c0-1 .4-1.8 1.1-2.4.6.2 1.2.4 1.9.4s1.3-.2 1.9-.4C18.6 23.2 19 24 19 25h4c0-1.6-.6-3-1.6-3.8.4-.8.6-1.7.6-2.7 0-2.5-.9-4.6-2.9-5.8.6-.8.9-1.7.9-2.7 0-2.2-1.8-4-4-4z' fill='%23E85D25'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --af-orange: #E85D25; --af-amber: #F5A623; --af-red: #D9481F; 
+    --af-coffee: #4A2F1F; --af-yellow: #F5D414; --af-green: #7CB342; 
+    --af-cream: #EDE0C8; --af-white: #FFFFFF;
+    --font-heading: 'Fredoka', sans-serif; --font-body: 'Nunito', sans-serif; --font-mono: 'Nunito', monospace;
+    --bg-body: var(--af-coffee);
+    --bg-pattern: radial-gradient(rgba(245, 166, 35, 0.15) 2px, transparent 2px);
+    --text-main: var(--af-cream);
+    --card-bg: var(--af-cream); --card-bg-hover: #F8F1E1; --card-border: #D8B37C;
+    --card-shadow: #26170E; --text-card: var(--af-coffee); --text-muted: #68452C;
+    --primary: var(--af-orange); --primary-shadow: #B54215; --primary-text: var(--af-white);
+    --secondary: var(--af-amber); --secondary-shadow: #C48214; --secondary-text: var(--af-coffee);
+    --accent-badge: var(--af-green); --danger: var(--af-red); --success: var(--af-green);
+    --line: #D8B37C; --input-bg: var(--af-white);
+    --primary-text-safe: #B54215; --danger-text-safe: #B33814;
+    --radius-sm: 12px; --radius-md: 18px; --radius-lg: 24px;
+  }
+  [data-theme="dark"] {
+    --bg-body: #1E1610;
+    --bg-pattern: radial-gradient(rgba(245, 166, 35, 0.05) 2px, transparent 2px);
+    --text-main: #F5EBDA;
+    --card-bg: #2A1E14; --card-bg-hover: #33261A; --card-border: #4A3624;
+    --card-shadow: #0F0A07; --text-card: #F5EBDA; --text-muted: #D9BE9D;
+    --primary: var(--af-orange); --primary-shadow: #A33A10; --primary-text: var(--af-white);
+    --secondary: var(--af-amber); --secondary-text: var(--af-coffee);
+    --line: #4A3624; --input-bg: #1E1610;
+    --primary-text-safe: var(--af-orange); --danger-text-safe: var(--af-red);
+  }
+  *{box-sizing:border-box;}
+  button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible, label:focus-within {
+    outline: 3px solid var(--af-yellow);
+    outline-offset: 2px;
+  }
+  body{
+    margin:0;
+    overflow-x:hidden;
+    background-color: var(--bg-body);
+    background-image: var(--bg-pattern);
+    background-size: 30px 30px;
+    color:var(--text-main);
+    font-family:var(--font-body);
+    -webkit-font-smoothing:antialiased;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+  .confetti-bar{
+    height:6px;
+    display:flex;
+  }
+  .confetti-bar span{flex:1;}
+  .confetti-bar span:nth-child(1){background:var(--af-yellow);}
+  .confetti-bar span:nth-child(2){background:var(--af-orange);}
+  .confetti-bar span:nth-child(3){background:var(--af-amber);}
+  .confetti-bar span:nth-child(4){background:var(--af-green);}
+  .confetti-bar span:nth-child(5){background:var(--af-red);}
+  .confetti-bar span:nth-child(6){background:var(--af-yellow);}
+  .confetti-bar span:nth-child(7){background:var(--af-orange);}
+  .confetti-bar span:nth-child(8){background:var(--af-green);}
+
+  .app{
+    display:flex;
+    min-height:100vh;
+  }
+  .sidebar{
+    width:260px;
+    flex-shrink:0;
+    background:var(--card-bg);
+    border-right: 3px solid var(--card-border);
+    color:var(--text-card);
+    padding:28px 18px;
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+  }
+  .brand{
+    font-family:var(--font-heading);
+    font-weight:700;
+    font-size:1.2rem;
+    line-height:1.25;
+    margin:0 6px 6px;
+    color:var(--text-card);
+    text-transform: uppercase;
+  }
+  .brand small{
+    display:block;
+    font-family:var(--font-body);
+    font-weight:700;
+    font-size:0.75rem;
+    color:var(--text-muted);
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    margin-top:4px;
+  }
+  .nav{
+    margin-top:22px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  .nav button{
+    all:unset;
+    cursor:pointer;
+    padding:12px 14px;
+    border-radius:var(--radius-md);
+    font-family: var(--font-heading);
+    font-size:0.9rem;
+    font-weight:600;
+    color:var(--text-card);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    transition:all .15s ease;
+    border: 2px solid transparent;
+  }
+  .nav button .dot{
+    width:6px;height:6px;border-radius:50%;
+    background:var(--secondary);
+    opacity:0.5;
+    flex-shrink:0;
+    transition: all .15s ease;
+  }
+  .nav button:hover{background:var(--card-bg-hover); border-color: var(--card-border);}
+  .nav button.active{background:#C24A18; color:var(--primary-text); border-color:var(--primary-shadow); box-shadow: 0 4px 0 var(--primary-shadow);}
+  .nav button.active .dot{background:var(--af-yellow); width:10px; height:10px; opacity:1;}
+
+  .sidebar-foot{
+    margin-top:auto;
+    font-size:0.75rem;
+    color:var(--text-muted);
+    padding:0 6px;
+    line-height:1.5;
+  }
+
+  main{
+    flex:1;
+    padding:34px 42px 60px;
+    max-width:1400px;
+    width:100%;
+    margin:0 auto;
+  }
+  .view{display:none;}
+  .view.active{display:block; animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+
+  .header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+    margin-bottom: 26px;
+  }
+
+  .view-breadcrumb {
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    color: var(--text-main);
+    opacity: 0.7;
+    padding-top: 12px;
+  }
+
+  .theme-toggle {
+    background: var(--card-bg);
+    border: 3px solid var(--card-border);
+    color: var(--text-card);
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    box-shadow: 0 5px 0 var(--card-shadow);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    flex-shrink: 0;
+  }
+  .theme-toggle:hover { transform: translateY(-2px); box-shadow: 0 7px 0 var(--card-shadow); }
+  .theme-toggle:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--card-shadow); }
+
+  h1.page-title{
+    font-family:var(--font-heading);
+    font-size:2rem;
+    font-weight:700;
+    margin:0 0 4px;
+    color:var(--text-main);
+    letter-spacing: 0.5px;
+  }
+  .page-sub{
+    color:var(--text-main);
+    opacity: 0.85;
+    margin:0;
+    font-size:1rem;
+    max-width:700px;
+    font-weight: 600;
+  }
+
+  .card{
+    background:var(--card-bg);
+    border-radius:var(--radius-lg);
+    border:3px solid var(--card-border);
+    box-shadow: 0 8px 0 var(--card-shadow);
+    padding:26px 28px;
+    margin-bottom:24px;
+    color: var(--text-card);
+  }
+  .card h2{
+    font-family:var(--font-heading);
+    font-size:1.3rem;
+    margin:0 0 16px;
+    color:var(--text-card);
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    row-gap: 8px;
+  }
+  .card h2 .tag{
+    font-family:var(--font-mono);
+    font-size:0.7rem;
+    background:var(--secondary);
+    color:var(--secondary-text);
+    padding:4px 10px;
+    border-radius:999px;
+    margin-left:12px;
+    vertical-align:middle;
+    font-weight:700;
+    border: 2px solid var(--card-border);
+  }
+
+  .card h2 .tag.tag-edit{ display:inline-flex; align-items:center; gap:4px; }
+
+  /* Mission table */
+  .mission{
+    border:3px solid var(--card-border);
+    background: var(--input-bg);
+    border-radius:var(--radius-md);
+    padding:16px 18px;
+    margin-bottom:12px;
+    display:grid;
+    grid-template-columns: 1fr auto;
+    gap:8px 16px;
+    align-items:start;
+  }
+  .mission h3{
+    margin:0;
+    font-size:1.05rem;
+    font-family:var(--font-heading);
+    font-weight:600;
+    color:var(--primary-text-safe);
+  }
+  .mission p{margin:6px 0 0; font-size:0.9rem; color:var(--text-card); line-height:1.5; font-weight: 400;}
+  .mission .meta{
+    text-align:right;
+    font-family:var(--font-mono);
+    font-size:0.75rem;
+    color:var(--text-muted);
+    white-space:nowrap;
+  }
+  .mission .meta strong{display:block; color:var(--text-card); font-size:0.85rem;}
+
+  /* Semaforo */
+  .semaforo-wrap{
+    display:flex;
+    gap:28px;
+    align-items:flex-start;
+    flex-wrap:wrap;
+  }
+  .semaforo{
+    background:var(--af-coffee);
+    border: 3px solid var(--card-border);
+    border-radius:var(--radius-lg);
+    padding:18px 16px;
+    display:flex;
+    flex-direction:column;
+    gap:14px;
+    width:86px;
+    flex-shrink:0;
+    box-shadow: inset 0 4px 8px rgba(0,0,0,0.4);
+  }
+  .semaforo .luz{
+    width:50px; height:50px;
+    border-radius:50%;
+    background:#3d3656;
+    opacity:.3;
+    border: 3px solid rgba(255,255,255,0.2);
+    transition:all .2s ease;
+  }
+  .semaforo .luz.verde.on{background:var(--af-green); opacity:1; box-shadow:0 0 20px 4px rgba(124,179,66,.8); border-color:#fff;}
+  .semaforo .luz.amarillo.on{background:var(--af-amber); opacity:1; box-shadow:0 0 20px 4px rgba(245,166,35,.8); border-color:#fff;}
+  .semaforo .luz.rojo.on{background:var(--af-red); opacity:1; box-shadow:0 0 20px 4px rgba(217,72,31,.8); border-color:#fff;}
+
+  .epp-form{flex:1; min-width:260px;}
+  .field-row{display:flex; gap:12px; margin-bottom:12px; flex-wrap:wrap;}
+  input[type=text], input[type=date], input[type=month], select, textarea{
+    font-family:var(--font-body);
+    font-size:0.95rem;
+    font-weight: 600;
+    padding:12px 14px;
+    border-radius:var(--radius-sm);
+    border:3px solid var(--card-border);
+    background:var(--input-bg);
+    color:var(--text-card);
+    flex:1;
+    min-width:140px;
+  }
+  textarea{resize:vertical; min-height:50px; width:100%;}
+  .color-pick{display:flex; gap:10px; flex-wrap: wrap;}
+  .color-pick button{
+    all:unset;
+    cursor:pointer;
+    padding:10px 16px;
+    border-radius:var(--radius-md);
+    font-family: var(--font-heading);
+    font-weight:600;
+    font-size:0.85rem;
+    border:3px solid var(--card-border);
+    color:#fff;
+    box-shadow: 0 4px 0 var(--card-shadow);
+    transition: transform 0.1s ease;
+  }
+  .color-pick button[data-c="verde"]{background:var(--af-green); color: var(--af-coffee);}
+  .color-pick button[data-c="amarillo"]{background:var(--af-amber); color: var(--af-coffee);}
+  .color-pick button[data-c="rojo"]{background:var(--af-red);}
+  .color-pick button.sel{transform:translateY(-2px); border-color:var(--af-white); box-shadow: 0 6px 0 var(--card-shadow);}
+  
+  .btn-primary{
+    all:unset;
+    cursor:pointer;
+    background:#C24A18;
+    color:var(--primary-text);
+    padding:12px 22px;
+    border-radius:var(--radius-md);
+    font-family: var(--font-heading);
+    font-weight:700;
+    font-size:0.95rem;
+    border: 3px solid var(--primary-shadow);
+    box-shadow: 0 5px 0 var(--primary-shadow);
+    transition: transform 0.1s ease, box-shadow 0.1s ease;
+    text-transform: uppercase;
+    text-align: center;
+  }
+  .btn-primary:hover{transform: translateY(-2px); box-shadow: 0 7px 0 var(--primary-shadow);}
+  .btn-primary:active{transform: translateY(3px); box-shadow: 0 2px 0 var(--primary-shadow);}
+
+  .btn-ghost{
+    all:unset;
+    cursor:pointer;
+    color:var(--text-muted);
+    font-size:0.85rem;
+    text-decoration:underline;
+    font-weight: 700;
+  }
+
+  table.log{width:100%; border-collapse:collapse; margin-top:8px; font-size:0.9rem;}
+  table.log th{
+    text-align:left;
+    font-family:var(--font-heading);
+    font-size:0.75rem;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    color:var(--text-muted);
+    border-bottom:3px solid var(--card-border);
+    padding:10px 8px;
+  }
+  table.log td{padding:10px 8px; border-bottom:2px solid var(--card-border); vertical-align:top; font-weight: 400;}
+  .chip{
+    display:inline-block;
+    padding:4px 10px;
+    border-radius:999px;
+    font-size:0.75rem;
+    font-family: var(--font-heading);
+    font-weight:700;
+    color:var(--af-coffee);
+    border: 2px solid var(--card-border);
+    text-transform: uppercase;
+  }
+  .chip.verde{background:var(--af-green);}
+  .chip.amarillo{background:var(--af-amber);}
+  .chip.rojo{background:#C13F1B; color: #fff;}
+  .del-row{all:unset; cursor:pointer; color:var(--danger-text-safe); font-weight: 700; font-size:0.85rem; padding:6px 12px; border-radius:var(--radius-md); border:2px solid var(--card-border); background:var(--card-bg); transition: background 0.1s ease, transform 0.1s ease;}
+  .del-row:hover{background:var(--card-bg-hover); transform: translateY(-1px);}
+
+  .worker-summary{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+    gap:12px;
+    margin-top:14px;
+    align-items:start;
+  }
+  .worker-card{
+    border:3px solid var(--card-border);
+    background: var(--input-bg);
+    border-radius:var(--radius-md);
+    padding:14px 16px;
+    box-shadow: 0 4px 0 var(--card-shadow);
+  }
+  .worker-card .name{font-weight:700; font-family:var(--font-heading); font-size:1rem; margin-bottom:8px; color: var(--primary-text-safe);}
+  .worker-card .counts{display:flex; gap:10px; font-family:var(--font-mono); font-size:0.8rem; font-weight: 700;}
+  .worker-card .counts span{display:flex; align-items:center; gap:4px;}
+  .worker-card .flag{
+    margin-top:10px;
+    font-size:0.75rem;
+    font-weight:700;
+    color:var(--af-white);
+    background:#C13F1B;
+    padding:6px 10px;
+    border-radius:var(--radius-sm);
+    display:none;
+    border: 2px solid var(--card-border);
+  }
+  .worker-card .flag.show{display:block;}
+  .dotc{width:10px;height:10px;border-radius:50%;display:inline-block; border: 1px solid var(--card-border);}
+  .dotc.verde{background:var(--af-green);} .dotc.amarillo{background:var(--af-amber);} .dotc.rojo{background:var(--af-red);}
+
+  /* Checklist */
+  .task-group{margin-bottom:20px; background: var(--input-bg); border: 3px solid var(--card-border); padding: 18px; border-radius: var(--radius-md);}
+  .task-group h3{
+    font-family:var(--font-heading);
+    font-size:1.05rem;
+    color:var(--primary-text-safe);
+    margin:0 0 10px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    row-gap:6px;
+  }
+  .freq-badge{
+    font-family:var(--font-mono);
+    font-size:0.7rem;
+    background:var(--secondary);
+    color:var(--secondary-text);
+    padding:3px 10px;
+    border-radius:999px;
+    font-weight:700;
+    border: 2px solid var(--card-border);
+  }
+  .task-row{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    padding:10px 6px;
+    border-bottom:2px solid var(--card-border);
+  }
+  .task-row:last-child{border-bottom:none;}
+  .task-row input[type=checkbox]{
+    width:22px; height:22px;
+    accent-color: var(--af-green);
+    margin-top:2px;
+    flex-shrink:0;
+    cursor: pointer;
+  }
+  .task-row label{font-size:0.95rem; font-weight: 400; line-height:1.4; cursor:pointer;}
+  .task-row label .note{display:block; color:var(--text-muted); font-size:0.82rem; margin-top:2px; font-weight: 400;}
+  .month-selector{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+    margin-bottom:22px;
+    background: var(--card-bg);
+    border: 3px solid var(--card-border);
+    padding: 16px 20px;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 5px 0 var(--card-shadow);
+  }
+  .month-selector select{max-width:240px;}
+  .reset-mo{font-size:0.8rem; color:var(--text-muted); font-weight: 600;}
+
+  /* Juegos */
+  .game-card{margin-bottom:20px;}
+  .game-card h3{
+    font-family:var(--font-heading);
+    color:var(--primary-text-safe);
+    font-size:1.15rem;
+    margin:0 0 10px;
+  }
+  .game-card ol, .game-card ul{margin:0; padding-left:22px; font-size:0.95rem; font-weight: 400; line-height:1.7; color:var(--text-card);}
+  .game-card .materials{
+    font-size:0.85rem;
+    color:var(--text-muted);
+    margin-top:10px;
+    font-weight: 400;
+  }
+  .badge-row{display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap;}
+  .badge-row .b{
+    font-size:0.75rem;
+    font-family:var(--font-mono);
+    background:var(--secondary);
+    color:var(--secondary-text);
+    padding:4px 12px;
+    border-radius:999px;
+    font-weight:700;
+    border: 2px solid var(--card-border);
+  }
+
+  .rule-box{
+    background:var(--af-coffee);
+    color:var(--af-cream);
+    border: 3px solid var(--card-border);
+    border-radius:var(--radius-lg);
+    padding:22px 24px;
+    margin-bottom:24px;
+    box-shadow: 0 8px 0 var(--card-shadow);
+  }
+  .rule-box h2{color:var(--af-yellow); margin-bottom:12px; font-family: var(--font-heading); text-transform: uppercase;}
+  .rule-box ul{margin:0; padding-left:20px; font-size:0.95rem; font-weight: 600; line-height:1.7; color:var(--af-cream);}
+  .rule-box li strong{color:var(--af-yellow);}
+
+  .msg-quote{
+    font-style:italic;
+    font-size:0.9rem;
+    font-weight: 400;
+    color:var(--text-card);
+    background: var(--input-bg);
+    border: 3px solid var(--card-border);
+    border-left:6px solid;
+    padding:12px 16px;
+    border-radius: var(--radius-sm);
+    margin:8px 0 0;
+  }
+  .msg-quote.verde{border-left-color:var(--af-green);}
+  .msg-quote.amarillo{border-left-color:var(--af-amber);}
+  .msg-quote.rojo{border-left-color:var(--af-red);}
+
+  .empty{color:var(--text-muted); font-size:0.9rem; padding:16px 0; text-align:center; font-weight: 600;}
+  .save-note{font-size:0.8rem; color:var(--text-muted); margin-top:8px; font-weight: 700;}
+
+  /* Grids to fill width and avoid empty gaps */
+  .cards-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap:24px;
+    align-items:start;
+  }
+  .cards-grid .card{margin-bottom:0;}
+  .missions-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap:14px;
+    align-items:start;
+  }
+  .missions-grid .mission{margin-bottom:0;}
+  .games-grid{
+    display:grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap:24px;
+    align-items:start;
+  }
+  .games-grid .game-card{margin-bottom:0;}
+
+  /* Editable resource rows */
+  .res-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    border:3px solid var(--card-border);
+    background: var(--input-bg);
+    border-radius:var(--radius-md);
+    padding:12px 16px;
+    margin-bottom:10px;
+    flex-wrap:wrap;
+  }
+  .res-item .res-main{flex:1; min-width:180px;}
+  .res-item .res-title{
+    width:100%; border:none; background:transparent;
+    font-weight:700; font-size:0.95rem; padding:2px 0; color:var(--text-card); font-family:var(--font-body);
+  }
+  .res-item .res-url{
+    width:100%; border:none; background:transparent;
+    font-size:0.82rem; color:var(--primary-text-safe); padding:2px 0; font-family:var(--font-body); font-weight: 700;
+  }
+  .res-item .res-actions{display:flex; gap:6px; flex-shrink:0; margin-left:auto;}
+  .res-item .res-actions button, .res-item .res-actions a{
+    all:unset; cursor:pointer; font-size:0.8rem; color:var(--text-card);
+    padding:6px 12px; border-radius:var(--radius-md); white-space:nowrap; font-weight: 700;
+    border: 2px solid var(--card-border); background: var(--card-bg);
+    transition: background 0.1s ease, transform 0.1s ease;
+  }
+  .res-item .res-actions a{color:var(--primary); font-weight:700;}
+  .res-item .res-actions button:hover, .res-item .res-actions a:hover{background:var(--card-bg-hover); transform: translateY(-1px);}
+  .add-form{display:flex; gap:10px; margin-top:14px; flex-wrap:wrap;}
+  .add-form input{min-width:160px;}
+  .field-label{font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px; font-weight:700;}
+  .sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;}
+  .field-wrap{flex:1; min-width:140px;}
+  .field-wrap input{width:100%; min-width:0;}
+  .section-note{font-size:0.85rem; color:var(--text-muted); margin-top:6px; font-weight: 400;}
+
+  .field-error{
+    color: var(--danger-text-safe);
+    font-size: 0.8rem;
+    font-weight: 700;
+    margin-top: 4px;
+    display: none;
+  }
+  .field-error.show{ display:block; }
+  input.input-invalid, textarea.input-invalid{
+    border-color: var(--danger-text-safe) !important;
+  }
+
+  .tema-item{
+    border:3px solid var(--card-border);
+    background: var(--input-bg);
+    border-radius:var(--radius-md);
+    padding:18px;
+    margin-bottom:16px;
+    box-shadow: 0 4px 0 var(--card-shadow);
+  }
+  .tema-item .tema-head{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    margin-bottom:12px;
+    flex-wrap:wrap;
+  }
+  .tema-item .tema-mes-input{
+    font-family:var(--font-mono);
+    font-size:0.75rem;
+    font-weight:700;
+    background:var(--secondary);
+    color:var(--secondary-text);
+    border:2px solid var(--card-border);
+    padding:6px 12px;
+    border-radius:999px;
+    flex:none;
+    min-width:130px;
+  }
+  .tema-item .tema-titulo{
+    flex:1;
+    border:3px solid var(--card-border);
+    background:var(--card-bg);
+    border-radius: var(--radius-sm);
+    font-family:var(--font-heading);
+    font-weight:600;
+    font-size:1.05rem;
+    color:var(--primary-text-safe);
+    min-width:200px;
+    padding:8px 12px;
+  }
+  .tema-item .tema-del{
+    all:unset; cursor:pointer; color:var(--danger-text-safe); font-weight: 700; font-size:0.85rem; flex-shrink:0;
+    padding: 6px 12px; border: 2px solid var(--card-border); border-radius: var(--radius-md); background: var(--card-bg);
+    transition: background 0.1s ease, transform 0.1s ease;
+  }
+  .tema-item .tema-del:hover{background:var(--af-red); color: #fff; transform: translateY(-1px);}
+  textarea.tema-contenido{
+    width:100%;
+    min-height:160px;
+    font-size:0.9rem;
+    font-weight: 400;
+    line-height:1.65;
+    white-space:pre-wrap;
+  }
+
+  /* Question bank */
+  .qbank-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:10px 6px;
+    border-bottom:2px solid var(--card-border);
+    font-size:0.9rem;
+    font-weight: 400;
+  }
+  .qbank-item:last-child{border-bottom:none;}
+  .qbank-item span{flex:1;}
+  .qbank-item button{all:unset; cursor:pointer; color:var(--danger); font-weight: 700; font-size:0.85rem; flex-shrink:0; padding:6px 12px; border-radius:var(--radius-md); border:2px solid var(--card-border); background:var(--card-bg); transition: background 0.1s ease, transform 0.1s ease;}
+  .qbank-item button:hover{background:var(--card-bg-hover); transform: translateY(-1px);}
+  .qbank-drawn{
+    background:var(--card-bg);
+    border:3px dashed var(--af-green);
+    border-radius:var(--radius-md);
+    padding:14px 16px;
+    margin-top:14px;
+    font-weight:700;
+    color:var(--af-green);
+    font-size:0.95rem;
+    display:none;
+  }
+  .qbank-drawn.show{display:block;}
+  .btn-replace{
+    all:unset; cursor:pointer; color:var(--primary); font-weight:700;
+    font-size:0.8rem; padding:6px 12px; border-radius:var(--radius-md); white-space:nowrap;
+    border: 2px solid var(--card-border); background: var(--card-bg);
+    transition: background 0.1s ease, transform 0.1s ease;
+  }
+  .btn-replace:hover{background:var(--card-bg-hover); transform: translateY(-1px);}
+  .btn-secondary{
+    all:unset;
+    cursor:pointer;
+    border:3px solid var(--card-border);
+    background: var(--secondary);
+    color:var(--secondary-text);
+    padding:10px 18px;
+    border-radius:var(--radius-md);
+    font-family: var(--font-heading);
+    font-weight:700;
+    font-size:0.9rem;
+    box-shadow: 0 4px 0 var(--card-shadow);
+    transition: transform 0.1s ease;
+    text-transform: uppercase;
+  }
+  .btn-secondary:hover{transform: translateY(-2px);}
+  .btn-secondary:active{transform: translateY(2px);}
+  .icon-inline{display:inline-flex; align-items:center; vertical-align:middle; text-transform:none; margin-right:2px;}
+
+  /* Toast (undo de borrado) */
+  #toast-container{
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+  }
+  .toast{
+    background: var(--af-coffee);
+    color: var(--af-cream);
+    border: 3px solid var(--card-border);
+    border-radius: var(--radius-md);
+    padding: 12px 18px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    box-shadow: 0 6px 0 var(--card-shadow);
+    font-family: var(--font-body);
+    font-weight: 700;
+    font-size: 0.9rem;
+    animation: toast-in 0.2s ease;
+  }
+  .toast-undo{
+    all: unset;
+    cursor: pointer;
+    color: var(--af-yellow);
+    font-family: var(--font-heading);
+    font-weight: 700;
+    text-decoration: underline;
+    white-space: nowrap;
+  }
+  @keyframes toast-in{ from{opacity:0; transform:translateY(10px);} to{opacity:1; transform:translateY(0);} }
+
+  /* Estado de confirmación de borrado (patrón doble clic) */
+  .res-item .res-actions button.btn-confirming,
+  .tema-item .tema-del.btn-confirming,
+  .qbank-item button.btn-confirming,
+  .del-row.btn-confirming{
+    background: var(--danger-text-safe);
+    color: #fff;
+    border-color: var(--danger-text-safe);
+  }
+
+  @media (max-width: 1020px){
+    main{padding:28px 26px 50px;}
+  }
+  @media (max-width: 760px){
+    .app{flex-direction:column;}
+    .sidebar{width:100%; flex-direction:row; overflow-x:auto; padding:16px; border-right: none; border-bottom: 3px solid var(--card-border);}
+    .nav{flex-direction:row; margin-top:0;}
+    .brand{display:none;}
+    .sidebar-foot{margin-top:0; display:flex; align-items:center; padding:0 6px; margin-left:auto;}
+    .sidebar-foot-label{display:none;}
+    .sidebar-foot #storage-status{margin-top:0; font-size:0.65rem; white-space:nowrap;}
+    main{padding:22px 16px 50px;}
+    .card{padding:20px 18px;}
+    .field-row{flex-direction:column;}
+    .semaforo-wrap{flex-direction:column; gap:18px;}
+    .semaforo{flex-direction:row; justify-content:center; width:auto;}
+    .epp-form{min-width:0; width:100%;}
+    .mission{grid-template-columns:1fr;}
+    .mission .meta{text-align:left; white-space:normal; margin-top:6px;}
+    table.log{display:block; overflow-x:auto; white-space:nowrap; box-shadow: inset -12px 0 8px -8px rgba(0,0,0,0.15);}
+  }
+</style>
+</head>
+<body>
+
+<div class="confetti-bar"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand"><span aria-hidden="true">🦁</span> África Seguridad<small>África Parque de Diversiones</small></div>
+    <nav class="nav">
+      <button data-view="resumen" class="active" aria-current="page"><span class="dot"></span>Resumen del rol</button>
+      <button data-view="epp"><span class="dot"></span>Semáforo EPP</button>
+      <button data-view="checklist"><span class="dot"></span>Misiones y checklist</button>
+      <button data-view="juegos"><span class="dot"></span>Juegos ARL SURA</button>
+      <button data-view="recursos"><span class="dot"></span>Recursos y formularios</button>
+    </nav>
+    <div class="sidebar-foot">
+      <span class="sidebar-foot-label">Instructivo Líderes de Seguridad · África 2026 · v01</span>
+      <div id="storage-status" style="margin-top:8px; font-weight:700;"></div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="header-top">
+      <div class="view-breadcrumb" id="view-breadcrumb">Resumen del rol</div>
+      <button class="theme-toggle" id="theme-toggle-btn" title="Cambiar tema claro/oscuro" aria-label="Cambiar entre tema claro y oscuro" aria-pressed="false"><span aria-hidden="true" id="theme-toggle-icon">🦁</span></button>
+    </div>
+
+    <!-- RESUMEN -->
+    <section class="view active" id="view-resumen">
+      <h1 class="page-title">Resumen del rol</h1>
+      <p class="page-sub">Formar líderes capaces de impulsar cambios positivos en los comportamientos de los funcionarios de nuestro parque, promoviendo ambientes de trabajo seguros y saludables con la energía de Félix y Alegra.</p>
+
+      <div class="card" style="margin-top: 24px;">
+        <h2>Alcance <span class="tag">África Parque de Diversiones</span></h2>
+        <p style="font-size:0.95rem; color:var(--text-card); margin:0; font-weight: 600;">Aplica a todos los líderes de seguridad del parque. Este panel organiza las 6 misiones del instructivo, permite registrar el semáforo semanal de EPP y llevar el checklist mensual con una experiencia completamente temática.</p>
+      </div>
+
+      <div class="card">
+        <h2>Las 6 misiones de la aventura</h2>
+        <div class="missions-grid">
+          <div class="mission">
+            <div><h3>1. Identificación de mejoras</h3><p>Inspección general mensual identificando al menos 1 riesgo con sugerencias de mejora.</p></div>
+            <div class="meta"><strong>Mensual</strong>30 min · check list Forms</div>
+          </div>
+          <div class="mission">
+            <div><h3>2. Apoyo charlas y campañas</h3><p>Liderar juegos SURA (escalera, rompecabezas, adivinanzas), pausas activas, precalentamientos y charlas de 5 min diarias en preturnos (1 por semana en listados).</p></div>
+            <div class="meta"><strong>5–10 min</strong>check list Forms + hojas de asistencia</div>
+          </div>
+          <div class="mission">
+            <div><h3>3. Prácticas seguras en labores de aseo</h3><p>Inspección de cumplimiento de procedimientos de trabajo seguro para aseo, dos lunes al mes.</p></div>
+            <div class="meta"><strong>2 lunes/mes</strong>20–25 min · check list Forms</div>
+          </div>
+          <div class="mission">
+            <div><h3>4. Supervisión y reporte uso de EPP</h3><p>Inspección semanal de uso adecuado de EPP con el semáforo de la seguridad.</p></div>
+            <div class="meta"><strong>Semanal</strong>10–15 min · tabla de calificación</div>
+          </div>
+          <div class="mission">
+            <div><h3>5. Refuerzo mini simulacro</h3><p>Ejercicio corto y práctico de un procedimiento operativo normalizado (PON) del área de SST, en la reunión mensual.</p></div>
+            <div class="meta"><strong>Mensual</strong>10 min · descripción en check list</div>
+          </div>
+          <div class="mission">
+            <div><h3>6. Reconocimiento buenas prácticas</h3><p>Registrar el nombre de un compañero que sobresalió por su compromiso con el autocuidado, y compartirlo en una breve charla.</p></div>
+            <div class="meta"><strong>Mensual</strong>check list Forms</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- EPP -->
+    <section class="view" id="view-epp">
+      <h1 class="page-title">Semáforo de la seguridad — uso de EPP</h1>
+      <p class="page-sub">Registra cada abordaje durante recorridos o inspecciones por las zonas del parque. Corrige comportamientos inseguros con retroalimentación visual.</p>
+
+      <div class="rule-box">
+        <h2>Reglas de calificación</h2>
+        <ul>
+          <li>Más de <strong>2 tarjetas rojas</strong> → reportar al administrador sobre el trabajador.</li>
+          <li>Más de <strong>3 tarjetas amarillas</strong> se convierten en <strong>1 roja</strong>.</li>
+          <li>Sin rojas ni amarillas en el semestre → <strong>+1 punto</strong> programa Estrellas.</li>
+          <li>Con tarjetas verdes en el semestre → <strong>+1 punto</strong> programa Estrellas.</li>
+        </ul>
+      </div>
+
+      <div class="card">
+        <h2>Registrar abordaje</h2>
+        <div class="semaforo-wrap">
+          <div class="semaforo" id="semaforo-visual">
+            <div class="luz rojo" data-l="rojo"></div>
+            <div class="luz amarillo" data-l="amarillo"></div>
+            <div class="luz verde" data-l="verde"></div>
+          </div>
+          <div class="epp-form">
+            <div class="field-row">
+              <div class="field-wrap">
+                <label class="field-label" for="f-nombre">Nombre del trabajador</label>
+                <input type="text" id="f-nombre" placeholder="Nombre del trabajador">
+                <p class="field-error" id="f-nombre-error">Escribe un nombre para continuar</p>
+              </div>
+              <div class="field-wrap">
+                <label class="field-label" for="f-fecha">Fecha</label>
+                <input type="date" id="f-fecha">
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="color-pick" id="color-pick">
+                <button data-c="verde" type="button">Verde — conducta segura</button>
+                <button data-c="amarillo" type="button">Amarillo — advertencia</button>
+                <button data-c="rojo" type="button">Rojo — falta grave</button>
+              </div>
+            </div>
+            <div class="field-row">
+              <textarea id="f-nota" placeholder="Nota breve (ej: casco mal ajustado, protectores colgando del cuello...)"></textarea>
+            </div>
+            <p class="msg-quote" id="msg-preview" style="display:none;"></p>
+            <div style="margin-top:14px;">
+              <button class="btn-primary" id="btn-guardar-epp">Guardar abordaje</button>
+              <p class="save-note" id="epp-save-note"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Resumen por trabajador <span class="tag" id="periodo-tag">este registro</span></h2>
+        <div class="worker-summary" id="worker-summary"></div>
+      </div>
+
+      <div class="card">
+        <h2>Bitácora de abordajes</h2>
+        <div class="field-wrap" style="max-width:320px; margin-bottom:12px;">
+          <label class="field-label" for="epp-log-filter">Filtrar por trabajador</label>
+          <input type="text" id="epp-log-filter" placeholder="Escribe un nombre...">
+        </div>
+        <table class="log">
+          <thead><tr><th>Fecha</th><th>Trabajador</th><th>Tarjeta</th><th>Nota</th><th></th></tr></thead>
+          <tbody id="epp-log-body"></tbody>
+        </table>
+        <div class="empty" id="epp-empty" style="display:none;">Aún no hay abordajes registrados.</div>
+        <div class="empty" id="epp-filter-empty" style="display:none;">Ningún trabajador coincide con ese filtro.</div>
+      </div>
+    </section>
+
+    <!-- CHECKLIST -->
+    <section class="view" id="view-checklist">
+      <h1 class="page-title">Misiones y checklist mensual</h1>
+      <p class="page-sub">Marca lo realizado en cada visita o mes. El estado se guarda automáticamente para el período seleccionado.</p>
+
+      <div class="month-selector">
+        <label style="font-size:0.95rem; font-weight:700;">Mes de gestión:</label>
+        <input type="month" id="mes-select">
+        <span class="reset-mo">Cada mes queda guardado por separado en tu expedición.</span>
+      </div>
+
+      <div class="card">
+        <div class="task-group">
+          <h3>Identificación de mejoras <span class="freq-badge">mensual · 30 min</span></h3>
+          <div class="task-row">
+            <input type="checkbox" id="t-mejora-1"><label for="t-mejora-1">Realizar inspección general del mes<span class="note">Identifica al menos 1 riesgo con sugerencia de mejora</span></label>
+          </div>
+          <div class="task-row">
+            <input type="checkbox" id="t-mejora-2"><label for="t-mejora-2">Diligenciar check list de Forms de la inspección</label>
+          </div>
+        </div>
+
+        <div class="task-group">
+          <h3>Charlas y campañas <span class="freq-badge">semanal / diaria</span></h3>
+          <div class="task-row"><input type="checkbox" id="t-charla-1"><label for="t-charla-1">Liderar un juego SURA en el mes (escalera, rompecabezas o adivinanzas)</label></div>
+          <div class="task-row"><input type="checkbox" id="t-charla-2"><label for="t-charla-2">Pausas activas y precalentamientos realizados</label></div>
+          <div class="task-row"><input type="checkbox" id="t-charla-3"><label for="t-charla-3">Charla de 5 min de seguridad en preturnos (1 por semana, en listados)</label></div>
+          <div class="task-row"><input type="checkbox" id="t-charla-4"><label for="t-charla-4">Enviar hojas de asistencia y registrar en check list Forms</label></div>
+        </div>
+
+        <div class="task-group">
+          <h3>Prácticas seguras — labores de aseo <span class="freq-badge">2 lunes/mes · 20–25 min</span></h3>
+          <div class="task-row"><input type="checkbox" id="t-aseo-1"><label for="t-aseo-1">Inspección — primer lunes del mes</label></div>
+          <div class="task-row"><input type="checkbox" id="t-aseo-2"><label for="t-aseo-2">Inspección — segundo lunes del mes</label></div>
+          <div class="task-row"><input type="checkbox" id="t-aseo-3"><label for="t-aseo-3">Diligenciar check list de labores de aseo en Forms</label></div>
+        </div>
+
+        <div class="task-group">
+          <h3>Supervisión de uso de EPP <span class="freq-badge">semanal · 10–15 min</span></h3>
+          <div class="task-row"><input type="checkbox" id="t-epp-1"><label for="t-epp-1">Inspección semanal 1 registrada en el semáforo</label></div>
+          <div class="task-row"><input type="checkbox" id="t-epp-2"><label for="t-epp-2">Inspección semanal 2 registrada en el semáforo</label></div>
+          <div class="task-row"><input type="checkbox" id="t-epp-3"><label for="t-epp-3">Inspección semanal 3 registrada en el semáforo</label></div>
+          <div class="task-row"><input type="checkbox" id="t-epp-4"><label for="t-epp-4">Inspección semanal 4 registrada en el semáforo</label></div>
+          <div class="task-row"><input type="checkbox" id="t-epp-5"><label for="t-epp-5">Revisar si algún trabajador supera 2 tarjetas rojas y reportar al administrador</label></div>
+        </div>
+
+        <div class="task-group">
+          <h3>Refuerzo mini simulacro <span class="freq-badge">mensual · 10 min</span></h3>
+          <div class="task-row"><input type="checkbox" id="t-sim-1"><label for="t-sim-1">Ejercicio práctico de un PON compartido por SST realizado en la reunión mensual</label></div>
+          <div class="task-row"><input type="checkbox" id="t-sim-2"><label for="t-sim-2">Descripción, hallazgos y mejoras dejadas en el check list mensual</label></div>
+        </div>
+
+        <div class="task-group">
+          <h3>Reconocimiento buenas prácticas <span class="freq-badge">mensual</span></h3>
+          <div class="task-row"><input type="checkbox" id="t-rec-1"><label for="t-rec-1">Nombre de un compañero destacado registrado en el check list</label></div>
+          <div class="task-row"><input type="checkbox" id="t-rec-2"><label for="t-rec-2">Breve charla de reconocimiento compartida con el equipo</label></div>
+        </div>
+      </div>
+      <p class="save-note" id="checklist-save-note"></p>
+    </section>
+
+    <!-- JUEGOS -->
+    <section class="view" id="view-juegos">
+      <h1 class="page-title">Instrucciones — Juegos ARL SURA</h1>
+      <p class="page-sub">Fichas de adivinanzas, rompecabezas y escalera para dinamizar la seguridad en el parque.</p>
+
+      <div class="games-grid">
+        <div class="card game-card">
+          <div class="badge-row"><span class="b">Actos y condiciones inseguras</span></div>
+          <h3>Fichas de adivinanzas (charadas)</h3>
+          <ol>
+            <li>Elige a un jugador para que actúe en el primer turno.</li>
+            <li>El jugador elige una carta y representa la acción o palabra solo con su cuerpo (sin hablar).</li>
+            <li>Tiene 1 minuto máximo por turno; cumplido el tiempo, cambia con un jugador del equipo contrario.</li>
+            <li>Si los demás adivinan a tiempo, el equipo del "actor" y quien adivinó ganan puntos. Si nadie adivina, no hay puntos ese turno.</li>
+            <li>Elige a otro jugador como nuevo "actor" y repite el proceso.</li>
+          </ol>
+        </div>
+
+        <div class="card game-card">
+          <div class="badge-row"><span class="b">Higiene postural</span></div>
+          <h3>Rompecabezas</h3>
+          <ol>
+            <li>Divide al grupo en dos equipos para armar los dos rompecabezas (si aplica).</li>
+            <li>Inicien el armado hasta que ambos grupos terminen.</li>
+            <li>Cada grupo socializa a compañeros y jefes lo que se evidencia en las fotografías y por qué esa es la manera correcta de hacerlo.</li>
+            <li>Cierra con recomendaciones puntuales sobre higiene postural y cómo evita accidentes de trabajo.</li>
+          </ol>
+        </div>
+
+        <div class="card game-card" style="grid-column: 1 / -1;">
+          <div class="badge-row"><span class="b">Comportamiento seguro</span><span class="b">Uso de EPP</span></div>
+          <h3>Escalera</h3>
+          <p style="font-size:0.9rem; color:var(--text-card); margin:0 0 10px; font-weight: 600;">Diseñada para 4 jugadores o equipos de no más de 3 personas. Cada jugador recibe un elemento característico como ficha.</p>
+          <ol>
+            <li>Revisa que tengas todos los elementos: tapete, dado, cascos y fichas de instrucciones.</li>
+            <li>Cada jugador lanza el dado y avanza la cantidad de casillas indicada.</li>
+            <li>Al caer en una casilla con imagen, el jugador o equipo hace una reflexión y responde una pregunta sobre la temática para avanzar al siguiente turno.</li>
+            <li>Al caer en una casilla segura, el jugador cumple una penitencia elegida por el líder del juego, relacionada con la temática a tratar.</li>
+            <li>Gana quien llegue primero a la casilla final.</li>
+          </ol>
+          <p class="materials">También puedes imprimir los protocolos de aseo y hacer preguntas sobre esos documentos durante el juego.</p>
+
+          <div style="margin-top:20px; padding-top:20px; border-top:3px solid var(--card-border);">
+            <h3 style="margin-bottom:8px;">Banco de preguntas de la Escalera</h3>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin:0 0 8px; font-weight: 600;">Preguntas para usar en las casillas de reflexión. Agrega, edita o elimina las que necesites — quedan guardadas.</p>
+            <div class="qbank-list" id="qbank-list"></div>
+            <div class="add-form">
+              <div class="field-wrap" style="flex:1;">
+                <label class="field-label" for="qbank-new">Nueva pregunta</label>
+                <input type="text" id="qbank-new" placeholder="Escribe una nueva pregunta..." style="flex:1;">
+              </div>
+              <button class="btn-primary" id="qbank-add">Agregar</button>
+              <button class="btn-secondary" id="qbank-sortear"><span class="icon-inline" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"></rect><circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"></circle><circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"></circle><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"></circle><circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"></circle><circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"></circle></svg></span> Sortear pregunta</button>
+            </div>
+            <div class="qbank-drawn" id="qbank-drawn"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RECURSOS -->
+    <section class="view" id="view-recursos">
+      <h1 class="page-title">Recursos y formularios</h1>
+      <p class="page-sub">Accesos directos a los formularios digitales y referencia de emergencia en el parque.</p>
+
+      <div class="card">
+        <h2>Archivos y formatos <span class="tag tag-edit"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg><span style="font-size:0.65rem;">editable</span></span></h2>
+        <p class="section-note" style="margin:0 0 10px;">Sube aquí los formatos que usas seguido: asistencia, inspección de botiquines, inspección del parque, checklist de atracciones, etc.</p>
+        <p class="section-note" style="margin:0 0 10px; color:var(--danger);">Máximo recomendado ~4 MB por archivo.</p>
+        <div id="archivos-list"></div>
+        <div class="add-form">
+          <div class="field-wrap" style="flex:2;">
+            <label class="field-label" for="archivo-titulo-nuevo">Nombre del formato</label>
+            <input type="text" id="archivo-titulo-nuevo" placeholder="Nombre del formato" style="flex:2;">
+            <p class="field-error" id="archivo-titulo-nuevo-error">Escribe un nombre para continuar</p>
+          </div>
+          <div class="field-wrap">
+            <label class="field-label" for="archivo-file-nuevo">Archivo</label>
+            <input type="file" id="archivo-file-nuevo">
+          </div>
+          <button class="btn-primary" id="archivo-add">Agregar archivo</button>
+        </div>
+        <p class="section-note" id="archivo-file-error" style="color:var(--danger); display:none;"></p>
+      </div>
+
+      <div class="card">
+        <h2>Formularios (check list digital) <span class="tag tag-edit"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg><span style="font-size:0.65rem;">editable</span></span></h2>
+        <p class="section-note" style="margin:0 0 10px;">Los links de anexo del instructivo. Edítalos aquí en cuanto los tengas listos.</p>
+        <div id="res-formularios"></div>
+        <div class="add-form">
+          <div class="field-wrap">
+            <label class="field-label" for="res-form-nombre">Nombre del formulario</label>
+            <input type="text" id="res-form-nombre" placeholder="Nombre del formulario">
+            <p class="field-error" id="res-form-nombre-error">Escribe un nombre para continuar</p>
+          </div>
+          <div class="field-wrap">
+            <label class="field-label" for="res-form-url">URL</label>
+            <input type="text" id="res-form-url" placeholder="https://...">
+          </div>
+          <button class="btn-primary" id="res-form-add">Agregar formulario</button>
+        </div>
+      </div>
+
+      <div class="cards-grid">
+        <div class="card">
+          <h2>Recursos SST adicionales <span class="tag tag-edit"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg><span style="font-size:0.65rem;">editable</span></span></h2>
+          <p class="section-note" style="margin:0 0 10px;">Agrega aquí cualquier otro recurso que uses seguido: línea de la ARL, normativa, contactos de brigada, etc.</p>
+          <div id="res-sst"></div>
+          <div class="add-form">
+            <div class="field-wrap">
+              <label class="field-label" for="res-sst-nombre">Nombre del recurso</label>
+              <input type="text" id="res-sst-nombre" placeholder="Nombre del recurso">
+              <p class="field-error" id="res-sst-nombre-error">Escribe un nombre para continuar</p>
+            </div>
+            <div class="field-wrap">
+              <label class="field-label" for="res-sst-url">URL (opcional)</label>
+              <input type="text" id="res-sst-url" placeholder="https:// (opcional)">
+            </div>
+            <button class="btn-primary" id="res-sst-add">Agregar recurso</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>Mensajes del semáforo</h2>
+          <p class="msg-quote verde">Verde: "¡Buen trabajo! Estás protegiéndote correctamente en la selva. Sigue así."</p>
+          <p class="msg-quote amarillo">Amarillo: "Recuerda que el EPP debe estar bien colocado para protegerte. Por favor, ajústalo."</p>
+          <p class="msg-quote rojo">Rojo: "Este es un riesgo alto. Detén la tarea ahora y colócate tu EPP. ¡Tu seguridad es primero!"</p>
+        </div>
+
+        <div class="card" style="grid-column: 1 / -1;">
+          <h2>Temas del mes — Salud Ocupacional <span class="tag tag-edit"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg><span style="font-size:0.65rem;">editable</span></span></h2>
+          <p class="section-note" style="margin:0 0 10px;">Los temas que define Salud Ocupacional cada mes. Edita el contenido, agrega el mes que sigue o elimina los anteriores.</p>
+          <div id="temas-list"></div>
+          <div class="add-form">
+            <div class="field-wrap">
+              <label class="field-label" for="tema-mes-nuevo">Mes</label>
+              <input type="month" id="tema-mes-nuevo">
+            </div>
+            <div class="field-wrap" style="flex:2;">
+              <label class="field-label" for="tema-titulo-nuevo">Título del tema</label>
+              <input type="text" id="tema-titulo-nuevo" placeholder="Título del tema (ej: Procedimiento de emergencias)" style="flex:2;">
+              <p class="field-error" id="tema-titulo-nuevo-error">Escribe un nombre para continuar</p>
+            </div>
+            <button class="btn-primary" id="tema-add">Agregar tema</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toast-container" aria-live="polite"></div>
+
+<script>
+(function(){
+  // ---------- Theme Toggle ----------
+  const themeToggleBtn = document.getElementById('theme-toggle-btn');
+  const themeToggleIcon = document.getElementById('theme-toggle-icon');
+  const htmlRoot = document.documentElement;
+  const SUN_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2.5v3M12 18.5v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2.5 12h3M18.5 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"></path></svg>';
+  const MOON_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.3A8.5 8.5 0 1 1 9.7 4a7 7 0 0 0 10.3 10.3z"></path></svg>';
+
+  function setThemeIcon(isDark){
+    themeToggleIcon.innerHTML = isDark ? SUN_ICON : MOON_ICON;
+    themeToggleBtn.setAttribute('aria-pressed', isDark ? 'true' : 'false');
+  }
+
+  // Check saved theme preference
+  const savedTheme = localStorage.getItem('africa-theme') || 'light';
+  if(savedTheme === 'dark'){
+    htmlRoot.setAttribute('data-theme', 'dark');
+    setThemeIcon(true);
+  } else {
+    htmlRoot.removeAttribute('data-theme');
+    setThemeIcon(false);
+  }
+
+  themeToggleBtn.addEventListener('click', ()=>{
+    if(htmlRoot.getAttribute('data-theme') === 'dark'){
+      htmlRoot.removeAttribute('data-theme');
+      localStorage.setItem('africa-theme', 'light');
+      setThemeIcon(false);
+    } else {
+      htmlRoot.setAttribute('data-theme', 'dark');
+      localStorage.setItem('africa-theme', 'dark');
+      setThemeIcon(true);
+    }
+  });
+
+  // ---------- Navigation ----------
+  const navButtons = document.querySelectorAll('.nav button');
+  const views = document.querySelectorAll('.view');
+  const breadcrumb = document.getElementById('view-breadcrumb');
+  const viewLabels = {
+    resumen: 'Resumen del rol',
+    epp: 'Semáforo EPP',
+    checklist: 'Misiones y checklist',
+    juegos: 'Juegos ARL SURA',
+    recursos: 'Recursos y formularios'
+  };
+  navButtons.forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      navButtons.forEach(b=>{ b.classList.remove('active'); b.removeAttribute('aria-current'); });
+      views.forEach(v=>v.classList.remove('active'));
+      btn.classList.add('active');
+      btn.setAttribute('aria-current', 'page');
+      document.getElementById('view-'+btn.dataset.view).classList.add('active');
+      if(breadcrumb){ breadcrumb.textContent = viewLabels[btn.dataset.view] || ''; }
+    });
+  });
+
+  // ---------- Storage helpers ----------
+  // Dentro de claude.ai usa window.storage. Si el panel se abre como archivo local
+  // (el caso normal para cada parque), window.storage no existe, y en ese caso
+  // se usa IndexedDB del navegador, que sí persiste entre sesiones en ese equipo.
+  const memFallback = {};
+  let backend = 'unknown'; // 'claude' | 'indexeddb' | 'memory'
+
+  const DB_NAME = 'panel-lider-seguridad';
+  const STORE_NAME = 'kv';
+  let dbPromise = null;
+  function getDB(){
+    if(dbPromise) return dbPromise;
+    dbPromise = new Promise((resolve, reject)=>{
+      if(!('indexedDB' in window)){ reject(new Error('sin indexedDB')); return; }
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = ()=>{ req.result.createObjectStore(STORE_NAME); };
+      req.onsuccess = ()=>resolve(req.result);
+      req.onerror = ()=>reject(req.error);
+    });
+    return dbPromise;
+  }
+  function idbGet(key){
+    return getDB().then(db=>new Promise((resolve, reject)=>{
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const req = tx.objectStore(STORE_NAME).get(key);
+      req.onsuccess = ()=>resolve(req.result);
+      req.onerror = ()=>reject(req.error);
+    }));
+  }
+  function idbSet(key, value){
+    return getDB().then(db=>new Promise((resolve, reject)=>{
+      const tx = db.transaction(STORE_NAME, 'readwrite');
+      tx.objectStore(STORE_NAME).put(value, key);
+      tx.oncomplete = ()=>resolve(true);
+      tx.onerror = ()=>reject(tx.error);
+    }));
+  }
+
+  async function storeGet(key){
+    try{
+      const r = await window.storage.get(key, false);
+      backend = 'claude';
+      return r ? r.value : null;
+    }catch(e){
+      try{
+        const v = await idbGet(key);
+        backend = 'indexeddb';
+        return v !== undefined ? v : null;
+      }catch(e2){
+        backend = 'memory';
+        return memFallback[key] || null;
+      }
+    }
+  }
+  async function storeSet(key, value){
+    try{
+      const r = await window.storage.set(key, value, false);
+      if(r){ backend = 'claude'; return; }
+      throw new Error('window.storage no disponible');
+    }catch(e){
+      try{
+        await idbSet(key, value);
+        backend = 'indexeddb';
+      }catch(e2){
+        memFallback[key] = value;
+        backend = 'memory';
+      }
+    }
+  }
+
+  // ---------- Confirmación de borrado + deshacer ----------
+  // Patrón de doble clic: primer clic pide confirmación, segundo clic (dentro
+  // de 3s) ejecuta el borrado. onConfirm debe realizar el borrado real y
+  // devolver (opcionalmente) una función de deshacer.
+  function attachConfirmDelete(btn, onConfirm){
+    if(!btn) return;
+    let confirming = false;
+    let timeoutId = null;
+    const originalText = btn.textContent;
+    btn.addEventListener('click', ()=>{
+      if(!confirming){
+        confirming = true;
+        btn.textContent = '¿Seguro? / Confirmar';
+        btn.classList.add('btn-confirming');
+        timeoutId = setTimeout(()=>{
+          confirming = false;
+          btn.textContent = originalText;
+          btn.classList.remove('btn-confirming');
+        }, 3000);
+      } else {
+        confirming = false;
+        clearTimeout(timeoutId);
+        btn.classList.remove('btn-confirming');
+        onConfirm();
+      }
+    });
+  }
+
+  function showToast(message, onUndo){
+    const container = document.getElementById('toast-container');
+    if(!container) return;
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `<span>${escapeHtml(message)}</span>` + (onUndo ? `<button class="toast-undo">Deshacer</button>` : '');
+    container.appendChild(toast);
+    let settled = false;
+    let removeTimeout = null;
+    if(onUndo){
+      toast.querySelector('.toast-undo').addEventListener('click', ()=>{
+        if(settled) return;
+        settled = true;
+        clearTimeout(removeTimeout);
+        onUndo();
+        toast.remove();
+      });
+    }
+    removeTimeout = setTimeout(()=>{
+      if(settled) return;
+      settled = true;
+      toast.remove();
+    }, 5000);
+  }
+
+  function showFieldError(inputEl, errorEl){
+    if(!inputEl || !errorEl) return;
+    inputEl.classList.add('input-invalid');
+    errorEl.classList.add('show');
+    const clear = ()=>{
+      inputEl.classList.remove('input-invalid');
+      errorEl.classList.remove('show');
+      inputEl.removeEventListener('input', clear);
+    };
+    inputEl.addEventListener('input', clear);
+    inputEl.focus();
+  }
+
+  // ---------- EPP semáforo ----------
+  const colorPick = document.getElementById('color-pick');
+  const semaforoVisual = document.getElementById('semaforo-visual');
+  let selectedColor = null;
+  const messages = {
+    verde: '"¡Buen trabajo! Estás protegiéndote correctamente en la selva. Sigue así."',
+    amarillo: '"Recuerda que el EPP debe estar bien colocado para protegerte. Por favor, ajústalo."',
+    rojo: '"Este es un riesgo alto. Detén la tarea ahora y colócate tu EPP. ¡Tu seguridad es primero!"'
+  };
+  const msgPreview = document.getElementById('msg-preview');
+
+  colorPick.querySelectorAll('button').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      colorPick.querySelectorAll('button').forEach(x=>x.classList.remove('sel'));
+      b.classList.add('sel');
+      selectedColor = b.dataset.c;
+      semaforoVisual.querySelectorAll('.luz').forEach(l=>l.classList.remove('on'));
+      semaforoVisual.querySelector('.luz.'+selectedColor).classList.add('on');
+      msgPreview.style.display = 'block';
+      msgPreview.className = 'msg-quote '+selectedColor;
+      msgPreview.textContent = messages[selectedColor];
+    });
+  });
+
+  const fFecha = document.getElementById('f-fecha');
+  fFecha.valueAsDate = new Date();
+
+  let eppLog = [];
+  const EPP_EMPTY_TEXT = 'Aún no hay abordajes registrados.';
+  async function loadEppLog(){
+    const empty = document.getElementById('epp-empty');
+    empty.textContent = 'Cargando...';
+    empty.style.display = 'block';
+    document.getElementById('worker-summary').innerHTML = '<div class="empty">Cargando...</div>';
+    const raw = await storeGet('epp-log');
+    eppLog = raw ? JSON.parse(raw) : [];
+    empty.textContent = EPP_EMPTY_TEXT;
+    renderEppLog();
+    renderWorkerSummary();
+  }
+  async function saveEppLog(){
+    await storeSet('epp-log', JSON.stringify(eppLog));
+  }
+
+  document.getElementById('epp-log-filter').addEventListener('input', applyEppLogFilter);
+
+  document.getElementById('btn-guardar-epp').addEventListener('click', async ()=>{
+    const nombreInput = document.getElementById('f-nombre');
+    const nombre = nombreInput.value.trim();
+    const fecha = fFecha.value;
+    const nota = document.getElementById('f-nota').value.trim();
+    if(!nombre){ showFieldError(nombreInput, document.getElementById('f-nombre-error')); return; }
+    if(!selectedColor){ alert('Selecciona una tarjeta: verde, amarilla o roja.'); return; }
+    eppLog.unshift({ id: Date.now(), nombre, fecha, color: selectedColor, nota });
+    await saveEppLog();
+    nombreInput.value='';
+    document.getElementById('f-nota').value='';
+    colorPick.querySelectorAll('button').forEach(x=>x.classList.remove('sel'));
+    semaforoVisual.querySelectorAll('.luz').forEach(l=>l.classList.remove('on'));
+    msgPreview.style.display='none';
+    selectedColor = null;
+    renderEppLog();
+    renderWorkerSummary();
+    const eppNote = document.getElementById('epp-save-note');
+    eppNote.textContent = 'Abordaje guardado';
+    setTimeout(()=>{ eppNote.textContent=''; }, 2000);
+  });
+
+  function renderEppLog(){
+    const body = document.getElementById('epp-log-body');
+    const empty = document.getElementById('epp-empty');
+    body.innerHTML = '';
+    if(eppLog.length===0){ empty.style.display='block'; applyEppLogFilter(); return; }
+    empty.style.display='none';
+    eppLog.forEach(entry=>{
+      const tr = document.createElement('tr');
+      tr.dataset.nombre = entry.nombre || '';
+      tr.innerHTML = `
+        <td>${entry.fecha || '—'}</td>
+        <td>${escapeHtml(entry.nombre)}</td>
+        <td><span class="chip ${entry.color}">${entry.color}</span></td>
+        <td>${escapeHtml(entry.nota || '')}</td>
+        <td><button class="del-row" data-id="${entry.id}">eliminar</button></td>
+      `;
+      body.appendChild(tr);
+    });
+    body.querySelectorAll('.del-row').forEach(btn=>{
+      attachConfirmDelete(btn, async ()=>{
+        const idx = eppLog.findIndex(e=>e.id === Number(btn.dataset.id));
+        if(idx === -1) return;
+        const removed = eppLog[idx];
+        eppLog = eppLog.filter(e=>e.id !== Number(btn.dataset.id));
+        await saveEppLog();
+        renderEppLog();
+        renderWorkerSummary();
+        showToast('Elemento eliminado', async ()=>{
+          eppLog.splice(idx, 0, removed);
+          await saveEppLog();
+          renderEppLog();
+          renderWorkerSummary();
+        });
+      });
+    });
+    applyEppLogFilter();
+  }
+
+  function applyEppLogFilter(){
+    const filterEl = document.getElementById('epp-log-filter');
+    if(!filterEl) return;
+    const q = filterEl.value.trim().toLowerCase();
+    const body = document.getElementById('epp-log-body');
+    let anyVisible = false;
+    body.querySelectorAll('tr').forEach(tr=>{
+      const nombre = (tr.dataset.nombre || '').toLowerCase();
+      const match = !q || nombre.includes(q);
+      tr.style.display = match ? '' : 'none';
+      if(match) anyVisible = true;
+    });
+    const filterEmpty = document.getElementById('epp-filter-empty');
+    if(filterEmpty){
+      filterEmpty.style.display = (q && !anyVisible && eppLog.length > 0) ? 'block' : 'none';
+    }
+  }
+
+  function renderWorkerSummary(){
+    const wrap = document.getElementById('worker-summary');
+    wrap.innerHTML = '';
+    const byWorker = {};
+    eppLog.forEach(e=>{
+      const key = e.nombre.trim().toLowerCase();
+      if(!byWorker[key]) byWorker[key] = { nombre:e.nombre, verde:0, amarillo:0, rojo:0 };
+      byWorker[key][e.color]++;
+    });
+    const names = Object.keys(byWorker);
+    if(names.length===0){
+      wrap.innerHTML = '<div class="empty">Registra abordajes para ver el resumen por trabajador.</div>';
+      return;
+    }
+    names.forEach(key=>{
+      const w = byWorker[key];
+      const rojasEfectivas = w.rojo + Math.floor(w.amarillo / 4);
+      const div = document.createElement('div');
+      div.className = 'worker-card';
+      div.innerHTML = `
+        <div class="name">${escapeHtml(w.nombre)}</div>
+        <div class="counts">
+          <span><span class="dotc verde"></span><span class="sr-only">Verde: </span>${w.verde}</span>
+          <span><span class="dotc amarillo"></span><span class="sr-only">Amarillo: </span>${w.amarillo}</span>
+          <span><span class="dotc rojo"></span><span class="sr-only">Rojo: </span>${w.rojo}</span>
+        </div>
+        <div class="flag ${rojasEfectivas > 2 ? 'show':''}">Más de 2 rojas efectivas: reportar al administrador</div>
+      `;
+      wrap.appendChild(div);
+    });
+  }
+
+  function escapeHtml(str){
+    const d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  // ---------- Checklist mensual ----------
+  const taskIds = [
+    't-mejora-1','t-mejora-2',
+    't-charla-1','t-charla-2','t-charla-3','t-charla-4',
+    't-aseo-1','t-aseo-2','t-aseo-3',
+    't-epp-1','t-epp-2','t-epp-3','t-epp-4','t-epp-5',
+    't-sim-1','t-sim-2',
+    't-rec-1','t-rec-2'
+  ];
+  const mesSelect = document.getElementById('mes-select');
+  const monthNames = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  const now = new Date();
+  mesSelect.value = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+
+  function monthLabel(value){
+    if(!value) return '';
+    const [y,m] = value.split('-');
+    return monthNames[Number(m)-1]+' '+y;
+  }
+
+  async function loadChecklist(){
+    const note = document.getElementById('checklist-save-note');
+    note.textContent = 'Cargando...';
+    const key = 'checklist-'+mesSelect.value;
+    const raw = await storeGet(key);
+    const state = raw ? JSON.parse(raw) : {};
+    taskIds.forEach(id=>{
+      document.getElementById(id).checked = !!state[id];
+    });
+    note.textContent = '';
+  }
+  async function saveChecklist(){
+    const key = 'checklist-'+mesSelect.value;
+    const state = {};
+    taskIds.forEach(id=>{ state[id] = document.getElementById(id).checked; });
+    await storeSet(key, JSON.stringify(state));
+    const note = document.getElementById('checklist-save-note');
+    note.textContent = 'Guardado — '+ monthLabel(mesSelect.value);
+    setTimeout(()=>{ note.textContent=''; }, 2000);
+  }
+  taskIds.forEach(id=>{
+    document.getElementById(id).addEventListener('change', saveChecklist);
+  });
+  mesSelect.addEventListener('change', loadChecklist);
+
+  // ---------- Archivos y formatos ----------
+  function readFileAsDataURL(file){
+    return new Promise((resolve, reject)=>{
+      const reader = new FileReader();
+      reader.onload = ()=>resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+  function humanSize(bytes){
+    if(!bytes) return '';
+    if(bytes < 1024) return bytes+' B';
+    if(bytes < 1024*1024) return (bytes/1024).toFixed(0)+' KB';
+    return (bytes/1024/1024).toFixed(1)+' MB';
+  }
+  const MAX_FILE_BYTES = 4*1024*1024;
+
+  function createArchivosManager(){
+    const container = document.getElementById('archivos-list');
+    let archivos = [];
+
+    function render(){
+      container.innerHTML = '';
+      if(archivos.length === 0){
+        container.innerHTML = '<div class="empty">Sin archivos todavía — sube el primero abajo.</div>';
+        return;
+      }
+      archivos.forEach(a=>{
+        const row = document.createElement('div');
+        row.className = 'res-item';
+        row.innerHTML = `
+          <div class="res-main">
+            <input class="res-title" type="text" value="${escapeAttr(a.titulo)}" placeholder="Nombre del formato">
+            <div class="section-note" style="margin-top:2px;">${a.fileName ? escapeHtml(a.fileName)+' · '+humanSize(a.size) : 'Sin archivo adjunto todavía'}</div>
+          </div>
+          <div class="res-actions">
+            ${a.fileData ? `<a href="${a.fileData}" download="${escapeAttr(a.fileName||'archivo')}">descargar →</a>` : ''}
+            <label class="btn-replace">${a.fileData ? 'reemplazar' : 'adjuntar'}<input type="file" style="display:none;" class="archivo-replace"></label>
+            <button class="res-del">eliminar</button>
+          </div>
+          <p class="section-note archivo-replace-error" style="color:var(--danger); display:none; width:100%;"></p>
+        `;
+        row.querySelector('.res-title').addEventListener('change', async (e)=>{
+          a.titulo = e.target.value; await persist();
+        });
+        row.querySelector('.archivo-replace').addEventListener('change', async (e)=>{
+          const file = e.target.files[0];
+          if(!file) return;
+          const errNote = row.querySelector('.archivo-replace-error');
+          if(file.size > MAX_FILE_BYTES){
+            errNote.textContent = 'Ese archivo pesa más de 4 MB. Sube uno más liviano, o usa un link externo en "Recursos SST adicionales".';
+            errNote.style.display = 'block';
+            return;
+          }
+          errNote.style.display = 'none';
+          a.fileName = file.name; a.size = file.size;
+          a.fileData = await readFileAsDataURL(file);
+          await persist(); render();
+        });
+        attachConfirmDelete(row.querySelector('.res-del'), async ()=>{
+          const idx = archivos.indexOf(a);
+          archivos = archivos.filter(x=>x.id !== a.id);
+          await persist(); render();
+          showToast('Elemento eliminado', async ()=>{
+            archivos.splice(idx, 0, a);
+            await persist(); render();
+          });
+        });
+        container.appendChild(row);
+      });
+    }
+    async function persist(){ await storeSet('archivos-formatos', JSON.stringify(archivos)); }
+    async function load(){
+      container.innerHTML = '<div class="empty">Cargando...</div>';
+      const raw = await storeGet('archivos-formatos');
+      archivos = raw ? JSON.parse(raw) : [];
+      render();
+    }
+    async function add(titulo, file){
+      const item = { id: Date.now()+Math.random(), titulo, fileName:null, fileData:null, size:0 };
+      if(file){
+        if(file.size > MAX_FILE_BYTES){
+          const errNote = document.getElementById('archivo-file-error');
+          errNote.textContent = 'Ese archivo pesa más de 4 MB y no se adjuntó.';
+          errNote.style.display = 'block';
+        }else{
+          const errNote = document.getElementById('archivo-file-error');
+          if(errNote){ errNote.style.display = 'none'; }
+          item.fileName = file.name; item.size = file.size;
+          item.fileData = await readFileAsDataURL(file);
+        }
+      }
+      archivos.push(item);
+      await persist(); render();
+    }
+    load();
+    return { add };
+  }
+
+  const archivosManager = createArchivosManager();
+  document.getElementById('archivo-add').addEventListener('click', async ()=>{
+    const t = document.getElementById('archivo-titulo-nuevo');
+    const f = document.getElementById('archivo-file-nuevo');
+    if(!t.value.trim()){ showFieldError(t, document.getElementById('archivo-titulo-nuevo-error')); return; }
+    const file = f.files[0] || null;
+    await archivosManager.add(t.value.trim(), file);
+    t.value=''; f.value='';
+  });
+
+  // ---------- Recursos editables ----------
+  function escapeAttr(str){ return String(str).replace(/"/g,'&quot;'); }
+
+  function createResourceManager(containerId, storageKey, seedItems){
+    const container = document.getElementById(containerId);
+    let items = null;
+
+    function render(){
+      container.innerHTML = '';
+      if(items.length === 0){
+        container.innerHTML = '<div class="empty">Sin recursos todavía — agrégalo abajo ↓</div>';
+        return;
+      }
+      items.forEach(it=>{
+        const row = document.createElement('div');
+        row.className = 'res-item';
+        row.innerHTML = `
+          <div class="res-main">
+            <input class="res-title" type="text" value="${escapeAttr(it.title)}" placeholder="Nombre" aria-label="Nombre del recurso">
+            <input class="res-url" type="text" value="${escapeAttr(it.url||'')}" placeholder="https:// (opcional)" aria-label="URL del recurso">
+          </div>
+          <div class="res-actions">
+            ${it.url ? `<a href="${escapeAttr(it.url)}" target="_blank" rel="noopener">abrir →</a>` : ''}
+            <button class="res-del">eliminar</button>
+          </div>
+        `;
+        row.querySelector('.res-title').addEventListener('change', async (e)=>{
+          it.title = e.target.value; await persist();
+        });
+        row.querySelector('.res-url').addEventListener('change', async (e)=>{
+          it.url = e.target.value; await persist(); render();
+        });
+        attachConfirmDelete(row.querySelector('.res-del'), async ()=>{
+          const idx = items.indexOf(it);
+          items = items.filter(x=>x.id !== it.id);
+          await persist(); render();
+          showToast('Elemento eliminado', async ()=>{
+            items.splice(idx, 0, it);
+            await persist(); render();
+          });
+        });
+        container.appendChild(row);
+      });
+    }
+    async function persist(){ await storeSet(storageKey, JSON.stringify(items)); }
+    async function load(){
+      container.innerHTML = '<div class="empty">Cargando...</div>';
+      const raw = await storeGet(storageKey);
+      items = raw ? JSON.parse(raw) : seedItems.map(x=>({ id: Date.now()+Math.random(), ...x }));
+      render();
+    }
+    async function add(title, url){
+      items.push({ id: Date.now()+Math.random(), title, url });
+      await persist(); render();
+    }
+    load();
+    return { add };
+  }
+
+  const formulariosManager = createResourceManager('res-formularios', 'recursos-formularios', [
+    { title:'Labores de aseo', url:'https://forms.office.com/r/qgtxccTEwA' },
+    { title:'Check list líderes — Ambientes de Trabajo Seguro', url:'' },
+    { title:'Mejora, charlas y campañas, refuerzo simulacro y reconocimiento', url:'' }
+  ]);
+  document.getElementById('res-form-add').addEventListener('click', async ()=>{
+    const n = document.getElementById('res-form-nombre');
+    const u = document.getElementById('res-form-url');
+    if(!n.value.trim()){ showFieldError(n, document.getElementById('res-form-nombre-error')); return; }
+    await formulariosManager.add(n.value.trim(), u.value.trim());
+    n.value=''; u.value='';
+  });
+
+  const sstManager = createResourceManager('res-sst', 'recursos-sst', []);
+  document.getElementById('res-sst-add').addEventListener('click', async ()=>{
+    const n = document.getElementById('res-sst-nombre');
+    const u = document.getElementById('res-sst-url');
+    if(!n.value.trim()){ showFieldError(n, document.getElementById('res-sst-nombre-error')); return; }
+    await sstManager.add(n.value.trim(), u.value.trim());
+    n.value=''; u.value='';
+  });
+
+  // ---------- Banco de preguntas — Escalera ----------
+  let qbank = [];
+  async function loadQbank(){
+    document.getElementById('qbank-list').innerHTML = '<div class="empty">Cargando...</div>';
+    const raw = await storeGet('escalera-preguntas');
+    qbank = raw ? JSON.parse(raw) : [
+      '¿Qué elemento de protección personal debes usar al limpiar las zonas temáticas?',
+      '¿Qué haces si encuentras un producto químico sin identificación en el almacén?',
+      '¿Cómo evitas malas posturas al levantar objetos pesados en el parque?',
+      '¿Qué debes revisar antes de subir a una escalera portátil?'
+    ];
+    renderQbank();
+  }
+  async function saveQbank(){ await storeSet('escalera-preguntas', JSON.stringify(qbank)); }
+  function renderQbank(){
+    const list = document.getElementById('qbank-list');
+    list.innerHTML = '';
+    if(qbank.length === 0){
+      list.innerHTML = '<div class="empty">Sin preguntas todavía — agrega la primera abajo.</div>';
+      return;
+    }
+    qbank.forEach((q, idx)=>{
+      const row = document.createElement('div');
+      row.className = 'qbank-item';
+      row.innerHTML = `<span>${escapeHtml(q)}</span><button class="qbank-del">eliminar</button>`;
+      attachConfirmDelete(row.querySelector('.qbank-del'), async ()=>{
+        const removed = qbank.splice(idx, 1)[0];
+        await saveQbank();
+        renderQbank();
+        showToast('Elemento eliminado', async ()=>{
+          qbank.splice(idx, 0, removed);
+          await saveQbank();
+          renderQbank();
+        });
+      });
+      list.appendChild(row);
+    });
+  }
+  document.getElementById('qbank-add').addEventListener('click', async ()=>{
+    const input = document.getElementById('qbank-new');
+    const v = input.value.trim();
+    if(!v) return;
+    qbank.push(v);
+    await saveQbank();
+    input.value = '';
+    renderQbank();
+  });
+  document.getElementById('qbank-sortear').addEventListener('click', ()=>{
+    const drawn = document.getElementById('qbank-drawn');
+    if(qbank.length === 0){ drawn.classList.remove('show'); return; }
+    const pick = qbank[Math.floor(Math.random()*qbank.length)];
+    drawn.textContent = pick;
+    drawn.classList.add('show');
+  });
+
+  // ---------- Temas del mes — Salud Ocupacional ----------
+  function createTemasManager(){
+    const container = document.getElementById('temas-list');
+    let temas = [];
+
+    function render(){
+      container.innerHTML = '';
+      if(temas.length === 0){
+        container.innerHTML = '<div class="empty">Sin temas todavía — agrega el primero abajo.</div>';
+        return;
+      }
+      const sorted = [...temas].sort((a,b)=> (b.mes||'').localeCompare(a.mes||''));
+      sorted.forEach(t=>{
+        const div = document.createElement('div');
+        div.className = 'tema-item';
+        div.innerHTML = `
+          <div class="tema-head">
+            <input type="month" class="tema-mes-input" value="${escapeAttr(t.mes||'')}">
+            <input type="text" class="tema-titulo" value="${escapeAttr(t.titulo)}" placeholder="Título del tema">
+            <button class="tema-del">eliminar</button>
+          </div>
+          <textarea class="tema-contenido" placeholder="Contenido del tema (procedimiento, preguntas, notas...)">${escapeHtml(t.contenido||'')}</textarea>
+        `;
+        div.querySelector('.tema-mes-input').addEventListener('change', async (e)=>{
+          t.mes = e.target.value; await persist(); render();
+        });
+        div.querySelector('.tema-titulo').addEventListener('change', async (e)=>{
+          t.titulo = e.target.value; await persist();
+        });
+        div.querySelector('.tema-contenido').addEventListener('change', async (e)=>{
+          t.contenido = e.target.value; await persist();
+        });
+        attachConfirmDelete(div.querySelector('.tema-del'), async ()=>{
+          const idx = temas.indexOf(t);
+          temas = temas.filter(x=>x.id !== t.id);
+          await persist(); render();
+          showToast('Elemento eliminado', async ()=>{
+            temas.splice(idx, 0, t);
+            await persist(); render();
+          });
+        });
+        container.appendChild(div);
+      });
+    }
+    async function persist(){ await storeSet('temas-sst', JSON.stringify(temas)); }
+    async function load(){
+      container.innerHTML = '<div class="empty">Cargando...</div>';
+      const raw = await storeGet('temas-sst');
+      if(raw){
+        temas = JSON.parse(raw);
+      }else{
+        temas = [{
+          id: Date.now(),
+          mes: '2026-07',
+          titulo: 'Procedimiento de emergencias en el parque',
+          contenido: 'Refuerzo del procedimiento para atención de incidentes. Al identificar una situación de salud o emergencia:\n\n1. Informa/modula inmediatamente al administrador/coordinador.\n2. Activa la brigada de emergencias del parque.\n3. Evalúa la situación de forma segura.\n4. Presta primeros auxilios y lleva a la persona al punto médico si es necesario.\n\nRepasen en equipo:\n- ¿Cuáles son los protocolos de evacuación?\n- ¿Quién atiende al visitante y quién al acompañante?\n- ¿Cuál es el mecanismo para llamar al personal de enfermería?\n- ¿Quién asegura el área y lleva el botiquín?'
+        }];
+      }
+      render();
+    }
+    async function add(mes, titulo){
+      temas.push({ id: Date.now()+Math.random(), mes, titulo, contenido:'' });
+      await persist(); render();
+    }
+    load();
+    return { add };
+  }
+
+  const temasManager = createTemasManager();
+  document.getElementById('tema-mes-nuevo').value = now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+  document.getElementById('tema-add').addEventListener('click', async ()=>{
+    const mesInput = document.getElementById('tema-mes-nuevo');
+    const tituloInput = document.getElementById('tema-titulo-nuevo');
+    if(!tituloInput.value.trim()){ showFieldError(tituloInput, document.getElementById('tema-titulo-nuevo-error')); return; }
+    await temasManager.add(mesInput.value, tituloInput.value.trim());
+    tituloInput.value = '';
+  });
+
+  // ---------- Init ----------
+  loadEppLog();
+  loadChecklist();
+  loadQbank();
+
+  setTimeout(()=>{
+    const el = document.getElementById('storage-status');
+    if(!el) return;
+    const ICONS = {
+      cloud: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 18a4 4 0 0 1-.5-7.97A5.5 5.5 0 0 1 16.4 8.05 4.5 4.5 0 0 1 17.5 18h-11z"></path></svg>',
+      disk: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3h11l3 3v15H5z"></path><path d="M8 3v6h8V3M8 21v-7h8v7"></path></svg>',
+      warn: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 21 19H3z"></path><path d="M12 9.5v4M12 16.2v.3"></path></svg>'
+    };
+    if(backend === 'claude'){
+      el.innerHTML = '<span class="icon-inline" aria-hidden="true">'+ICONS.cloud+'</span> Guardado en claude.ai';
+    }else if(backend === 'indexeddb'){
+      el.innerHTML = '<span class="icon-inline" aria-hidden="true">'+ICONS.disk+'</span> Guardado en este equipo';
+    }else{
+      el.innerHTML = '<span class="icon-inline" aria-hidden="true">'+ICONS.warn+'</span> No se pudo guardar — solo dura esta sesión';
+    }
+  }, 600);
+})();
+</script>
+
+<script>
+(function(){
+  var SUN_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4.5"></circle><path d="M12 2.5v3M12 18.5v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2.5 12h3M18.5 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1"></path></svg>';
+  var MOON_ICON = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.3A8.5 8.5 0 1 1 9.7 4a7 7 0 0 0 10.3 10.3z"></path></svg>';
+  window.addEventListener('message', function(e){
+    if(!e.data || e.data.type !== 'africa-tools-set-theme') return;
+    var theme = e.data.theme === 'dark' ? 'dark' : 'light';
+    var root = document.documentElement;
+    var icon = document.getElementById('theme-toggle-icon');
+    var btn = document.getElementById('theme-toggle-btn');
+    if(theme === 'dark'){
+      root.setAttribute('data-theme', 'dark');
+      if(icon) icon.innerHTML = SUN_ICON;
+      if(btn) btn.setAttribute('aria-pressed', 'true');
+    } else {
+      root.removeAttribute('data-theme');
+      if(icon) icon.innerHTML = MOON_ICON;
+      if(btn) btn.setAttribute('aria-pressed', 'false');
+    }
+    try { localStorage.setItem('africa-theme', theme); } catch(err){}
+  });
+})();
+if (window.parent !== window) { var localToggle = document.getElementById('theme-toggle-btn'); if (localToggle) localToggle.style.display = 'none'; }
+</script>
+</body>
+</html>

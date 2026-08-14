@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="maneGrad" cx="35%" cy="30%" r="75%">
+      <stop offset="0%" stop-color="#F5A623"/>
+      <stop offset="55%" stop-color="#E85D25"/>
+      <stop offset="100%" stop-color="#C94A1B"/>
+    </radialGradient>
+    <radialGradient id="faceGrad" cx="38%" cy="32%" r="70%">
+      <stop offset="0%" stop-color="#FFE3B0"/>
+      <stop offset="60%" stop-color="#F9C97C"/>
+      <stop offset="100%" stop-color="#EFAE55"/>
+    </radialGradient>
+    <linearGradient id="earGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#F5A623"/>
+      <stop offset="100%" stop-color="#D9481F"/>
+    </linearGradient>
+    <filter id="soft" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#3A2313" flood-opacity="0.28"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#soft)">
+    <!-- Melena (lóbulos redondeados tipo icono 3D) -->
+    <g fill="url(#maneGrad)">
+      <circle cx="100" cy="100" r="88"/>
+    </g>
+    <g fill="#E85D25">
+      <circle cx="35" cy="55" r="20"/>
+      <circle cx="22" cy="100" r="20"/>
+      <circle cx="35" cy="145" r="20"/>
+      <circle cx="70" cy="172" r="20"/>
+      <circle cx="130" cy="172" r="20"/>
+      <circle cx="165" cy="145" r="20"/>
+      <circle cx="178" cy="100" r="20"/>
+      <circle cx="165" cy="55" r="20"/>
+      <circle cx="130" cy="28" r="20"/>
+      <circle cx="70" cy="28" r="20"/>
+      <circle cx="100" cy="20" r="20"/>
+    </g>
+    <circle cx="100" cy="100" r="88" fill="url(#maneGrad)"/>
+
+    <!-- Orejas (detrás de la cara, con centro interno visible) -->
+    <circle cx="58" cy="58" r="19" fill="url(#earGrad)"/>
+    <circle cx="142" cy="58" r="19" fill="url(#earGrad)"/>
+    <circle cx="58" cy="60" r="10" fill="#8C4423"/>
+    <circle cx="142" cy="60" r="10" fill="#8C4423"/>
+
+    <!-- Cara -->
+    <ellipse cx="100" cy="112" rx="62" ry="56" fill="url(#faceGrad)"/>
+
+    <!-- Cachetes / hocico claro -->
+    <ellipse cx="100" cy="132" rx="34" ry="26" fill="#FFF3DE"/>
+
+    <!-- Ojos -->
+    <ellipse cx="78" cy="105" rx="8" ry="10" fill="#3A2313"/>
+    <ellipse cx="122" cy="105" rx="8" ry="10" fill="#3A2313"/>
+    <circle cx="81" cy="101" r="2.6" fill="#fff"/>
+    <circle cx="125" cy="101" r="2.6" fill="#fff"/>
+
+    <!-- Cejas amistosas -->
+    <path d="M68 92 Q78 84 88 91" stroke="#C4761F" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M112 91 Q122 84 132 92" stroke="#C4761F" stroke-width="4" fill="none" stroke-linecap="round"/>
+
+    <!-- Nariz -->
+    <path d="M92 122 Q100 116 108 122 Q104 130 100 131 Q96 130 92 122Z" fill="#3A2313"/>
+
+    <!-- Boca -->
+    <path d="M100 131 Q100 140 88 143" stroke="#3A2313" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M100 131 Q100 140 112 143" stroke="#3A2313" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+
+    <!-- Bigotes -->
+    <path d="M64 122 L34 118" stroke="#C4761F" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M64 130 L32 132" stroke="#C4761F" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M136 122 L166 118" stroke="#C4761F" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M136 130 L168 132" stroke="#C4761F" stroke-width="2.5" stroke-linecap="round"/>
+
+    <!-- Brillo glossy (arriba de la melena, lejos de las orejas) -->
+    <ellipse cx="88" cy="34" rx="22" ry="10" fill="#ffffff" opacity="0.22" transform="rotate(-18 88 34)"/>
+  </g>
+</svg>
