@@ -296,7 +296,7 @@ button { font-family: inherit; cursor: pointer; }
 #module-frame.is-loading { background: var(--bg-body); }
 
 .dash-wrap { padding: 28px; max-width: 1100px; }
-.dash-greeting h2 { margin: 0 0 4px; font-size: 24px; }
+.dash-greeting h2 { margin: 0 0 4px; font-size: 24px; color: var(--text-main); }
 .dash-greeting p { margin: 0 0 24px; color: var(--text-muted); }
 
 .dash-summary {

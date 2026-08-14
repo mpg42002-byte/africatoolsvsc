@@ -96,8 +96,9 @@ function moduleByKey(key) { return MODULES.find(m => m.key === key); }
 function updateModuleChrome(viewKey) {
   const chrome = document.getElementById('module-chrome');
   const module = moduleByKey(viewKey);
-  chrome.classList.toggle('hidden', !module);
-  document.getElementById('module-chrome-title').textContent = module ? module.label : '';
+  const isAdminView = viewKey === 'admin';
+  chrome.classList.toggle('hidden', !module && !isAdminView);
+  document.getElementById('module-chrome-title').textContent = module ? module.label : (isAdminView ? 'Usuarios' : '');
 }
 
 function showShellToast(message) {
@@ -206,7 +207,7 @@ function renderNav() {
   const nav = document.getElementById('nav-modules');
   nav.innerHTML = '';
 
-  const dashBtn = navButton('Dashboard', 'dashboard', currentView === 'dashboard', '🏠');
+  const dashBtn = navButton('Inicio', 'dashboard', currentView === 'dashboard', '🏠');
   nav.appendChild(dashBtn);
 
   const label = document.createElement('div');
@@ -283,7 +284,7 @@ function goToView(viewKey) {
     setSidebarOpen(false);
     dash.classList.remove('hidden');
     renderDashboard();
-    if (announcer) announcer.textContent = 'Navegaste al Dashboard';
+    if (announcer) announcer.textContent = 'Navegaste a Inicio';
   } else if (viewKey === 'admin') {
     if (!userIsAdmin(currentUser.roles)) { goToView('dashboard'); return; }
     document.getElementById('app-shell').classList.add('module-active');

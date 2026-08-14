@@ -248,19 +248,6 @@
     });
     window.addEventListener('appinstalled', () => { notice.classList.add('hidden'); });
 
-    /* iOS Safari no soporta beforeinstallprompt — mostrar banner manual */
-    const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
-    const isInStandaloneMode = ('standalone' in window.navigator) && window.navigator.standalone;
-    if (isIos && !isInStandaloneMode && !localStorage.getItem('africa_tools_install_dismissed')) {
-      setTimeout(() => {
-        showNotice(
-          'Instala Africa Tools: pulsa Compartir (⬆) y luego «Agregar a pantalla de inicio».',
-          'Entendido',
-          () => { localStorage.setItem('africa_tools_install_dismissed', '1'); notice.classList.add('hidden'); }
-        );
-      }, 3000);
-    }
-
     if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('service-worker.js').catch(() => {}));
   })();
 </script>
