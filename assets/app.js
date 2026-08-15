@@ -458,7 +458,7 @@ async function renderAdmin() {
         const success = await updateProfile(u.id, { activo: willActivate });
         if (!success) { showShellToast('No se pudo actualizar el usuario.'); return; }
         renderAdmin();
-        logActivity(`Usuario ${willActivate ? 'activado' : 'desactivado'}: ${u.nombre || u.usuario}`);
+        await logActivity(`Usuario ${willActivate ? 'activado' : 'desactivado'}: ${u.nombre || u.usuario}`);
         showShellToast(`Usuario ${willActivate ? 'activado' : 'desactivado'}.`);
       });
       actionsTd.appendChild(toggleBtn);
@@ -475,7 +475,7 @@ async function renderAdmin() {
         const result = await deleteUserRemote(u.id);
         if (!result.ok) { showShellToast('No se pudo eliminar: ' + result.error); return; }
         renderAdmin();
-        logActivity(`Eliminó al usuario: ${u.nombre || u.usuario}`);
+        await logActivity(`Eliminó al usuario: ${u.nombre || u.usuario}`);
         showShellToast('Usuario eliminado.');
       });
       actionsTd.appendChild(deleteBtn);
@@ -496,7 +496,7 @@ async function renderAdmin() {
     tbody.appendChild(tr);
   });
   
-  renderActivityLog();
+  await renderActivityLog();
   document.getElementById('new-user-btn').onclick = () => openUserModal(null);
 }
 
@@ -663,7 +663,7 @@ async function openUserModal(existingUser) {
       // Cambiar la contraseña de OTRA persona necesita privilegios que el
       // navegador nunca debe tener — solo se puede cambiar la propia.
       // Queda pendiente para una fase posterior (reset de clave por admin).
-      logActivity(`Editó al usuario "${nombre || usuario}"`);
+      await logActivity(`Editó al usuario "${nombre || usuario}"`);
     } else {
       if (users.some(u => u.usuario.toLowerCase() === usuario.toLowerCase())) {
         showToast('Ya existe un usuario con ese nombre.');
@@ -678,7 +678,7 @@ async function openUserModal(existingUser) {
         saveBtn.textContent = originalText;
         return;
       }
-      logActivity(`Creó al usuario "${nombre || usuario}"`);
+      await logActivity(`Creó al usuario "${nombre || usuario}"`);
     }
 
     saveBtn.disabled = false;
@@ -750,7 +750,7 @@ async function onForcePasswordSave() {
     return;
   }
   await updateProfile(currentUser.id, { mustChangePassword: false });
-  logActivity('Cambió su contraseña (primer login obligatorio)');
+  await logActivity('Cambió su contraseña (primer login obligatorio)');
   document.getElementById('fp-clave').value = '';
   document.getElementById('fp-clave2').value = '';
   showApp();
@@ -764,7 +764,7 @@ async function onBackupExport() {
   try {
     await downloadBackupFile();
     status.textContent = 'Listo — revisa tus descargas.';
-    logActivity('Exportó un respaldo completo de datos');
+    await logActivity('Exportó un respaldo completo de datos');
   } catch (e) {
     status.textContent = 'No se pudo generar el respaldo.';
   }
@@ -785,7 +785,7 @@ async function onBackupImport(e) {
   try {
     status.textContent = 'Restaurando…';
     await restoreBackupFile(file);
-    logActivity('Restauró un respaldo de datos completo');
+    await logActivity('Restauró un respaldo de datos completo');
     status.textContent = 'Listo — recargando…';
     setTimeout(() => location.reload(), 900);
   } catch (err) {
@@ -795,16 +795,16 @@ async function onBackupImport(e) {
 }
 
 /* ---------- LOG DE ACTIVIDAD (renderizado en Administración) ---------- */
-function renderActivityLog() {
+async function renderActivityLog() {
   const tbody = document.getElementById('activity-log-tbody');
   if (!tbody) return;
-  
-  const log = loadActivityLog();
+
+  const log = await loadActivityLog();
   if (log.length === 0) {
     tbody.innerHTML = `<tr><td colspan="3" class="activity-log-empty">Sin actividad registrada todavía.</td></tr>`;
     return;
   }
-  tbody.innerHTML = log.slice(0, 50).map(entry => {
+  tbody.innerHTML = log.map(entry => {
     const d = new Date(entry.ts);
     const when = d.toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
     return `<tr>

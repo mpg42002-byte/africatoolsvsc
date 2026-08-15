@@ -2,11 +2,9 @@
 
 const STORAGE_THEME = 'africa_tools_theme';
 const STORAGE_LOGIN_ATTEMPTS = 'africa_tools_login_attempts';
-const STORAGE_AUDIT_LOG = 'africa_tools_audit_log';
 
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOGIN_LOCKOUT_MINUTES = 5;
-const MAX_AUDIT_ENTRIES = 500;
 
 const MODULE_SOURCES = {
   'limpieza': 'modules/limpieza/africaLimpieza.html',
@@ -132,36 +130,6 @@ async function deleteUserRemote(id) {
   return callManageUserFunction('delete', { id });
 }
 
-function addAuditLog(action, details, performedBy) {
-  try {
-    const log = JSON.parse(localStorage.getItem(STORAGE_AUDIT_LOG) || '[]');
-    log.unshift({
-      id: 'audit_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9),
-      timestamp: Date.now(),
-      action,
-      details,
-      performedBy: performedBy || 'Sistema'
-    });
-
-    if (log.length > MAX_AUDIT_ENTRIES) {
-      log.splice(MAX_AUDIT_ENTRIES);
-    }
-
-    localStorage.setItem(STORAGE_AUDIT_LOG, JSON.stringify(log));
-  } catch (e) {
-    console.error('Error guardando auditoría:', e);
-  }
-}
-
-function getAuditLog(limit = 50) {
-  try {
-    const log = JSON.parse(localStorage.getItem(STORAGE_AUDIT_LOG) || '[]');
-    return log.slice(0, limit);
-  } catch {
-    return [];
-  }
-}
-
 function getLoginAttempts() {
   try {
     const raw = sessionStorage.getItem(STORAGE_LOGIN_ATTEMPTS);
@@ -276,26 +244,29 @@ function stopIdleWatcher() {
 
 /* ---------- Log de actividad administrativa ----------
    Registro simple de qué se hizo desde Administración (usuarios/roles), quién
-   y cuándo. Solo se ve dentro del panel de Administración. */
-const STORAGE_ACTIVITY_LOG = 'africa_tools_activity_log';
-const ACTIVITY_LOG_MAX = 200;
-
-function logActivity(action) {
+   y cuándo. Vive en Supabase (tabla activity_log) — así, un administrador ve
+   el mismo historial sin importar desde qué dispositivo entra. Solo un
+   administrador puede leerlo (lo hace cumplir la seguridad por fila en
+   Supabase, no este código); cualquier persona autenticada puede añadir una
+   entrada sobre su propia acción. */
+async function logActivity(action) {
   try {
-    const raw = localStorage.getItem(STORAGE_ACTIVITY_LOG);
-    const log = raw ? JSON.parse(raw) : [];
-    log.unshift({
-      ts: Date.now(),
-      actor: (typeof currentUser !== 'undefined' && currentUser && (currentUser.nombre || currentUser.usuario)) || 'Sistema',
-      action,
-    });
-    if (log.length > ACTIVITY_LOG_MAX) log.length = ACTIVITY_LOG_MAX;
-    localStorage.setItem(STORAGE_ACTIVITY_LOG, JSON.stringify(log));
-  } catch { }
+    const actor = (typeof currentUser !== 'undefined' && currentUser && (currentUser.nombre || currentUser.usuario)) || 'Sistema';
+    const actorId = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.id : null;
+    await supabaseClient.from('activity_log').insert({ actor, actor_id: actorId, action });
+  } catch (e) {
+    console.error('Error guardando actividad:', e);
+  }
 }
 
-function loadActivityLog() {
-  try { return JSON.parse(localStorage.getItem(STORAGE_ACTIVITY_LOG)) || []; } catch { return []; }
+async function loadActivityLog(limit = 50) {
+  const { data, error } = await supabaseClient
+    .from('activity_log')
+    .select('actor, action, created_at')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) { console.error('Error cargando actividad:', error); return []; }
+  return data.map(d => ({ ts: new Date(d.created_at).getTime(), actor: d.actor, action: d.action }));
 }
 
 /* ---------- Respaldo y restauración de todos los datos ----------
