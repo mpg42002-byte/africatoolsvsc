@@ -318,6 +318,23 @@ table.sched tr:last-child td{border-bottom:none}
   *{transition-duration:0.01ms!important;animation-duration:0.01ms!important}
 }
 </style>
+
+<style>
+  /* Prevenir Auto-Zoom en iOS al enfocar inputs y el molesto doble-tap zoom en componentes */
+  @media (max-width: 768px) {
+    input, select, textarea { font-size: 16px !important; }
+  }
+  * { touch-action: manipulation !important; }
+</style>
+<script>
+  // touch-action:manipulation ya bloquea el doble-tap-zoom, pero Safari en iOS
+  // ignora "user-scalable=no" desde iOS 10 (decisión de Apple por accesibilidad),
+  // así que el pellizco con dos dedos se sigue colando. Esto lo bloquea de verdad,
+  // en iOS (gesturestart/gesturechange) y en el resto de navegadores (touchmove).
+  document.addEventListener('gesturestart', e => e.preventDefault());
+  document.addEventListener('gesturechange', e => e.preventDefault());
+  document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
+</script>
 </head>
 <body data-theme="dark">
 <nav>
