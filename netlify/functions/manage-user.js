@@ -6,14 +6,30 @@
 // otras personas. Esa llave vive en una variable de entorno de Netlify
 // (SUPABASE_SERVICE_ROLE_KEY), nunca en el código ni en el repositorio.
 //
+// Habla con Supabase directo por fetch (sin ninguna librería externa) para
+// no depender de que Netlify instale paquetes dentro de netlify/functions.
+//
 // Antes de hacer nada, verifica con el token de quien llama que sea
 // realmente un administrador activo — sin esto, cualquiera podría llamar
 // esta función directamente (sin pasar por el panel) y crear cuentas.
 
-const { createClient } = require('@supabase/supabase-js');
-
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+async function supabaseFetch(path, options = {}) {
+  const res = await fetch(SUPABASE_URL + path, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPABASE_SERVICE_ROLE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_SERVICE_ROLE_KEY,
+      ...(options.headers || {}),
+    },
+  });
+  let json = null;
+  try { json = await res.json(); } catch { /* algunas respuestas vienen vacías (204) */ }
+  return { ok: res.status >= 200 && res.status < 300, status: res.status, data: json };
+}
 
 exports.handler = async (event) => {
   if (event.httpMethod !== 'POST') {
@@ -31,27 +47,30 @@ exports.handler = async (event) => {
   }
 
   const authHeader = event.headers.authorization || event.headers.Authorization || '';
-  const token = authHeader.replace(/^Bearer\s+/i, '');
-  if (!token) {
+  const callerToken = authHeader.replace(/^Bearer\s+/i, '');
+  if (!callerToken) {
     return { statusCode: 401, body: JSON.stringify({ error: 'Falta la sesión.' }) };
   }
 
-  const admin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
-
-  // 1) ¿El token es válido y corresponde a alguien real?
-  const { data: callerData, error: callerError } = await admin.auth.getUser(token);
-  if (callerError || !callerData || !callerData.user) {
+  // 1) ¿El token de quien llama es válido y corresponde a alguien real?
+  const callerRes = await fetch(SUPABASE_URL + '/auth/v1/user', {
+    headers: {
+      'apikey': SUPABASE_SERVICE_ROLE_KEY,
+      'Authorization': 'Bearer ' + callerToken,
+    },
+  });
+  if (!callerRes.ok) {
     return { statusCode: 401, body: JSON.stringify({ error: 'Sesión inválida o expirada.' }) };
   }
+  const callerUser = await callerRes.json();
 
   // 2) ¿Esa persona es administrador activo? (se verifica en el servidor,
   //    no se confía en nada que venga del navegador para esto)
-  const { data: callerProfile, error: profileError } = await admin
-    .from('profiles')
-    .select('roles, activo')
-    .eq('id', callerData.user.id)
-    .single();
-  const isAdmin = !profileError && callerProfile && callerProfile.activo &&
+  const profileCheck = await supabaseFetch(
+    `/rest/v1/profiles?id=eq.${callerUser.id}&select=roles,activo`
+  );
+  const callerProfile = profileCheck.ok && Array.isArray(profileCheck.data) ? profileCheck.data[0] : null;
+  const isAdmin = callerProfile && callerProfile.activo &&
     Array.isArray(callerProfile.roles) && callerProfile.roles.includes('administrador');
   if (!isAdmin) {
     return { statusCode: 403, body: JSON.stringify({ error: 'No tienes permiso para hacer esto.' }) };
@@ -64,40 +83,46 @@ exports.handler = async (event) => {
       if (!email || !usuario || !clave || !Array.isArray(roles) || roles.length === 0) {
         return { statusCode: 400, body: JSON.stringify({ error: 'Faltan datos para crear el usuario.' }) };
       }
-      const { data: created, error: createError } = await admin.auth.admin.createUser({
-        email,
-        password: clave,
-        email_confirm: true, // no hay flujo público de registro, así que se confirma directo
+
+      const createRes = await supabaseFetch('/auth/v1/admin/users', {
+        method: 'POST',
+        body: JSON.stringify({ email, password: clave, email_confirm: true }),
       });
-      if (createError || !created || !created.user) {
-        const msg = (createError && createError.message) || 'No se pudo crear la cuenta.';
+      if (!createRes.ok || !createRes.data || !createRes.data.id) {
+        const msg = (createRes.data && (createRes.data.msg || createRes.data.error_description)) || 'No se pudo crear la cuenta.';
         return { statusCode: 400, body: JSON.stringify({ error: msg }) };
       }
-      const { error: insertError } = await admin.from('profiles').insert({
-        id: created.user.id,
-        usuario,
-        nombre: nombre || '',
-        roles,
-        activo: true,
-        must_change_password: true,
+
+      const newUserId = createRes.data.id;
+      const insertRes = await supabaseFetch('/rest/v1/profiles', {
+        method: 'POST',
+        headers: { 'Prefer': 'return=minimal' },
+        body: JSON.stringify({
+          id: newUserId,
+          usuario,
+          nombre: nombre || '',
+          roles,
+          activo: true,
+          must_change_password: true,
+        }),
       });
-      if (insertError) {
+      if (!insertRes.ok) {
         // Si el perfil no se pudo crear, no dejamos huérfana la cuenta de Auth.
-        await admin.auth.admin.deleteUser(created.user.id);
+        await supabaseFetch(`/auth/v1/admin/users/${newUserId}`, { method: 'DELETE' });
         return { statusCode: 400, body: JSON.stringify({ error: 'No se pudo guardar el perfil del usuario.' }) };
       }
-      return { statusCode: 200, body: JSON.stringify({ id: created.user.id }) };
+      return { statusCode: 200, body: JSON.stringify({ id: newUserId }) };
     }
 
     if (body.action === 'delete') {
       const { id } = body;
       if (!id) return { statusCode: 400, body: JSON.stringify({ error: 'Falta el id del usuario.' }) };
-      if (id === callerData.user.id) {
+      if (id === callerUser.id) {
         return { statusCode: 400, body: JSON.stringify({ error: 'No puedes eliminar tu propia cuenta.' }) };
       }
-      const { error: deleteError } = await admin.auth.admin.deleteUser(id);
-      if (deleteError) {
-        return { statusCode: 400, body: JSON.stringify({ error: deleteError.message || 'No se pudo eliminar.' }) };
+      const deleteRes = await supabaseFetch(`/auth/v1/admin/users/${id}`, { method: 'DELETE' });
+      if (!deleteRes.ok) {
+        return { statusCode: 400, body: JSON.stringify({ error: 'No se pudo eliminar.' }) };
       }
       // La fila en profiles se borra sola (on delete cascade).
       return { statusCode: 200, body: JSON.stringify({ ok: true }) };
