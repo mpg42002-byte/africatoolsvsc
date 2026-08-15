@@ -3,10 +3,9 @@
 let currentUser = null;
 let currentView = 'dashboard';
 (async function init() {
-  await seedInitialAdminIfEmpty();
   setTheme(getTheme());
 
-  const session = getSession();
+  const session = await getSession();
   if (session) {
     currentUser = session;
     showApp();
@@ -122,7 +121,9 @@ async function onLoginSubmit(e) {
   e.preventDefault();
   const usuario = document.getElementById('login-usuario').value.trim();
   const clave = document.getElementById('login-clave').value;
-  const remember = document.getElementById('login-remember').checked;
+  // Nota: con Supabase Auth la sesión siempre queda persistida en el
+  // dispositivo (no hay una versión "solo por esta pestaña"), así que el
+  // checkbox "Mantener sesión iniciada" por ahora no cambia el comportamiento.
   const errorBox = document.getElementById('login-error');
   errorBox.classList.add('hidden');
 
@@ -150,7 +151,6 @@ async function onLoginSubmit(e) {
   }
   
   clearLoginAttempts();
-  setSession(user, remember);
   currentUser = { id: user.id, usuario: user.usuario, nombre: user.nombre, roles: user.roles };
   
   if (user.mustChangePassword) {
@@ -162,9 +162,9 @@ async function onLoginSubmit(e) {
   showApp();
 }
 
-function onLogout() {
+async function onLogout() {
   stopIdleWatcher();
-  clearSession();
+  await clearSession();
   currentUser = null;
   document.getElementById('login-form').reset();
   document.getElementById('app-shell').classList.add('hidden');
@@ -414,8 +414,8 @@ function renderDashboardSummary(permitted) {
   }
 })();
 
-function renderAdmin() {
-  const users = loadUsers();
+async function renderAdmin() {
+  const users = await loadUsers();
   const tbody = document.getElementById('admin-tbody');
   tbody.innerHTML = '';
   users.forEach(u => {
@@ -455,8 +455,8 @@ function renderAdmin() {
           if (!ok) return;
         }
         u.activo = willActivate;
-        const all = loadUsers().map(x => x.id === u.id ? u : x);
-        saveUsers(all);
+        const success = await updateProfile(u.id, { activo: willActivate });
+        if (!success) { showShellToast('No se pudo actualizar el usuario.'); return; }
         renderAdmin();
         logActivity(`Usuario ${willActivate ? 'activado' : 'desactivado'}: ${u.nombre || u.usuario}`);
         showShellToast(`Usuario ${willActivate ? 'activado' : 'desactivado'}.`);
@@ -472,8 +472,8 @@ function renderAdmin() {
           'Esta acción no se puede deshacer.'
         );
         if (!ok) return;
-        const all = loadUsers().filter(x => x.id !== u.id);
-        saveUsers(all);
+        const result = await deleteUserRemote(u.id);
+        if (!result.ok) { showShellToast('No se pudo eliminar: ' + result.error); return; }
         renderAdmin();
         logActivity(`Eliminó al usuario: ${u.nombre || u.usuario}`);
         showShellToast('Usuario eliminado.');
@@ -500,7 +500,7 @@ function renderAdmin() {
   document.getElementById('new-user-btn').onclick = () => openUserModal(null);
 }
 
-function openUserModal(existingUser) {
+async function openUserModal(existingUser) {
   const backdrop = document.getElementById('user-modal-backdrop');
   backdrop.classList.remove('hidden');
   document.getElementById('user-modal-title').textContent = existingUser ? 'Editar usuario' : 'Nuevo usuario';
@@ -508,7 +508,13 @@ function openUserModal(existingUser) {
   document.getElementById('um-usuario').value = existingUser ? existingUser.usuario : '';
   document.getElementById('um-usuario').disabled = !!existingUser;
   document.getElementById('um-clave').value = '';
-  document.getElementById('um-clave').placeholder = existingUser ? 'Dejar en blanco para no cambiarla' : '';
+  document.getElementById('um-clave').placeholder = '';
+  const claveField = document.getElementById('um-clave-field');
+  if (existingUser) {
+    claveField.style.display = 'none';
+  } else {
+    claveField.style.display = '';
+  }
 
   const passwordInput = document.getElementById('um-clave');
   const strengthContainer = document.getElementById('password-strength');
@@ -555,7 +561,7 @@ function openUserModal(existingUser) {
 
   const rolesWrap = document.getElementById('um-roles');
   rolesWrap.innerHTML = '';
-  const isFirstAdminMod = existingUser && existingUser.id === loadUsers()[0].id;
+  const isFirstAdminMod = existingUser && existingUser.id === (await loadUsers())[0].id;
   Object.keys(ROLES).forEach(roleKey => {
     const id = 'role_' + roleKey;
     const checked = (existingUser && existingUser.roles.includes(roleKey)) || (isFirstAdminMod && roleKey === 'administrador');
@@ -638,17 +644,26 @@ function openUserModal(existingUser) {
       return; 
     }
 
-    const users = loadUsers();
+    const users = await loadUsers();
     if (existingUser) {
-      const idx = users.findIndex(u => u.id === existingUser.id);
-      users[idx].nombre = nombre;
-      users[idx].roles = selectedRoles;
-      if (clave) {
-        users[idx].passwordHash = await hashPassword(clave);
-        users[idx].mustChangePassword = false;
+      const dupOtherUser = users.some(u => u.id !== existingUser.id && u.usuario.toLowerCase() === usuario.toLowerCase());
+      if (dupOtherUser) {
+        showToast('Ya existe un usuario con ese nombre.');
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+        return;
       }
-      
-      logActivity(`Editó al usuario "${nombre || usuario}"${clave ? ' (incluyendo contraseña)' : ''}`);
+      const success = await updateProfile(existingUser.id, { nombre, roles: selectedRoles });
+      if (!success) {
+        showToast('No se pudo guardar. Intenta de nuevo.');
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+        return;
+      }
+      // Cambiar la contraseña de OTRA persona necesita privilegios que el
+      // navegador nunca debe tener — solo se puede cambiar la propia.
+      // Queda pendiente para una fase posterior (reset de clave por admin).
+      logActivity(`Editó al usuario "${nombre || usuario}"`);
     } else {
       if (users.some(u => u.usuario.toLowerCase() === usuario.toLowerCase())) {
         showToast('Ya existe un usuario con ese nombre.');
@@ -656,20 +671,16 @@ function openUserModal(existingUser) {
         saveBtn.textContent = originalText;
         return;
       }
-      const newUser = {
-        id: 'u_' + Date.now(),
-        usuario, nombre,
-        passwordHash: await hashPassword(clave),
-        roles: selectedRoles,
-        activo: true,
-        mustChangePassword: true,
-      };
-      users.push(newUser);
-      
+      const result = await createUserRemote({ usuario, nombre, clave, roles: selectedRoles });
+      if (!result.ok) {
+        showToast('No se pudo crear: ' + result.error);
+        saveBtn.disabled = false;
+        saveBtn.textContent = originalText;
+        return;
+      }
       logActivity(`Creó al usuario "${nombre || usuario}"`);
     }
-    saveUsers(users);
-    
+
     saveBtn.disabled = false;
     saveBtn.textContent = originalText;
     
@@ -732,14 +743,14 @@ async function onForcePasswordSave() {
     return;
   }
 
-  const users = loadUsers();
-  const idx = users.findIndex(u => u.id === currentUser.id);
-  if (idx >= 0) {
-    users[idx].passwordHash = await hashPassword(clave);
-    users[idx].mustChangePassword = false;
-    saveUsers(users);
-    logActivity('Cambió su contraseña (primer login obligatorio)');
+  const success = await updateOwnPassword(clave);
+  if (!success) {
+    errorBox.textContent = 'No se pudo cambiar la contraseña. Intenta de nuevo.';
+    errorBox.classList.remove('hidden');
+    return;
   }
+  await updateProfile(currentUser.id, { mustChangePassword: false });
+  logActivity('Cambió su contraseña (primer login obligatorio)');
   document.getElementById('fp-clave').value = '';
   document.getElementById('fp-clave2').value = '';
   showApp();

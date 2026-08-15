@@ -185,7 +185,7 @@
       <label for="um-usuario">Usuario *</label>
       <input id="um-usuario" type="text" required aria-required="true" autocomplete="username" />
     </div>
-    <div class="field">
+    <div class="field" id="um-clave-field">
       <label for="um-clave">Contraseña <span style="font-weight:400; font-size:12px;">(mín. 6 caracteres)</span></label>
       <input id="um-clave" type="password" autocomplete="new-password" aria-describedby="password-strength" />
       <div id="password-strength" class="password-strength hidden">
@@ -236,6 +236,8 @@
   </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/supabase-config.js"></script>
 <script src="assets/permissions.js"></script>
 <script src="assets/shell.js"></script>
 <script src="assets/app.js"></script>
