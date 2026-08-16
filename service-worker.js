@@ -1,6 +1,6 @@
 /* AFRICA TOOLS · SERVICE WORKER */
 
-const CACHE_NAME = 'africa-tools-v13';
+const CACHE_NAME = 'africa-tools-v14';
 
 const CORE_ASSETS = [
   './',
@@ -43,6 +43,30 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
+  const url = event.request.url;
+  const isCoreCode = event.request.mode === 'navigate' ||
+    url.endsWith('.html') || url.endsWith('.js') || url.endsWith('.css') || url.endsWith('.json');
+
+  if (isCoreCode) {
+    // Red primero: cualquier cambio que subamos llega de inmediato, sin
+    // depender de acordarnos de subir la versión del caché cada vez. Si no
+    // hay conexión, cae al caché para que la app siga funcionando offline.
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200 && response.type !== 'opaque') {
+            const clone = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone)).catch(() => {});
+          }
+          return response;
+        })
+        .catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // Todo lo demás (íconos, imágenes): caché primero — es contenido que casi
+  // nunca cambia, así carga más rápido y sigue funcionando offline.
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
