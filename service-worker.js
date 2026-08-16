@@ -1,6 +1,6 @@
 /* AFRICA TOOLS · SERVICE WORKER */
 
-const CACHE_NAME = 'africa-tools-v14';
+const CACHE_NAME = 'africa-tools-v15';
 
 const CORE_ASSETS = [
   './',
@@ -42,6 +42,13 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+
+  // Las peticiones a otros dominios (la API de Supabase, fuentes de Google,
+  // etc.) NUNCA deben pasar por el caché del Service Worker — necesitan
+  // estar siempre frescas (lista de usuarios, log de actividad, sesión).
+  // Se dejan pasar de largo, sin interceptarlas para nada.
+  const requestUrl = new URL(event.request.url);
+  if (requestUrl.origin !== self.location.origin) return;
 
   const url = event.request.url;
   const isCoreCode = event.request.mode === 'navigate' ||
