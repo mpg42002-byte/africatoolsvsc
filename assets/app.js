@@ -97,7 +97,7 @@ function updateModuleChrome(viewKey) {
   const module = moduleByKey(viewKey);
   const isAdminView = viewKey === 'admin';
   chrome.classList.toggle('hidden', !module && !isAdminView);
-  document.getElementById('module-chrome-title').textContent = module ? module.label : (isAdminView ? 'Usuarios' : '');
+  document.getElementById('module-chrome-title').textContent = module ? module.label : (isAdminView ? 'Administración' : '');
 }
 
 function showShellToast(message) {
@@ -457,8 +457,8 @@ async function renderAdmin() {
         u.activo = willActivate;
         const success = await updateProfile(u.id, { activo: willActivate });
         if (!success) { showShellToast('No se pudo actualizar el usuario.'); return; }
-        renderAdmin();
         await logActivity(`Usuario ${willActivate ? 'activado' : 'desactivado'}: ${u.nombre || u.usuario}`);
+        await renderAdmin();
         showShellToast(`Usuario ${willActivate ? 'activado' : 'desactivado'}.`);
       });
       actionsTd.appendChild(toggleBtn);
@@ -474,8 +474,8 @@ async function renderAdmin() {
         if (!ok) return;
         const result = await deleteUserRemote(u.id);
         if (!result.ok) { showShellToast('No se pudo eliminar: ' + result.error); return; }
-        renderAdmin();
         await logActivity(`Eliminó al usuario: ${u.nombre || u.usuario}`);
+        await renderAdmin();
         showShellToast('Usuario eliminado.');
       });
       actionsTd.appendChild(deleteBtn);
