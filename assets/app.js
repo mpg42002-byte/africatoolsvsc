@@ -168,6 +168,16 @@ async function onLogout() {
   currentUser = null;
   document.getElementById('login-form').reset();
   document.getElementById('app-shell').classList.add('hidden');
+  // Borra el iframe del módulo por completo. Si no hiciéramos esto, la
+  // próxima persona que entre y abra el mismo módulo se encontraría con
+  // los datos de la sesión anterior todavía en memoria — el shell evita
+  // recargar un módulo que "ya está cargado" para no recargarlo de más,
+  // así que hay que forzar ese reinicio explícitamente al cerrar sesión.
+  const frame = document.getElementById('module-frame');
+  if (frame) {
+    frame.removeAttribute('data-current');
+    frame.src = 'about:blank';
+  }
   showLogin();
   showShellToast('Sesión cerrada correctamente.');
 }
