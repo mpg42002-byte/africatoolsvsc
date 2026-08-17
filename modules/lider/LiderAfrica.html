@@ -2,6 +2,8 @@
 <html lang="es">
 <head>
 <script>(function(){try{var t=new URLSearchParams(location.search).get('theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../assets/supabase-config.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Panel del Líder de Seguridad · África Parque de Diversiones</title>
@@ -1255,6 +1257,8 @@
     }));
   }
 
+  const MODULE_KEY = 'lider';
+
   async function storeGet(key){
     try{
       const r = await window.storage.get(key, false);
@@ -1262,12 +1266,26 @@
       return r ? r.value : null;
     }catch(e){
       try{
-        const v = await idbGet(key);
-        backend = 'indexeddb';
-        return v !== undefined ? v : null;
+        const { data: sessionData } = await supabaseClient.auth.getSession();
+        const uid = sessionData && sessionData.session ? sessionData.session.user.id : null;
+        if(!uid) throw new Error('sin sesión');
+        const { data, error } = await supabaseClient
+          .from('module_data')
+          .select('value')
+          .eq('user_id', uid).eq('module', MODULE_KEY).eq('key', key)
+          .maybeSingle();
+        if(error) throw error;
+        backend = 'supabase';
+        return data ? data.value : null;
       }catch(e2){
-        backend = 'memory';
-        return memFallback[key] || null;
+        try{
+          const v = await idbGet(key);
+          backend = 'indexeddb';
+          return v !== undefined ? v : null;
+        }catch(e3){
+          backend = 'memory';
+          return memFallback[key] || null;
+        }
       }
     }
   }
@@ -1278,11 +1296,25 @@
       throw new Error('window.storage no disponible');
     }catch(e){
       try{
-        await idbSet(key, value);
-        backend = 'indexeddb';
+        const { data: sessionData } = await supabaseClient.auth.getSession();
+        const uid = sessionData && sessionData.session ? sessionData.session.user.id : null;
+        if(!uid) throw new Error('sin sesión');
+        const { error } = await supabaseClient.from('module_data').upsert({
+          user_id: uid, module: MODULE_KEY, key, value, updated_at: new Date().toISOString(),
+        });
+        if(error) throw error;
+        backend = 'supabase';
+        // Respaldo local además de Supabase: si algún día no hay conexión,
+        // el dato más reciente sigue disponible sin depender de la red.
+        try{ await idbSet(key, value); }catch(e2b){}
       }catch(e2){
-        memFallback[key] = value;
-        backend = 'memory';
+        try{
+          await idbSet(key, value);
+          backend = 'indexeddb';
+        }catch(e3){
+          memFallback[key] = value;
+          backend = 'memory';
+        }
       }
     }
   }
