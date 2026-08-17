@@ -823,6 +823,7 @@ async function generate(){
 
   lastResult={weekFrom,weekTo,pairsByDay,assigned,attendance,taskAssignments};
   renderResult(lastResult);
+  await save('lastResult', lastResult);
 
   const newHist={...history};
   machWorkers.forEach(w=>{
@@ -1253,6 +1254,8 @@ function removeTask(i){
   history   = await load('hist', DEF_HIST);
   tasks     = await load('tasks', DEF_TASKS);
   taskSel   = await load('taskSel', {});
+  lastResult = await load('lastResult', null);
+  if (lastResult) renderResult(lastResult);
   await buildTable();
   renderTaskSelector();
 })();
