@@ -2,6 +2,8 @@
 <html lang="es">
 <head>
 <script>(function(){try{var t=new URLSearchParams(location.search).get('theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../assets/supabase-config.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Marcación de Folders, Lockers y A-Z · Africa Parque de Diversiones</title>
@@ -627,8 +629,37 @@ const FMT_META = {
 
 function storageKey(fmt){ return 'africa_labels_' + fmt; }
 
-function loadNamesForFormat(fmt){
-  const saved = localStorage.getItem(storageKey(fmt));
+const MODULE_KEY = 'folders';
+
+async function mdGet(key, def){
+  try{
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    const uid = sessionData && sessionData.session ? sessionData.session.user.id : null;
+    if(!uid) return def;
+    const { data, error } = await supabaseClient
+      .from('module_data')
+      .select('value')
+      .eq('user_id', uid).eq('module', MODULE_KEY).eq('key', key)
+      .maybeSingle();
+    if(error || !data) return def;
+    return data.value;
+  }catch(e){ console.error('Error cargando', key, e); return def; }
+}
+
+async function mdSet(key, value){
+  try{
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    const uid = sessionData && sessionData.session ? sessionData.session.user.id : null;
+    if(!uid) return;
+    const { error } = await supabaseClient.from('module_data').upsert({
+      user_id: uid, module: MODULE_KEY, key, value, updated_at: new Date().toISOString(),
+    });
+    if(error) console.error('Error guardando', key, error);
+  }catch(e){ console.error('Error guardando', key, e); }
+}
+
+async function loadNamesForFormat(fmt){
+  const saved = await mdGet(storageKey(fmt), null);
   namesInput.value = saved !== null ? saved : '';
   namesInput.placeholder = FMT_META[fmt].placeholder;
 }
@@ -651,7 +682,7 @@ function refreshPresetChips(){
   });
 }
 
-function setFormat(fmt){
+async function setFormat(fmt){
   state.format = fmt;
   fmtEls.forEach(el=> el.classList.toggle('active', el.dataset.fmt === fmt));
   wsTitle.textContent = FMT_META[fmt].title;
@@ -659,14 +690,14 @@ function setFormat(fmt){
   singleInputStep.style.display = fmt === 'combo' ? 'none' : 'block';
   comboInputStep.style.display = fmt === 'combo' ? 'block' : 'none';
   if(fmt === 'combo'){
-    loadComboInputs();
+    await loadComboInputs();
     updateComboCounts();
   } else {
-    loadNamesForFormat(fmt);
+    await loadNamesForFormat(fmt);
     refreshPresetChips();
     updateCounts();
   }
-  localStorage.setItem('africa_labels_last_format', fmt);
+  await mdSet('africa_labels_last_format', fmt);
 }
 
 fmtEls.forEach(el=> el.addEventListener('click', ()=> setFormat(el.dataset.fmt)));
@@ -675,26 +706,26 @@ function getNames(){
   return namesInput.value.split('\n').map(s=>s.trim()).filter(Boolean);
 }
 
-function saveNames(){
-  localStorage.setItem(storageKey(state.format), namesInput.value);
-  localStorage.setItem('africa_labels_last_format', state.format);
+async function saveNames(){
+  await mdSet(storageKey(state.format), namesInput.value);
+  await mdSet('africa_labels_last_format', state.format);
 }
 
 function getComboNames(textareaEl){
   return textareaEl.value.split('\n').map(s=>s.trim()).filter(Boolean);
 }
 
-function loadComboInputs(){
-  comboFoldersInput.value = localStorage.getItem('africa_combo_folders') ?? '';
-  comboAzInput.value = localStorage.getItem('africa_combo_az') ?? '';
-  comboLockersInput.value = localStorage.getItem('africa_combo_lockers') ?? '';
+async function loadComboInputs(){
+  comboFoldersInput.value = await mdGet('africa_combo_folders', '');
+  comboAzInput.value = await mdGet('africa_combo_az', '');
+  comboLockersInput.value = await mdGet('africa_combo_lockers', '');
 }
 
-function saveComboInputs(){
-  localStorage.setItem('africa_combo_folders', comboFoldersInput.value);
-  localStorage.setItem('africa_combo_az', comboAzInput.value);
-  localStorage.setItem('africa_combo_lockers', comboLockersInput.value);
-  localStorage.setItem('africa_labels_last_format', 'combo');
+async function saveComboInputs(){
+  await mdSet('africa_combo_folders', comboFoldersInput.value);
+  await mdSet('africa_combo_az', comboAzInput.value);
+  await mdSet('africa_combo_lockers', comboLockersInput.value);
+  await mdSet('africa_labels_last_format', 'combo');
 }
 
 function updateComboCounts(){
@@ -1012,9 +1043,9 @@ themeToggle.addEventListener('click', ()=>{
 });
 
 // init
-(function init(){
-  const lastFmt = localStorage.getItem('africa_labels_last_format') || 'folders';
-  setFormat(lastFmt);
+(async function init(){
+  const lastFmt = await mdGet('africa_labels_last_format', 'folders');
+  await setFormat(lastFmt);
   pagesWrap.style.transform = 'scale(0.55)';
   applyTheme(localStorage.getItem('africa_labels_theme') || 'dark');
 })();
