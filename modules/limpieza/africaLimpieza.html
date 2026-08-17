@@ -2,6 +2,8 @@
 <html lang="es">
 <head>
 <script>(function(){try{var t=new URLSearchParams(location.search).get('theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../assets/supabase-config.js"></script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>City Park Africa – Limpieza</title>
@@ -539,14 +541,40 @@ const DEF_HIST = {
 };
 
 // ── STATE ──────────────────────────────────────────────────────────────────
-function load(k,def){try{const v=localStorage.getItem('cp2_'+k);return v?JSON.parse(v):def;}catch(e){return def;}}
-function save(k,v){try{localStorage.setItem('cp2_'+k,JSON.stringify(v));}catch(e){}}
+const MODULE_KEY = 'limpieza';
 
-let employees = load('emp', DEF_EMP);
-let machines  = load('maq', DEF_MAQ);
-let history   = load('hist', DEF_HIST);
-let tasks     = load('tasks', DEF_TASKS);
-let taskSel   = load('taskSel', {}); // {taskName: {active:bool, person:'auto'|nombre}}
+async function load(k, def) {
+  try {
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    const uid = sessionData && sessionData.session ? sessionData.session.user.id : null;
+    if (!uid) return def;
+    const { data, error } = await supabaseClient
+      .from('module_data')
+      .select('value')
+      .eq('user_id', uid).eq('module', MODULE_KEY).eq('key', k)
+      .maybeSingle();
+    if (error || !data) return def;
+    return data.value;
+  } catch (e) { console.error('Error cargando', k, e); return def; }
+}
+
+async function save(k, v) {
+  try {
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    const uid = sessionData && sessionData.session ? sessionData.session.user.id : null;
+    if (!uid) return;
+    const { error } = await supabaseClient.from('module_data').upsert({
+      user_id: uid, module: MODULE_KEY, key: k, value: v, updated_at: new Date().toISOString(),
+    });
+    if (error) { console.error('Error guardando', k, error); toast('⚠️ No se pudo guardar, revisa tu conexión.'); }
+  } catch (e) { console.error('Error guardando', k, e); toast('⚠️ No se pudo guardar, revisa tu conexión.'); }
+}
+
+let employees = DEF_EMP;
+let machines  = DEF_MAQ;
+let history   = DEF_HIST;
+let tasks     = DEF_TASKS;
+let taskSel   = {}; // {taskName: {active:bool, person:'auto'|nombre}}
 let lastSolo  = null;
 let lastResult = null;
 
@@ -573,8 +601,8 @@ function showPage(p){
 }
 
 // ── SCHEDULE TABLE ─────────────────────────────────────────────────────────
-function buildTable(){
-  const sched = load('sched',{});
+async function buildTable(){
+  const sched = await load('sched',{});
   let h='<thead><tr><th rowspan="2" style="text-align:center;padding:12px 10px;min-width:150px;font-family:var(--font-heading);color:var(--text-card)">Empleado</th>';
   DAYS.forEach(d=>h+=`<th colspan="2" class="day-hdr">${d}</th>`);
   h+='</tr><tr>';
@@ -608,7 +636,7 @@ function buildTable(){
   }
 }
 
-function saveSched(){
+async function saveSched(){
   const d={};
   employees.forEach(w=>{
     d[w]={};
@@ -620,10 +648,10 @@ function saveSched(){
       };
     });
   });
-  save('sched',d);
+  await save('sched',d);
 }
 
-function clearSched(){if(!confirm('¿Limpiar la tabla de asignación? Se eliminarán los horarios guardados.'))return;save('sched',{});buildTable();toast('Tabla limpiada');}
+async function clearSched(){if(!confirm('¿Limpiar la tabla de asignación? Se eliminarán los horarios guardados.'))return;await save('sched',{});await buildTable();toast('Tabla limpiada');}
 
 // ── TIME PARSING ───────────────────────────────────────────────────────────
 function parseTime(t){
@@ -731,9 +759,9 @@ function assignMachines(workers, attendance={}, initialLoad={}){
 }
 
 // ── GENERATE ───────────────────────────────────────────────────────────────
-function generate(){
-  saveSched();
-  const sched=load('sched',{});
+async function generate(){
+  await saveSched();
+  const sched=await load('sched',{});
   const weekFrom=document.getElementById('week-from').value||'?';
   const weekTo=document.getElementById('week-to').value||'?';
 
@@ -1219,8 +1247,15 @@ function removeTask(i){
 }
 
 // ── INIT ───────────────────────────────────────────────────────────────────
-buildTable();
-renderTaskSelector();
+(async function initData(){
+  employees = await load('emp', DEF_EMP);
+  machines  = await load('maq', DEF_MAQ);
+  history   = await load('hist', DEF_HIST);
+  tasks     = await load('tasks', DEF_TASKS);
+  taskSel   = await load('taskSel', {});
+  await buildTable();
+  renderTaskSelector();
+})();
 </script>
 
 <script>
