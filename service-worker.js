@@ -1,6 +1,6 @@
 /* AFRICA TOOLS · SERVICE WORKER */
 
-const CACHE_NAME = 'africa-tools-v15';
+const CACHE_NAME = 'africa-tools-v16';
 
 const CORE_ASSETS = [
   './',
@@ -11,6 +11,8 @@ const CORE_ASSETS = [
   './assets/shell.js',
   './assets/app.js',
   './assets/permissions.js',
+  './assets/supabase-config.js',
+  './assets/offline-storage.js',
   './assets/icons/icon.svg',
   './assets/icons/icon-192.png',
   './assets/icons/icon-512.png',

@@ -4,6 +4,7 @@
 <script>(function(){try{var t=new URLSearchParams(location.search).get('theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../../assets/supabase-config.js"></script>
+<script src="../../assets/offline-storage.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Panel del Líder de Seguridad · África Parque de Diversiones</title>
@@ -1265,28 +1266,8 @@
       backend = 'claude';
       return r ? r.value : null;
     }catch(e){
-      try{
-        const { data: sessionData } = await supabaseClient.auth.getSession();
-        const uid = sessionData && sessionData.session ? sessionData.session.user.id : null;
-        if(!uid) throw new Error('sin sesión');
-        const { data, error } = await supabaseClient
-          .from('module_data')
-          .select('value')
-          .eq('user_id', uid).eq('module', MODULE_KEY).eq('key', key)
-          .maybeSingle();
-        if(error) throw error;
-        backend = 'supabase';
-        return data ? data.value : null;
-      }catch(e2){
-        try{
-          const v = await idbGet(key);
-          backend = 'indexeddb';
-          return v !== undefined ? v : null;
-        }catch(e3){
-          backend = 'memory';
-          return memFallback[key] || null;
-        }
-      }
+      backend = 'offline-storage';
+      return OfflineStorage.get(MODULE_KEY, key, null);
     }
   }
   async function storeSet(key, value){
@@ -1295,27 +1276,8 @@
       if(r){ backend = 'claude'; return; }
       throw new Error('window.storage no disponible');
     }catch(e){
-      try{
-        const { data: sessionData } = await supabaseClient.auth.getSession();
-        const uid = sessionData && sessionData.session ? sessionData.session.user.id : null;
-        if(!uid) throw new Error('sin sesión');
-        const { error } = await supabaseClient.from('module_data').upsert({
-          user_id: uid, module: MODULE_KEY, key, value, updated_at: new Date().toISOString(),
-        });
-        if(error) throw error;
-        backend = 'supabase';
-        // Respaldo local además de Supabase: si algún día no hay conexión,
-        // el dato más reciente sigue disponible sin depender de la red.
-        try{ await idbSet(key, value); }catch(e2b){}
-      }catch(e2){
-        try{
-          await idbSet(key, value);
-          backend = 'indexeddb';
-        }catch(e3){
-          memFallback[key] = value;
-          backend = 'memory';
-        }
-      }
+      backend = 'offline-storage';
+      await OfflineStorage.set(MODULE_KEY, key, value);
     }
   }
 

@@ -257,8 +257,25 @@
       const close = document.createElement('button'); close.type = 'button'; close.className = 'pwa-notice-close'; close.setAttribute('aria-label', 'Cerrar aviso'); close.textContent = '×'; close.onclick = () => notice.classList.add('hidden'); notice.appendChild(close);
       notice.classList.remove('hidden');
     }
-    window.addEventListener('offline', () => showNotice('Sin conexión. Tus herramientas cargadas seguirán disponibles.', null, null));
-    window.addEventListener('online', () => { notice.classList.add('hidden'); });
+    let pendingCount = 0;
+    function updateConnectionNotice() {
+      if (!navigator.onLine && pendingCount === 0) {
+        showNotice('Sin conexión. Tus herramientas cargadas seguirán disponibles.', null, null);
+      } else if (!navigator.onLine && pendingCount > 0) {
+        showNotice(`Sin conexión. ${pendingCount} cambio(s) pendiente(s) de sincronizar.`, null, null);
+      } else if (navigator.onLine && pendingCount > 0) {
+        showNotice(`Sincronizando ${pendingCount} cambio(s) pendiente(s)...`, null, null);
+      } else {
+        notice.classList.add('hidden');
+      }
+    }
+    window.addEventListener('message', (event) => {
+      if (!event.data || event.data.type !== 'africa-tools-queue-count') return;
+      pendingCount = event.data.count || 0;
+      updateConnectionNotice();
+    });
+    window.addEventListener('offline', () => updateConnectionNotice());
+    window.addEventListener('online', () => updateConnectionNotice());
     window.addEventListener('beforeinstallprompt', (event) => {
       event.preventDefault(); deferredPrompt = event;
       if (!localStorage.getItem('africa_tools_install_dismissed')) showNotice('Instala Africa Tools para acceder más rápido.', 'Instalar', async () => {

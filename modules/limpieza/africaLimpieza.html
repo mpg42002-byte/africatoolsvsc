@@ -4,6 +4,7 @@
 <script>(function(){try{var t=new URLSearchParams(location.search).get('theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../../assets/supabase-config.js"></script>
+<script src="../../assets/offline-storage.js"></script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>City Park Africa – Limpieza</title>
@@ -544,30 +545,11 @@ const DEF_HIST = {
 const MODULE_KEY = 'limpieza';
 
 async function load(k, def) {
-  try {
-    const { data: sessionData } = await supabaseClient.auth.getSession();
-    const uid = sessionData && sessionData.session ? sessionData.session.user.id : null;
-    if (!uid) return def;
-    const { data, error } = await supabaseClient
-      .from('module_data')
-      .select('value')
-      .eq('user_id', uid).eq('module', MODULE_KEY).eq('key', k)
-      .maybeSingle();
-    if (error || !data) return def;
-    return data.value;
-  } catch (e) { console.error('Error cargando', k, e); return def; }
+  return OfflineStorage.get(MODULE_KEY, k, def);
 }
 
 async function save(k, v) {
-  try {
-    const { data: sessionData } = await supabaseClient.auth.getSession();
-    const uid = sessionData && sessionData.session ? sessionData.session.user.id : null;
-    if (!uid) return;
-    const { error } = await supabaseClient.from('module_data').upsert({
-      user_id: uid, module: MODULE_KEY, key: k, value: v, updated_at: new Date().toISOString(),
-    });
-    if (error) { console.error('Error guardando', k, error); toast('⚠️ No se pudo guardar, revisa tu conexión.'); }
-  } catch (e) { console.error('Error guardando', k, e); toast('⚠️ No se pudo guardar, revisa tu conexión.'); }
+  await OfflineStorage.set(MODULE_KEY, k, v);
 }
 
 let employees = DEF_EMP;
