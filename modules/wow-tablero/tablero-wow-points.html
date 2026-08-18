@@ -2,6 +2,8 @@
 <html lang="es">
 <head>
 <script>(function(){try{var t=new URLSearchParams(location.search).get('theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../assets/supabase-config.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Tablero Wow Points · Africa Parque de Diversiones</title>
@@ -642,21 +644,47 @@ const zoomVal = document.getElementById('zoomVal');
 let pendingPhoto = null;
 
 // ---- storage ----
-function loadEmployees(){
-  try{ employees = JSON.parse(localStorage.getItem('africa_wow_employees') || '[]'); }
-  catch(e){ employees = []; }
-}
-function saveEmployees(){
-  localStorage.setItem('africa_wow_employees', JSON.stringify(employees));
-}
-function loadSelection(){
+const MODULE_KEY = 'wow-tablero';
+
+async function mdGet(key, def){
   try{
-    const arr = JSON.parse(localStorage.getItem('africa_wow_selected') || '[]');
-    selectedIds = new Set(arr);
-  }catch(e){ selectedIds = new Set(); }
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    const uid = sessionData && sessionData.session ? sessionData.session.user.id : null;
+    if(!uid) return def;
+    const { data, error } = await supabaseClient
+      .from('module_data')
+      .select('value')
+      .eq('user_id', uid).eq('module', MODULE_KEY).eq('key', key)
+      .maybeSingle();
+    if(error || !data) return def;
+    return data.value;
+  }catch(e){ console.error('Error cargando', key, e); return def; }
 }
-function saveSelection(){
-  localStorage.setItem('africa_wow_selected', JSON.stringify([...selectedIds]));
+
+async function mdSet(key, value){
+  try{
+    const { data: sessionData } = await supabaseClient.auth.getSession();
+    const uid = sessionData && sessionData.session ? sessionData.session.user.id : null;
+    if(!uid) return;
+    const { error } = await supabaseClient.from('module_data').upsert({
+      user_id: uid, module: MODULE_KEY, key, value, updated_at: new Date().toISOString(),
+    });
+    if(error) console.error('Error guardando', key, error);
+  }catch(e){ console.error('Error guardando', key, e); }
+}
+
+async function loadEmployees(){
+  employees = await mdGet('africa_wow_employees', []);
+}
+async function saveEmployees(){
+  await mdSet('africa_wow_employees', employees);
+}
+async function loadSelection(){
+  const arr = await mdGet('africa_wow_selected', []);
+  selectedIds = new Set(arr);
+}
+async function saveSelection(){
+  await mdSet('africa_wow_selected', [...selectedIds]);
 }
 
 // ---- crop modal ----
@@ -944,9 +972,9 @@ themeToggle.addEventListener('click', ()=>{
 });
 
 // ---- init ----
-(function init(){
-  loadEmployees();
-  loadSelection();
+(async function init(){
+  await loadEmployees();
+  await loadSelection();
   renderRoster();
   applyTheme(localStorage.getItem('africa_wow_theme') || 'dark');
   pagesWrap.style.transform = 'scale(0.55)';

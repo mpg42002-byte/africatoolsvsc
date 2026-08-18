@@ -9,6 +9,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
+/* Century Gothic Bold, empaquetada con el módulo — así se ve igual sin
+   importar si el equipo que imprime la tiene instalada o no. Uso interno,
+   ver nota de licencia en la conversación con Miguel. */
+@font-face {
+  font-family: 'Century Gothic';
+  src: url('fonts/CenturyGothicBold.woff2') format('woff2'),
+       url('fonts/CenturyGothicBold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: block;
+}
 :root {
   --af-orange: #E85D25; --af-amber: #F5A623; --af-red: #D9481F;
   --af-coffee: #4A2F1F; --af-yellow: #F5D414; --af-green: #7CB342;
@@ -765,7 +776,8 @@ function fitAllTicketNumbers(){
   });
 }
 
-function generate(){
+async function generate(){
+  await document.fonts.load('700 44px "Century Gothic"');
   pagesScroll.innerHTML = '';
   const valid = entries.filter(e => e.desc.trim() !== '' && e.ticket.trim() !== '');
   if(valid.length === 0){
@@ -792,7 +804,7 @@ function generate(){
 }
 
 document.getElementById('generateBtn').addEventListener('click', generate);
-document.getElementById('printBtn').addEventListener('click', ()=>{ generate(); window.print(); });
+document.getElementById('printBtn').addEventListener('click', async ()=>{ await generate(); window.print(); });
 
 zoomRange.addEventListener('input', ()=>{
   const v = zoomRange.value;
