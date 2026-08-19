@@ -75,10 +75,6 @@
         <label for="login-clave">Contraseña</label>
         <input id="login-clave" type="password" autocomplete="current-password" required />
       </div>
-      <div class="checkbox-row">
-        <input id="login-remember" type="checkbox" />
-        <label for="login-remember">Mantener sesión iniciada en este dispositivo</label>
-      </div>
       <button type="submit" class="btn-primary">Ingresar</button>
     </form>
 
@@ -140,19 +136,6 @@
           </tr></thead>
           <tbody id="admin-tbody"></tbody>
         </table></div>
-        
-        <div class="backup-section">
-          <h2 style="margin:0 0 4px;">Respaldo de datos</h2>
-          <p style="margin:0 0 14px; color:var(--text-muted); font-size:14px;">Todo Africa Tools vive en este navegador. Exporta un respaldo periódicamente — si se limpia el almacenamiento del navegador o cambias de equipo, es la única forma de recuperar lo guardado.</p>
-          <div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
-            <button id="backup-export-btn" class="btn-primary" style="width:auto; padding:10px 16px;">⬇️ Exportar todo</button>
-            <label class="btn-secondary" style="width:auto; padding:10px 16px; cursor:pointer;">
-              ⬆️ Restaurar desde archivo
-              <input type="file" id="backup-import-input" accept="application/json" style="display:none;">
-            </label>
-            <span id="backup-status" style="font-size:13px; color:var(--text-muted);"></span>
-          </div>
-        </div>
 
         <div class="activity-log-section">
           <h2 style="margin:0 0 4px;">Actividad reciente</h2>

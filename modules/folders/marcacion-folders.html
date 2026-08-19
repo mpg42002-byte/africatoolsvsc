@@ -4,6 +4,7 @@
 <script>(function(){try{var t=new URLSearchParams(location.search).get('theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../../assets/supabase-config.js"></script>
+<script src="../../assets/offline-storage.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Marcación de Folders, Lockers y A-Z · Africa Parque de Diversiones</title>
@@ -632,30 +633,11 @@ function storageKey(fmt){ return 'africa_labels_' + fmt; }
 const MODULE_KEY = 'folders';
 
 async function mdGet(key, def){
-  try{
-    const { data: sessionData } = await supabaseClient.auth.getSession();
-    const uid = sessionData && sessionData.session ? sessionData.session.user.id : null;
-    if(!uid) return def;
-    const { data, error } = await supabaseClient
-      .from('module_data')
-      .select('value')
-      .eq('user_id', uid).eq('module', MODULE_KEY).eq('key', key)
-      .maybeSingle();
-    if(error || !data) return def;
-    return data.value;
-  }catch(e){ console.error('Error cargando', key, e); return def; }
+  return OfflineStorage.get(MODULE_KEY, key, def);
 }
 
 async function mdSet(key, value){
-  try{
-    const { data: sessionData } = await supabaseClient.auth.getSession();
-    const uid = sessionData && sessionData.session ? sessionData.session.user.id : null;
-    if(!uid) return;
-    const { error } = await supabaseClient.from('module_data').upsert({
-      user_id: uid, module: MODULE_KEY, key, value, updated_at: new Date().toISOString(),
-    });
-    if(error) console.error('Error guardando', key, error);
-  }catch(e){ console.error('Error guardando', key, e); }
+  await OfflineStorage.set(MODULE_KEY, key, value);
 }
 
 async function loadNamesForFormat(fmt){

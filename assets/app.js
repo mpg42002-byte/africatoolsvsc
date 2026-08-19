@@ -75,12 +75,6 @@ let currentView = 'dashboard';
   
   const forcePwSaveBtn = document.getElementById('force-pw-save');
   if (forcePwSaveBtn) forcePwSaveBtn.addEventListener('click', onForcePasswordSave);
-  
-  const backupExportBtn = document.getElementById('backup-export-btn');
-  if (backupExportBtn) backupExportBtn.addEventListener('click', onBackupExport);
-  
-  const backupImportInput = document.getElementById('backup-import-input');
-  if (backupImportInput) backupImportInput.addEventListener('change', onBackupImport);
 })();
 
 function setSidebarOpen(open) {
@@ -121,9 +115,8 @@ async function onLoginSubmit(e) {
   e.preventDefault();
   const usuario = document.getElementById('login-usuario').value.trim();
   const clave = document.getElementById('login-clave').value;
-  // Nota: con Supabase Auth la sesión siempre queda persistida en el
-  // dispositivo (no hay una versión "solo por esta pestaña"), así que el
-  // checkbox "Mantener sesión iniciada" por ahora no cambia el comportamiento.
+  // Supabase Auth siempre persiste la sesión en este dispositivo — no
+  // existe una versión "solo por esta pestaña".
   const errorBox = document.getElementById('login-error');
   errorBox.classList.add('hidden');
 
@@ -390,23 +383,27 @@ function renderDashboardSummary(permitted) {
   if (currentUser.roles.includes('lider_seguridad')) {
     const now = new Date();
     const monthKey = 'checklist-' + now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
-    readIndexedDbStore('panel-lider-seguridad', 'kv').then(store => {
-      if (!store) return;
-      let label = 'Checklist mensual sin iniciar';
-      const raw = store[monthKey];
-      if (raw) {
-        try {
-          const state = JSON.parse(raw);
-          const total = Object.keys(state).length;
-          const done = Object.values(state).filter(Boolean).length;
-          if (total > 0) label = `${done}/${total} tareas completadas este mes`;
-        } catch { return; }
-      }
-      const div = document.createElement('div');
-      div.className = 'summary-card';
-      div.innerHTML = `<div class="sc-label">Líder de Seguridad</div><div class="sc-value">${escapeHtmlLocal(label)}</div>`;
-      wrap.appendChild(div);
-    }).catch(() => {});
+    supabaseClient
+      .from('module_data')
+      .select('value')
+      .eq('user_id', currentUser.id).eq('module', 'lider').eq('key', monthKey)
+      .maybeSingle()
+      .then(({ data, error }) => {
+        let label = 'Checklist mensual sin iniciar';
+        if (!error && data && data.value) {
+          try {
+            const state = JSON.parse(data.value);
+            const total = Object.keys(state).length;
+            const done = Object.values(state).filter(Boolean).length;
+            if (total > 0) label = `${done}/${total} tareas completadas este mes`;
+          } catch { /* deja el label por defecto */ }
+        }
+        const div = document.createElement('div');
+        div.className = 'summary-card';
+        div.innerHTML = `<div class="sc-label">Líder de Seguridad</div><div class="sc-value">${escapeHtmlLocal(label)}</div>`;
+        wrap.appendChild(div);
+      })
+      .catch(() => {});
   }
 }
 
@@ -764,44 +761,6 @@ async function onForcePasswordSave() {
   document.getElementById('fp-clave').value = '';
   document.getElementById('fp-clave2').value = '';
   showApp();
-}
-
-/* ---------- RESPALDO Y RESTAURACIÓN ---------- */
-async function onBackupExport() {
-  const status = document.getElementById('backup-status');
-  if (!status) return;
-  status.textContent = 'Generando archivo…';
-  try {
-    await downloadBackupFile();
-    status.textContent = 'Listo — revisa tus descargas.';
-    await logActivity('Exportó un respaldo completo de datos');
-  } catch (e) {
-    status.textContent = 'No se pudo generar el respaldo.';
-  }
-}
-
-async function onBackupImport(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  const status = document.getElementById('backup-status');
-  if (!status) return;
-  
-  const ok = await showConfirm(
-    '¿Restaurar este respaldo?',
-    'Se reemplazarán TODOS los datos actuales (usuarios y los 7 módulos) por los del archivo. Esta acción no se puede deshacer.'
-  );
-  if (!ok) { e.target.value = ''; return; }
-  
-  try {
-    status.textContent = 'Restaurando…';
-    await restoreBackupFile(file);
-    await logActivity('Restauró un respaldo de datos completo');
-    status.textContent = 'Listo — recargando…';
-    setTimeout(() => location.reload(), 900);
-  } catch (err) {
-    status.textContent = 'El archivo no es un respaldo válido de Africa Tools.';
-  }
-  e.target.value = '';
 }
 
 /* ---------- LOG DE ACTIVIDAD (renderizado en Administración) ---------- */

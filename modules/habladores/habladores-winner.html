@@ -2,6 +2,9 @@
 <html lang="es">
 <head>
 <script>(function(){try{var t=new URLSearchParams(location.search).get('theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../assets/supabase-config.js"></script>
+<script src="../../assets/offline-storage.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Habladores Winner · Africa Parque de Diversiones</title>
@@ -490,12 +493,13 @@ function chunk(arr, size){
   for(let i=0;i<arr.length;i+=size) out.push(arr.slice(i, i+size));
   return out;
 }
-function loadEntries(){
-  try{ entries = JSON.parse(localStorage.getItem('africa_habladores') || '[]'); }
-  catch(e){ entries = []; }
+const MODULE_KEY = 'habladores';
+
+async function loadEntries(){
+  entries = await OfflineStorage.get(MODULE_KEY, 'africa_habladores', []);
 }
-function saveEntries(){
-  localStorage.setItem('africa_habladores', JSON.stringify(entries));
+async function saveEntries(){
+  await OfflineStorage.set(MODULE_KEY, 'africa_habladores', entries);
 }
 
 // =====================================================================
@@ -830,8 +834,8 @@ themeToggle.addEventListener('click', ()=>{
   applyTheme(next);
 });
 
-(function init(){
-  loadEntries();
+(async function init(){
+  await loadEntries();
   renderEntryList();
   applyTheme(localStorage.getItem('africa_habladores_theme') || 'dark');
   pagesWrap.style.transform = 'scale(0.55)';

@@ -2,6 +2,9 @@
 <html lang="es">
 <head>
 <script>(function(){try{var t=new URLSearchParams(location.search).get('theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../assets/supabase-config.js"></script>
+<script src="../../assets/offline-storage.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Calificación Wow Points · Africa Parque de Diversiones</title>
@@ -361,12 +364,13 @@ const pagesWrap = document.getElementById('pagesWrap');
 const zoomRange = document.getElementById('zoomRange');
 const zoomVal = document.getElementById('zoomVal');
 
-function loadEntries(){
-  try{ entries = JSON.parse(localStorage.getItem('africa_wow_scores') || '[]'); }
-  catch(e){ entries = []; }
+const MODULE_KEY = 'wow-calificacion';
+
+async function loadEntries(){
+  entries = await OfflineStorage.get(MODULE_KEY, 'africa_wow_scores', []);
 }
-function saveEntries(){
-  localStorage.setItem('africa_wow_scores', JSON.stringify(entries));
+async function saveEntries(){
+  await OfflineStorage.set(MODULE_KEY, 'africa_wow_scores', entries);
 }
 
 function getMaxScore(){
@@ -537,8 +541,8 @@ themeToggle.addEventListener('click', ()=>{
   applyTheme(next);
 });
 
-(function init(){
-  loadEntries();
+(async function init(){
+  await loadEntries();
   renderEntryList();
   applyTheme(localStorage.getItem('africa_wow_scores_theme') || 'dark');
   pagesWrap.style.transform = 'scale(0.55)';

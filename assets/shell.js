@@ -195,22 +195,6 @@ function setTheme(theme) {
   }
 }
 
-function getTheme() {
-  return localStorage.getItem(STORAGE_THEME) || 'light';
-}
-
-function setTheme(theme) {
-  const normalizedTheme = theme === 'dark' ? 'dark' : 'light';
-  localStorage.setItem(STORAGE_THEME, normalizedTheme);
-  document.documentElement.setAttribute('data-theme', normalizedTheme);
-  const themeMeta = document.querySelector('meta[name="theme-color"]:not([media])');
-  if (themeMeta) themeMeta.setAttribute('content', normalizedTheme === 'dark' ? '#1E1610' : '#4A2F1F');
-  const iframe = document.getElementById('module-frame');
-  if (iframe && iframe.contentWindow) {
-    iframe.contentWindow.postMessage({ type: 'africa-tools-set-theme', theme: normalizedTheme }, '*');
-  }
-}
-
 /* ---------- Cierre de sesión por inactividad ----------
    Pensado para equipos compartidos (tablet de recepción, PC de bodega).
    30 minutos sin ningún clic/tecla/scroll cierra la sesión automáticamente. */
@@ -267,89 +251,4 @@ async function loadActivityLog(limit = 50) {
     .limit(limit);
   if (error) { console.error('Error cargando actividad:', error); return []; }
   return data.map(d => ({ ts: new Date(d.created_at).getTime(), actor: d.actor, action: d.action }));
-}
-
-/* ---------- Respaldo y restauración de todos los datos ----------
-   Africa Tools vive enteramente en este navegador (localStorage +
-   IndexedDB del módulo Líder África). Esto empaqueta todo en un único
-   .json descargable, y lo restaura leyendo ese mismo archivo. */
-const LIDER_DB_NAME = 'panel-lider-seguridad';
-const LIDER_STORE_NAME = 'kv';
-
-function readIndexedDbStore(dbName, storeName) {
-  return new Promise((resolve) => {
-    let req;
-    try { req = indexedDB.open(dbName); } catch { resolve(null); return; }
-    req.onerror = () => resolve(null);
-    req.onsuccess = () => {
-      const db = req.result;
-      if (!db.objectStoreNames.contains(storeName)) { db.close(); resolve(null); return; }
-      const tx = db.transaction(storeName, 'readonly');
-      const store = tx.objectStore(storeName);
-      const keysReq = store.getAllKeys();
-      const valsReq = store.getAll();
-      tx.oncomplete = () => {
-        const out = {};
-        keysReq.result.forEach((k, i) => { out[k] = valsReq.result[i]; });
-        db.close();
-        resolve(out);
-      };
-      tx.onerror = () => { db.close(); resolve(null); };
-    };
-  });
-}
-
-function writeIndexedDbStore(dbName, storeName, obj) {
-  return new Promise((resolve, reject) => {
-    const req = indexedDB.open(dbName, 1);
-    req.onupgradeneeded = () => {
-      if (!req.result.objectStoreNames.contains(storeName)) req.result.createObjectStore(storeName);
-    };
-    req.onsuccess = () => {
-      const db = req.result;
-      const tx = db.transaction(storeName, 'readwrite');
-      const store = tx.objectStore(storeName);
-      Object.keys(obj).forEach(k => store.put(obj[k], k));
-      tx.oncomplete = () => { db.close(); resolve(); };
-      tx.onerror = () => { db.close(); reject(tx.error); };
-    };
-    req.onerror = () => reject(req.error);
-  });
-}
-
-async function buildBackupData() {
-  const data = { app: 'africa-tools', version: 1, exportedAt: new Date().toISOString(), localStorage: {}, indexedDB: {} };
-  for (let i = 0; i < localStorage.length; i++) {
-    const k = localStorage.key(i);
-    data.localStorage[k] = localStorage.getItem(k);
-  }
-  const liderData = await readIndexedDbStore(LIDER_DB_NAME, LIDER_STORE_NAME);
-  if (liderData) data.indexedDB[LIDER_DB_NAME + '__' + LIDER_STORE_NAME] = liderData;
-  return data;
-}
-
-async function downloadBackupFile() {
-  const data = await buildBackupData();
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  const stamp = new Date().toISOString().slice(0, 10);
-  a.href = url;
-  a.download = `africa-tools-respaldo-${stamp}.json`;
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(url);
-}
-
-async function restoreBackupFile(file) {
-  const text = await file.text();
-  let data;
-  try { data = JSON.parse(text); } catch { throw new Error('invalid_json'); }
-  if (!data || data.app !== 'africa-tools' || !data.localStorage) throw new Error('not_a_backup');
-  Object.keys(data.localStorage).forEach(k => localStorage.setItem(k, data.localStorage[k]));
-  const liderKey = LIDER_DB_NAME + '__' + LIDER_STORE_NAME;
-  if (data.indexedDB && data.indexedDB[liderKey]) {
-    await writeIndexedDbStore(LIDER_DB_NAME, LIDER_STORE_NAME, data.indexedDB[liderKey]);
-  }
 }
