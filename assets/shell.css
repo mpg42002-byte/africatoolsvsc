@@ -329,7 +329,12 @@ button { font-family: inherit; cursor: pointer; }
 .module-card .cardGo { font-size: 13px; color: var(--primary); font-weight: 700; margin-top: auto; }
 
 .admin-wrap { padding: 28px; max-width: 900px; }
-.backup-section, .activity-log-section { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--card-border); }
+.activity-log-section { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--card-border); }
+.activity-log-pagination { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-top: 14px; font-size: 13px; color: var(--text-muted); }
+.activity-log-pagination select { margin-left: 6px; padding: 4px 8px; border-radius: 6px; border: 1px solid var(--card-border); background: var(--card-bg); color: var(--text-card); }
+.activity-log-pagination-nav { display: flex; align-items: center; gap: 10px; }
+.activity-log-pagination-nav button { padding: 6px 14px; font-size: 13px; }
+.activity-log-pagination-nav button:disabled { opacity: .4; cursor: not-allowed; }
 #activity-log-table td, #activity-log-table th { white-space: normal; }
 .activity-log-empty { padding: 14px 12px; color: var(--text-muted); font-size: 13px; font-style: italic; }
 .admin-table { width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow); }
@@ -393,7 +398,7 @@ button, input, select, textarea { touch-action: manipulation; }
 .module-loading-mark { font-size: 34px; animation: shell-bounce 1.1s ease-in-out infinite; }
 @keyframes shell-bounce { 50% { transform: translateY(-6px) rotate(-4deg); } }
 
-.dash-wrap, .admin-wrap { width: min(100%, 1180px); max-width: none; padding: clamp(24px, 4vw, 48px); padding-top: calc(70px + env(safe-area-inset-top)); }
+.dash-wrap, .admin-wrap { width: min(100%, 1180px); max-width: none; margin: 0 auto; padding: clamp(24px, 4vw, 48px); padding-top: calc(70px + env(safe-area-inset-top)); }
 .dash-greeting { margin-bottom: 28px; }
 .dash-greeting h2 { font-size: clamp(26px, 3vw, 36px); }
 /* El saludo vive sobre el fondo de marca; las descripciones, dentro de cards. */

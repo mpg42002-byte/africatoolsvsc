@@ -75,6 +75,21 @@ let currentView = 'dashboard';
   
   const forcePwSaveBtn = document.getElementById('force-pw-save');
   if (forcePwSaveBtn) forcePwSaveBtn.addEventListener('click', onForcePasswordSave);
+
+  const logPrevBtn = document.getElementById('activity-log-prev');
+  if (logPrevBtn) logPrevBtn.addEventListener('click', () => {
+    if (activityLogState.page > 0) { activityLogState.page -= 1; renderActivityLog(); }
+  });
+  const logNextBtn = document.getElementById('activity-log-next');
+  if (logNextBtn) logNextBtn.addEventListener('click', () => {
+    activityLogState.page += 1; renderActivityLog();
+  });
+  const logPageSizeSelect = document.getElementById('activity-log-pagesize');
+  if (logPageSizeSelect) logPageSizeSelect.addEventListener('change', (e) => {
+    activityLogState.pageSize = parseInt(e.target.value, 10) || 50;
+    activityLogState.page = 0;
+    renderActivityLog();
+  });
 })();
 
 function setSidebarOpen(open) {
@@ -349,36 +364,6 @@ function renderDashboard() {
 function renderDashboardSummary(permitted) {
   const wrap = document.getElementById('dash-summary');
   wrap.innerHTML = '';
-  const cards = [];
-
-  if (permitted.includes('limpieza')) {
-    try {
-      const emp = JSON.parse(localStorage.getItem('cp2_emp') || '[]');
-      const maq = JSON.parse(localStorage.getItem('cp2_maq') || '[]');
-      cards.push({ label: 'Limpieza', value: `${emp.length} persona(s) · ${maq.length} máquina(s)` });
-    } catch { /* formato inesperado */ }
-  }
-
-  if (permitted.includes('wow-tablero') || permitted.includes('wow-calificacion')) {
-    try {
-      const scores = JSON.parse(localStorage.getItem('africa_wow_scores') || '[]');
-      if (scores.length > 0) {
-        const totals = {};
-        scores.forEach(s => { totals[s.name] = (totals[s.name] || 0) + (Number(s.score) || 0); });
-        const top = Object.entries(totals).sort((a, b) => b[1] - a[1])[0];
-        cards.push({ label: 'Wow Points — líder actual', value: `${top[0]} (${top[1].toFixed(1)} pts)` });
-      } else {
-        cards.push({ label: 'Wow Points', value: 'Sin calificaciones todavía' });
-      }
-    } catch { /* formato inesperado */ }
-  }
-
-  cards.forEach(c => {
-    const div = document.createElement('div');
-    div.className = 'summary-card';
-    div.innerHTML = `<div class="sc-label">${escapeHtmlLocal(c.label)}</div><div class="sc-value">${escapeHtmlLocal(c.value)}</div>`;
-    wrap.appendChild(div);
-  });
 
   if (currentUser.roles.includes('lider_seguridad')) {
     const now = new Date();
@@ -764,24 +749,44 @@ async function onForcePasswordSave() {
 }
 
 /* ---------- LOG DE ACTIVIDAD (renderizado en Administración) ---------- */
+let activityLogState = { page: 0, pageSize: 50 };
+
 async function renderActivityLog() {
   const tbody = document.getElementById('activity-log-tbody');
   if (!tbody) return;
 
-  const log = await loadActivityLog();
-  if (log.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="3" class="activity-log-empty">Sin actividad registrada todavía.</td></tr>`;
-    return;
+  const { pageSize, page } = activityLogState;
+  const offset = page * pageSize;
+  const { entries, total } = await loadActivityLog(pageSize, offset);
+
+  if (entries.length === 0 && page > 0) {
+    // Se quedó en una página que ya no existe (por ejemplo, cambiaron el
+    // tamaño de página). Vuelve a la primera y reintenta.
+    activityLogState.page = 0;
+    return renderActivityLog();
   }
-  tbody.innerHTML = log.map(entry => {
-    const d = new Date(entry.ts);
-    const when = d.toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
-    return `<tr>
-      <td>${escapeHtmlLocal(when)}</td>
-      <td>${escapeHtmlLocal(entry.actor)}</td>
-      <td>${escapeHtmlLocal(entry.action)}</td>
-    </tr>`;
-  }).join('');
+
+  if (entries.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="3" class="activity-log-empty">Sin actividad registrada todavía.</td></tr>`;
+  } else {
+    tbody.innerHTML = entries.map(entry => {
+      const d = new Date(entry.ts);
+      const when = d.toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' });
+      return `<tr>
+        <td>${escapeHtmlLocal(when)}</td>
+        <td>${escapeHtmlLocal(entry.actor)}</td>
+        <td>${escapeHtmlLocal(entry.action)}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const pageInfo = document.getElementById('activity-log-pageinfo');
+  const prevBtn = document.getElementById('activity-log-prev');
+  const nextBtn = document.getElementById('activity-log-next');
+  if (pageInfo) pageInfo.textContent = total === 0 ? '' : `Página ${page + 1} de ${totalPages} (${total} en total)`;
+  if (prevBtn) prevBtn.disabled = page === 0;
+  if (nextBtn) nextBtn.disabled = page + 1 >= totalPages;
 }
 
 

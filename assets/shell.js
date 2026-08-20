@@ -243,12 +243,13 @@ async function logActivity(action) {
   }
 }
 
-async function loadActivityLog(limit = 50) {
-  const { data, error } = await supabaseClient
+async function loadActivityLog(limit = 50, offset = 0) {
+  const { data, error, count } = await supabaseClient
     .from('activity_log')
-    .select('actor, action, created_at')
+    .select('actor, action, created_at', { count: 'exact' })
     .order('created_at', { ascending: false })
-    .limit(limit);
-  if (error) { console.error('Error cargando actividad:', error); return []; }
-  return data.map(d => ({ ts: new Date(d.created_at).getTime(), actor: d.actor, action: d.action }));
+    .range(offset, offset + limit - 1);
+  if (error) { console.error('Error cargando actividad:', error); return { entries: [], total: 0 }; }
+  const entries = data.map(d => ({ ts: new Date(d.created_at).getTime(), actor: d.actor, action: d.action }));
+  return { entries, total: count || 0 };
 }
