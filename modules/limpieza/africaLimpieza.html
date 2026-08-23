@@ -3,6 +3,8 @@
 <head>
 <script>(function(){try{var t=new URLSearchParams(location.search).get('theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script src="../../assets/supabase-config.js"></script>
 <script src="../../assets/offline-storage.js"></script>
 <meta charset="UTF-8"/>
@@ -992,10 +994,70 @@ function printResult(){
   </div>
   <\/body><\/html>`;
 
-  const win=window.open('','_blank');
-  win.document.write(html);
-  win.document.close();
-  win.onload=()=>win.print();
+  generatePdfFromHtml(html, `Limpieza_${weekFrom}_${weekTo}`.replace(/[^\w\-]/g,'_'));
+}
+
+// ── PDF GENERATION (sin window.open, seguro en iOS/PWA) ────────────────────
+// Renderiza el HTML de impresión en un contenedor oculto DENTRO de la página
+// actual (nunca en una ventana/pestaña nueva), lo convierte a PDF con
+// html2canvas + jsPDF, y lo entrega vía Web Share API (permite volver a la
+// app sin perder estado) con fallback de descarga directa donde no haya
+// soporte para compartir archivos.
+async function generatePdfFromHtml(html, filenameBase){
+  if(typeof html2canvas==='undefined' || typeof window.jspdf==='undefined'){
+    toast('No se pudo cargar el generador de PDF, revisa tu conexión');
+    return;
+  }
+  toast('Generando PDF…');
+
+  const holder=document.createElement('div');
+  holder.style.cssText='position:fixed;left:-99999px;top:0;width:1400px;background:#fff;z-index:-1';
+  holder.innerHTML=html.replace(/^[\s\S]*<body>/i,'').replace(/<\/body>[\s\S]*$/i,'');
+  document.body.appendChild(holder);
+
+  try{
+    const canvas=await html2canvas(holder,{scale:2,backgroundColor:'#ffffff',useCORS:true});
+    const imgData=canvas.toDataURL('image/jpeg',0.92);
+    const {jsPDF}=window.jspdf;
+    const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
+    const pageW=pdf.internal.pageSize.getWidth();
+    const pageH=pdf.internal.pageSize.getHeight();
+    const imgW=pageW;
+    const imgH=canvas.height*imgW/canvas.width;
+    const finalH=Math.min(imgH,pageH);
+    pdf.addImage(imgData,'JPEG',0,0,imgW,finalH);
+
+    const filename=`${filenameBase}.pdf`;
+    const blob=pdf.output('blob');
+
+    let shared=false;
+    if(navigator.canShare){
+      try{
+        const file=new File([blob],filename,{type:'application/pdf'});
+        if(navigator.canShare({files:[file]})){
+          await navigator.share({files:[file],title:filename});
+          shared=true;
+        }
+      }catch(shareErr){
+        if(shareErr && shareErr.name==='AbortError'){shared=true;} // usuario canceló el share, no es un error
+      }
+    }
+
+    if(!shared){
+      // Descarga directa: dispara el diálogo nativo de guardado del navegador
+      // sin navegar ni abrir ventanas/pestañas nuevas — funciona igual en
+      // PWA standalone (iOS/Android) y en escritorio.
+      pdf.save(filename);
+      toast('✅ PDF guardado');
+    }else{
+      toast('✅ PDF listo');
+    }
+  }catch(err){
+    console.error('Error generando PDF',err);
+    toast('❌ No se pudo generar el PDF, intenta de nuevo');
+  }finally{
+    document.body.removeChild(holder);
+  }
 }
 
 // ── EMPLOYEES ──────────────────────────────────────────────────────────────

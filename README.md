@@ -44,12 +44,13 @@ App/
 
 ## ✅ Características
 
-- ✅ **100% estático** - No necesita servidor backend
 - ✅ **PWA completa** - Instalable y funciona offline
-- ✅ **localStorage** - Datos guardados localmente en cada navegador
+- ✅ **Supabase** - Auth real y datos en Postgres, con cola de sincronización offline (`OfflineStorage`) para trabajar sin conexión
 - ✅ **Responsive** - Desktop, tablet y móvil
-- ✅ **Sin dependencias** - No requiere npm ni build
+- ✅ **Sin build** - No requiere npm ni bundler para desplegar
 - ✅ **Seguro** - Headers de seguridad configurados
+
+Ver `ESTRUCTURA-DATOS.md` para el detalle completo del modelo de datos vigente.
 
 ## 🚀 Uso después del despliegue
 
@@ -61,9 +62,8 @@ App/
 
 ## 🔒 Seguridad
 
-- Los datos se guardan en localStorage de cada navegador
-- Cada parque/computadora tiene su propia base de datos local
-- Las contraseñas se hashean con SHA-256
+- Auth real y datos en Supabase (Postgres) — ver `ESTRUCTURA-DATOS.md`
+- Cada usuario ve solo sus propios datos por-usuario; copia local + cola de sincronización solo para trabajar offline
 - Headers de seguridad configurados en `netlify.toml`
 - Sistema de bloqueo por intentos fallidos de login
 
@@ -94,11 +94,10 @@ python -m http.server 8080
 
 ## 📝 Notas importantes
 
-- **Datos locales:** Cada navegador/dispositivo tiene sus propios datos
-- **Backups:** Usa las funciones de exportación de cada módulo
+- **Datos:** viven en Supabase (Postgres), privados por usuario donde aplica; ver `ESTRUCTURA-DATOS.md`
+- **Offline:** el service worker cachea assets, y `OfflineStorage` encola cambios sin conexión para sincronizar al reconectar
 - **Actualización:** Netlify redespliega automáticamente al hacer push a Git
-- **Cache:** El service worker cachea assets para uso offline
 
 ## 🆘 Soporte
 
-Para más detalles sobre el uso de cada módulo, consulta `LEEME.md`.
+Para más detalles sobre el uso de cada módulo, consulta `LEEME.md`. Para el historial de cambios del proyecto, consulta `CHANGELOG.md`.
