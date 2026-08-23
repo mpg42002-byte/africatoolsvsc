@@ -812,6 +812,28 @@
     .mission .meta{text-align:left; white-space:normal; margin-top:6px;}
     table.log{display:block; overflow-x:auto; white-space:nowrap; box-shadow: inset -12px 0 8px -8px rgba(0,0,0,0.15);}
   }
+
+  /* ---------- Modal de confirmación genérico ---------- */
+  .confirm-backdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:200;
+    display:flex; align-items:center; justify-content:center; padding:20px;
+    opacity:0; pointer-events:none; transition:opacity .15s ease;
+  }
+  .confirm-backdrop.open{opacity:1; pointer-events:auto;}
+  .confirm-card{
+    background:var(--card-bg); color:var(--text-card); border-radius:var(--radius-lg);
+    padding:26px; width:100%; max-width:420px; box-shadow:0 18px 48px rgba(0,0,0,.35);
+    transform:translateY(10px); transition:transform .15s ease;
+  }
+  .confirm-backdrop.open .confirm-card{transform:translateY(0);}
+  .confirm-card h3{margin:0 0 10px; font-family:'Fredoka',sans-serif; font-size:1.15rem;}
+  .confirm-card p{margin:0 0 22px; font-size:0.92rem; line-height:1.5; color:var(--text-muted);}
+  .confirm-actions{display:flex; gap:10px; justify-content:flex-end;}
+  .confirm-actions button{all:unset; cursor:pointer; padding:10px 18px; border-radius:var(--radius-md); font-weight:700; font-size:0.9rem; text-align:center;}
+  .confirm-cancel{background:var(--card-bg-hover); color:var(--text-card); border:2px solid var(--card-border) !important;}
+  .confirm-cancel:hover{background:var(--card-border);}
+  .confirm-ok{background:var(--danger); color:#fff;}
+  .confirm-ok:hover{filter:brightness(1.08);}
 </style>
 
 <style>
@@ -1090,6 +1112,7 @@
               </div>
               <button class="btn-primary" id="qbank-add">Agregar</button>
               <button class="btn-secondary" id="qbank-sortear"><span class="icon-inline" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"></rect><circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"></circle><circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"></circle><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"></circle><circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"></circle><circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"></circle></svg></span> Sortear pregunta</button>
+              <button class="btn-secondary" id="qbank-restore" title="Reemplaza todas las preguntas actuales por las 33 oficiales de SURA">↺ Restaurar banco oficial</button>
             </div>
             <div class="qbank-drawn" id="qbank-drawn"></div>
           </div>
@@ -1190,6 +1213,17 @@
 </div>
 
 <div id="toast-container" aria-live="polite"></div>
+
+<div id="confirm-backdrop" class="confirm-backdrop" role="dialog" aria-modal="true" aria-labelledby="confirm-title">
+  <div class="confirm-card">
+    <h3 id="confirm-title">¿Confirmar?</h3>
+    <p id="confirm-body"></p>
+    <div class="confirm-actions">
+      <button type="button" class="confirm-cancel" id="confirm-cancel-btn">Cancelar</button>
+      <button type="button" class="confirm-ok" id="confirm-ok-btn">Confirmar</button>
+    </div>
+  </div>
+</div>
 
 <script>
 (function(){
@@ -1335,6 +1369,32 @@
         btn.classList.remove('btn-confirming');
         onConfirm();
       }
+    });
+  }
+
+  // Modal de confirmación (ventana con Cancelar/Confirmar), para acciones que
+  // ameritan más que el patrón de doble clic sobre el mismo botón.
+  function showLocalConfirm(title, body){
+    return new Promise((resolve)=>{
+      const backdrop = document.getElementById('confirm-backdrop');
+      document.getElementById('confirm-title').textContent = title;
+      document.getElementById('confirm-body').textContent = body;
+      const okBtn = document.getElementById('confirm-ok-btn');
+      const cancelBtn = document.getElementById('confirm-cancel-btn');
+      function close(result){
+        backdrop.classList.remove('open');
+        okBtn.removeEventListener('click', onOk);
+        cancelBtn.removeEventListener('click', onCancel);
+        backdrop.removeEventListener('click', onBackdrop);
+        resolve(result);
+      }
+      function onOk(){ close(true); }
+      function onCancel(){ close(false); }
+      function onBackdrop(e){ if(e.target === backdrop) close(false); }
+      okBtn.addEventListener('click', onOk);
+      cancelBtn.addEventListener('click', onCancel);
+      backdrop.addEventListener('click', onBackdrop);
+      backdrop.classList.add('open');
     });
   }
 
@@ -1801,6 +1861,41 @@
   });
 
   // ---------- Banco de preguntas — Escalera ----------
+  const OFFICIAL_QBANK = [
+    { pregunta: '¿Cuándo hago dilución de productos químicos, qué EPP debo usar?', respuesta: 'Monogafa, mascarilla y guantes industriales.' },
+    { pregunta: 'En el protocolo de limpieza, ¿qué significa la palabra "LIMPIEZA"?', respuesta: 'Eliminación de desechos visibles orgánicos e inorgánicos.' },
+    { pregunta: 'Mencione al menos una sustancia química desinfectante a utilizar según el protocolo.', respuesta: 'Hipoclorito de sodio (clorox), jabón multiusos.' },
+    { pregunta: 'Cuando usamos lavaloza líquido antibacterial para labores de limpieza, ¿este requiere disolución?', respuesta: 'FALSO.' },
+    { pregunta: '¿El lavaloza líquido nos sirve solamente para limpieza?', respuesta: 'FALSO.' },
+    { pregunta: '¿El limpiador o jabón multiusos requiere disolución?', respuesta: 'VERDADERO.' },
+    { pregunta: '¿Cómo se realiza la disolución del limpiador o jabón multiusos?', respuesta: 'Disolución de X parte de producto por XX de agua (depende del proveedor).' },
+    { pregunta: '¿Qué función cumple el limpiavidrios al aplicarlo: limpieza, desinfección o ambas?', respuesta: 'Ambas.' },
+    { pregunta: '¿Las disoluciones de hipoclorito de sodio mantienen el efecto desinfectante por cuánto tiempo después de su preparación?', respuesta: '12 horas.' },
+    { pregunta: 'Cuando se hace trasvase de productos o dilución en otro envase, ¿qué se debe hacer?', respuesta: 'Notificar al servicio general para que apoye en el trasvase y etiquetar el envase con el nombre de la sustancia, su composición y la fecha.' },
+    { pregunta: 'Cuando se hace trasvase de productos o dilución, ¿qué cuidados debo tener? Mencione al menos dos según el protocolo de limpieza.', respuesta: 'Realizar en un lugar apropiado, usando los EPP y los elementos adecuados; evitar derrames, salpicaduras y el contacto dérmico.' },
+    { pregunta: 'Cuando manipulo productos químicos, ¿qué debo tener en cuenta aparte del uso de los EPP? Mencione al menos una recomendación según el protocolo de limpieza.', respuesta: 'Consultar la Ficha de Datos de Seguridad, identificar los peligros a los que estoy expuesto y saber qué hacer en caso de emergencia.' },
+    { pregunta: '¿Qué es la matriz de compatibilidad de productos químicos?', respuesta: 'Es una estrategia de seguridad para el almacenamiento correcto de los productos químicos.' },
+    { pregunta: 'Cuando los envases de los productos químicos están vacíos, ¿cómo debo disponerlos?', respuesta: 'Se depositarán en los puntos ecológicos en las canecas, de acuerdo con el tipo de producto.' },
+    { pregunta: '¿En qué consiste la técnica de arrastre para la limpieza de superficies planas?', respuesta: 'Limpiar de arriba hacia abajo en un solo sentido, evitando pasar el paño varias veces por el mismo sitio.' },
+    { pregunta: 'Una vez finalizada la limpieza, ¿qué debo hacer con las escobas, traperos y trapos?', respuesta: 'Deben lavarse con jabón multiusos y colocarse en la poceta.' },
+    { pregunta: '¿En qué consiste retirar el polvo en húmedo?', respuesta: 'Humedecer un trapo y pasarlo por las superficies con polvo para evitar la generación de nubes.' },
+    { pregunta: 'Si voy a trapear un área de piso, ¿debo señalizarla?', respuesta: 'VERDADERO.' },
+    { pregunta: '¿Siempre debo restregar las áreas que voy a limpiar?', respuesta: 'FALSO: Se puede simplemente trapear con solución jabonosa.' },
+    { pregunta: '¿Puedo mezclar el hipoclorito con el jabón y el desengrasante?', respuesta: 'FALSO.' },
+    { pregunta: '¿Qué debo hacer primero, la limpieza o la desinfección?', respuesta: 'Realizar limpieza y luego desinfección si es necesario.' },
+    { pregunta: '¿Cada cuánto debo limpiar las máquinas de videojuegos o de redención? Mencione al menos dos frecuencias según el protocolo de limpieza.', respuesta: 'Cada 8 días se debe hacer un aseo general, y diariamente se debe limpiar las partes de mayor contacto.' },
+    { pregunta: '¿Puedo utilizar cepillos o elementos que generan salpicaduras para la limpieza?', respuesta: 'Sí, puedo usarlos, pero debo tener precaución para evitar salpicaduras.' },
+    { pregunta: '¿Existen normas para la limpieza de los botiquines y las camillas?', respuesta: 'VERDADERO.' },
+    { pregunta: '¿Debo limpiar los radios de comunicación?', respuesta: 'Antes de iniciar la operación y durante la operación según necesidad.' },
+    { pregunta: 'Cuando lavo los trapos utilizados para el aseo, ¿debo escurrirlos torciéndolos lo máximo posible?', respuesta: 'FALSO.' },
+    { pregunta: 'Para la limpieza de máquinas altas, ¿se deben usar escaleras sin sobrepasar más de tres escalones y con el apoyo de extensor o escoba?', respuesta: 'VERDADERO.' },
+    { pregunta: '¿Siempre se debe limpiar de lo menos contaminado a lo más contaminado?', respuesta: 'VERDADERO.' },
+    { pregunta: 'Mencione como mínimo dos peligros a los cuales está expuesto en las labores de aseo y limpieza, y cómo se deben evitar.', respuesta: 'Respuesta abierta.' },
+    { pregunta: 'Para la limpieza del playground, ¿debo subir el balde totalmente lleno de agua junto con el trapero y la escoba?', respuesta: 'FALSO: El balde se debe subir con un máximo de 2 L de agua de ser necesario, y siempre apoyándose con las sogas de la atracción.' },
+    { pregunta: '¿En qué actividades de limpieza debo usar botas de caña alta?', respuesta: 'Limpieza de piso en general, salones de fiesta, baños y pocetas.' },
+    { pregunta: 'Para la limpieza de vidrios, ¿debo usar una escalera de más de cinco pasos y un trapo húmedo?', respuesta: 'FALSO: Se debe hacer uso del extensor hasta donde se alcance con él y usar un máximo de tres escalones de la escalera.' },
+    { pregunta: '¿Cuándo se realiza la limpieza de pantallas de dispositivos del parque se puede aplicar el producto directamente en las pantallas?', respuesta: 'FALSO.' },
+  ];
   let qbank = [];
   async function loadQbank(){
     document.getElementById('qbank-list').innerHTML = '<div class="empty">Cargando...</div>';
@@ -1810,44 +1905,23 @@
       // Compatibilidad con el formato anterior (solo texto, sin respuesta).
       qbank = parsed.map(item => typeof item === 'string' ? { pregunta: item, respuesta: '' } : item);
     } else {
-      qbank = [
-        { pregunta: '¿Cuándo hago dilución de productos químicos, qué EPP debo usar?', respuesta: 'Monogafa, mascarilla y guantes industriales.' },
-        { pregunta: 'En el protocolo de limpieza, ¿qué significa la palabra "LIMPIEZA"?', respuesta: 'Eliminación de desechos visibles orgánicos e inorgánicos.' },
-        { pregunta: 'Mencione al menos una sustancia química desinfectante a utilizar según el protocolo.', respuesta: 'Hipoclorito de sodio (clorox), jabón multiusos.' },
-        { pregunta: 'Cuando usamos lavaloza líquido antibacterial para labores de limpieza, ¿este requiere dilución?', respuesta: 'FALSO.' },
-        { pregunta: '¿El lavaloza líquido nos sirve solamente para limpieza?', respuesta: 'FALSO.' },
-        { pregunta: '¿El limpiador o jabón multiusos requiere dilución?', respuesta: 'VERDADERO.' },
-        { pregunta: '¿Cómo se realiza la dilución del limpiador o jabón multiusos?', respuesta: 'Disolución de X parte de producto por XX de agua (depende del proveedor).' },
-        { pregunta: '¿Qué función cumple el limpiavidrios al aplicarlo: limpieza, desinfección o ambas?', respuesta: 'Ambas.' },
-        { pregunta: '¿Las diluciones de hipoclorito de sodio mantienen el efecto desinfectante por cuánto tiempo después de su preparación?', respuesta: '12 horas.' },
-        { pregunta: 'Cuando se hace trasvase de productos o dilución en otro envase, ¿qué se debe hacer?', respuesta: 'Notificar al servicio general para que apoye en el trasvase y etiquetar el envase con el nombre de la sustancia, su composición y la fecha.' },
-        { pregunta: 'Cuando se hace trasvase de productos o dilución, ¿qué cuidados debe tener? Mencione al menos dos según el protocolo de limpieza.', respuesta: 'Realizar en un lugar apropiado, usando los EPP y los elementos adecuados; evitar derrames, salpicaduras y el contacto dérmico.' },
-        { pregunta: 'Cuando manipulo productos químicos, ¿qué debo tener en cuenta aparte del uso de los EPP? Mencione al menos una recomendación según el protocolo de limpieza.', respuesta: 'Consultar la Ficha de Datos de Seguridad, identificar los peligros a los que estoy expuesto y saber qué hacer en caso de emergencia.' },
-        { pregunta: '¿Qué es la matriz de compatibilidad de productos químicos?', respuesta: 'Es una estrategia de seguridad para el almacenamiento correcto de los productos químicos.' },
-        { pregunta: 'Cuando los envases de los productos químicos están vacíos, ¿cómo debo disponerlos?', respuesta: 'Se depositarán en los puntos ecológicos en las canecas, de acuerdo con el tipo de producto.' },
-        { pregunta: '¿En qué consiste la técnica de arrastre para la limpieza de superficies planas?', respuesta: 'Limpiar de arriba hacia abajo en un solo sentido, evitando pasar el paño varias veces por el mismo sitio.' },
-        { pregunta: 'Una vez finalizada la limpieza, ¿qué debo hacer con las escobas, traperos y trapos?', respuesta: 'Deben lavarse con jabón multiusos y colocarse en la poceta.' },
-        { pregunta: '¿En qué consiste retirar el polvo en húmedo?', respuesta: 'Humedecer un trapo y pasarlo por las superficies con polvo para evitar la generación de nubes.' },
-        { pregunta: 'Si voy a trapear un área de piso, ¿debo señalizarla?', respuesta: 'VERDADERO.' },
-        { pregunta: '¿Siempre debo restregar las áreas que voy a limpiar?', respuesta: 'FALSO: Se puede simplemente trapear con solución jabonosa.' },
-        { pregunta: '¿Puedo mezclar el hipoclorito con el jabón y el desengrasante?', respuesta: 'FALSO.' },
-        { pregunta: '¿Qué debo hacer primero, la limpieza o la desinfección?', respuesta: 'Realizar limpieza y luego desinfección si es necesario.' },
-        { pregunta: '¿Cada cuánto debo limpiar las máquinas de videojuegos o de redención? Mencione al menos dos frecuencias según el protocolo de limpieza.', respuesta: 'Cada 8 días se debe hacer un aseo general, y diariamente se debe limpiar las partes de mayor contacto.' },
-        { pregunta: '¿Puedo utilizar cepillos o elementos que generan salpicaduras para la limpieza?', respuesta: 'Sí, puedo usarlos, pero debo tener precaución para evitar salpicaduras.' },
-        { pregunta: '¿Existen normas para la limpieza de los botiquines y las camillas?', respuesta: 'VERDADERO.' },
-        { pregunta: '¿Debo limpiar los radios de comunicación?', respuesta: 'Antes de iniciar la operación y durante la operación según necesidad.' },
-        { pregunta: 'Cuando lavo los trapos utilizados para el aseo, ¿debo escurrirlos torciéndolos lo máximo posible?', respuesta: 'FALSO.' },
-        { pregunta: 'Para la limpieza de máquinas altas, ¿se deben usar escaleras sin sobrepasar más de tres escalones y con el apoyo de extensor o escoba?', respuesta: 'VERDADERO.' },
-        { pregunta: '¿Siempre se debe limpiar de lo menos contaminado a lo más contaminado?', respuesta: 'VERDADERO.' },
-        { pregunta: 'Mencione como mínimo dos peligros a los cuales está expuesto en las labores de aseo y limpieza, y cómo se deben evitar.', respuesta: 'Respuesta abierta.' },
-        { pregunta: 'Para la limpieza del playground, ¿debo subir el balde totalmente lleno de agua junto con el trapero y la escoba?', respuesta: 'FALSO: El balde se debe subir con un máximo de 2 L de agua de ser necesario, y siempre apoyándose con las sogas de la atracción.' },
-        { pregunta: '¿En qué actividades de limpieza debo usar botas de caña alta?', respuesta: 'Limpieza de piso en general, salones de fiesta, baños y pocetas.' },
-        { pregunta: 'Para la limpieza de vidrios, ¿debo usar una escalera de más de cinco pasos y un trapo húmedo?', respuesta: 'FALSO: Se debe hacer uso del extensor hasta donde se alcance con él y usar un máximo de tres escalones de la escalera.' },
-        { pregunta: '¿Cuándo se realiza la limpieza de pantallas de dispositivos del parque se puede aplicar el producto directamente en las pantallas?', respuesta: 'FALSO.' },
-      ];
+      qbank = OFFICIAL_QBANK.map(q => ({ ...q }));
     }
     renderQbank();
   }
+  async function restoreOfficialQbank(){
+    qbank = OFFICIAL_QBANK.map(q => ({ ...q }));
+    await saveQbank();
+    renderQbank();
+    showToast('Banco oficial restaurado (33 preguntas)');
+  }
+  document.getElementById('qbank-restore')?.addEventListener('click', async ()=>{
+    const ok = await showLocalConfirm(
+      '¿Restaurar el banco oficial?',
+      'Esto reemplaza TODAS las preguntas actuales por las 33 preguntas y respuestas oficiales de SURA. No se puede deshacer.'
+    );
+    if (ok) await restoreOfficialQbank();
+  });
   async function saveQbank(){ await storeSet('escalera-preguntas', JSON.stringify(qbank)); }
   function renderQbank(){
     const list = document.getElementById('qbank-list');
