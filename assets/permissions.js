@@ -20,6 +20,11 @@ const ROLES = {
     modules: 'ALL',
     isAdmin: false,
   },
+  lider_parque: {
+    label: 'Líder de Parque',
+    modules: 'ALL',
+    isAdmin: false,
+  },
   lider_seguridad: {
     label: 'Líder de Seguridad',
     modules: ['lider'],

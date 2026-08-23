@@ -254,20 +254,23 @@
     gap:8px 16px;
     align-items:start;
   }
+  .mission > div{ min-width:0; }
   .mission h3{
     margin:0;
     font-size:1.05rem;
     font-family:var(--font-heading);
     font-weight:600;
     color:var(--primary-text-safe);
+    overflow-wrap:break-word;
   }
-  .mission p{margin:6px 0 0; font-size:0.9rem; color:var(--text-card); line-height:1.5; font-weight: 400;}
+  .mission p{margin:6px 0 0; font-size:0.9rem; color:var(--text-card); line-height:1.5; font-weight: 400; overflow-wrap:break-word;}
   .mission .meta{
     text-align:right;
     font-family:var(--font-mono);
     font-size:0.75rem;
     color:var(--text-muted);
-    white-space:nowrap;
+    max-width:160px;
+    overflow-wrap:break-word;
   }
   .mission .meta strong{display:block; color:var(--text-card); font-size:0.85rem;}
 
@@ -394,10 +397,22 @@
   .del-row:hover{background:var(--card-bg-hover); transform: translateY(-1px);}
 
   .worker-summary{
+    margin-top:14px;
+  }
+  .worker-summary-month{ margin-bottom:22px; }
+  .worker-summary-month:last-child{ margin-bottom:0; }
+  .worker-summary-month-title{
+    margin:0 0 10px;
+    font-family:var(--font-heading);
+    font-size:0.95rem;
+    font-weight:700;
+    color:var(--primary-text-safe);
+    text-transform:capitalize;
+  }
+  .worker-summary-month-grid{
     display:grid;
     grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
     gap:12px;
-    margin-top:14px;
     align-items:start;
   }
   .worker-card{
@@ -669,7 +684,7 @@
   /* Question bank */
   .qbank-item{
     display:flex;
-    align-items:center;
+    align-items:flex-start;
     gap:10px;
     padding:10px 6px;
     border-bottom:2px solid var(--card-border);
@@ -678,8 +693,16 @@
   }
   .qbank-item:last-child{border-bottom:none;}
   .qbank-item span{flex:1;}
-  .qbank-item button{all:unset; cursor:pointer; color:var(--danger); font-weight: 700; font-size:0.85rem; flex-shrink:0; padding:6px 12px; border-radius:var(--radius-md); border:2px solid var(--card-border); background:var(--card-bg); transition: background 0.1s ease, transform 0.1s ease;}
-  .qbank-item button:hover{background:var(--card-bg-hover); transform: translateY(-1px);}
+  .qbank-item button.qbank-del{all:unset; cursor:pointer; color:var(--danger); font-weight: 700; font-size:0.85rem; flex-shrink:0; padding:6px 12px; border-radius:var(--radius-md); border:2px solid var(--card-border); background:var(--card-bg); transition: background 0.1s ease, transform 0.1s ease;}
+  .qbank-item button.qbank-del:hover{background:var(--card-bg-hover); transform: translateY(-1px);}
+  .qbank-ver-respuesta{
+    all:unset; cursor:pointer; display:inline-block; margin-left:10px;
+    color:var(--primary); font-weight:700; font-size:0.8rem; text-decoration:underline;
+  }
+  .qbank-respuesta{
+    display:none; margin-top:6px; font-weight:600; color:var(--af-green); font-size:0.85rem;
+  }
+  .qbank-item.show-respuesta .qbank-respuesta{ display:block; }
   .qbank-drawn{
     background:var(--card-bg);
     border:3px dashed var(--af-green);
@@ -692,6 +715,8 @@
     display:none;
   }
   .qbank-drawn.show{display:block;}
+  .qbank-drawn .qbank-ver-respuesta{ margin-left:0; margin-top:8px; }
+  .qbank-drawn .qbank-respuesta{ margin-top:6px; }
   .btn-replace{
     all:unset; cursor:pointer; color:var(--primary); font-weight:700;
     font-size:0.8rem; padding:6px 12px; border-radius:var(--radius-md); white-space:nowrap;
@@ -1054,10 +1079,14 @@
             <h3 style="margin-bottom:8px;">Banco de preguntas de la Escalera</h3>
             <p style="font-size:0.85rem; color:var(--text-muted); margin:0 0 8px; font-weight: 600;">Preguntas para usar en las casillas de reflexión. Agrega, edita o elimina las que necesites — quedan guardadas.</p>
             <div class="qbank-list" id="qbank-list"></div>
-            <div class="add-form">
-              <div class="field-wrap" style="flex:1;">
+            <div class="add-form" style="flex-wrap:wrap;">
+              <div class="field-wrap" style="flex:1 1 260px;">
                 <label class="field-label" for="qbank-new">Nueva pregunta</label>
-                <input type="text" id="qbank-new" placeholder="Escribe una nueva pregunta..." style="flex:1;">
+                <input type="text" id="qbank-new" placeholder="Escribe una nueva pregunta...">
+              </div>
+              <div class="field-wrap" style="flex:1 1 260px;">
+                <label class="field-label" for="qbank-new-respuesta">Respuesta (opcional)</label>
+                <input type="text" id="qbank-new-respuesta" placeholder="Respuesta correcta...">
               </div>
               <button class="btn-primary" id="qbank-add">Agregar</button>
               <button class="btn-secondary" id="qbank-sortear"><span class="icon-inline" aria-hidden="true"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"></rect><circle cx="8" cy="8" r="1.2" fill="currentColor" stroke="none"></circle><circle cx="16" cy="8" r="1.2" fill="currentColor" stroke="none"></circle><circle cx="12" cy="12" r="1.2" fill="currentColor" stroke="none"></circle><circle cx="8" cy="16" r="1.2" fill="currentColor" stroke="none"></circle><circle cx="16" cy="16" r="1.2" fill="currentColor" stroke="none"></circle></svg></span> Sortear pregunta</button>
@@ -1471,35 +1500,62 @@
     }
   }
 
+  function formatMonthLabel(monthKey){
+    if(monthKey === 'sin-fecha') return 'Sin fecha';
+    const [year, month] = monthKey.split('-');
+    const monthNames = ['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+    const name = monthNames[parseInt(month, 10) - 1] || month;
+    return name.charAt(0).toUpperCase() + name.slice(1) + ' ' + year;
+  }
+
   function renderWorkerSummary(){
     const wrap = document.getElementById('worker-summary');
     wrap.innerHTML = '';
-    const byWorker = {};
-    eppLog.forEach(e=>{
-      const key = e.nombre.trim().toLowerCase();
-      if(!byWorker[key]) byWorker[key] = { nombre:e.nombre, verde:0, amarillo:0, rojo:0 };
-      byWorker[key][e.color]++;
-    });
-    const names = Object.keys(byWorker);
-    if(names.length===0){
+    if(eppLog.length===0){
       wrap.innerHTML = '<div class="empty">Registra abordajes para ver el resumen por trabajador.</div>';
       return;
     }
-    names.forEach(key=>{
-      const w = byWorker[key];
-      const rojasEfectivas = w.rojo + Math.floor(w.amarillo / 4);
-      const div = document.createElement('div');
-      div.className = 'worker-card';
-      div.innerHTML = `
-        <div class="name">${escapeHtml(w.nombre)}</div>
-        <div class="counts">
-          <span><span class="dotc verde"></span><span class="sr-only">Verde: </span>${w.verde}</span>
-          <span><span class="dotc amarillo"></span><span class="sr-only">Amarillo: </span>${w.amarillo}</span>
-          <span><span class="dotc rojo"></span><span class="sr-only">Rojo: </span>${w.rojo}</span>
-        </div>
-        <div class="flag ${rojasEfectivas > 2 ? 'show':''}">Más de 2 rojas efectivas: reportar al administrador</div>
-      `;
-      wrap.appendChild(div);
+    // Agrupa primero por mes (según la fecha de cada abordaje), y dentro
+    // de cada mes por trabajador — la captura diaria no cambia, solo cómo
+    // se presenta el resumen.
+    const byMonth = {};
+    eppLog.forEach(e=>{
+      const monthKey = (e.fecha || '').slice(0, 7) || 'sin-fecha';
+      if(!byMonth[monthKey]) byMonth[monthKey] = {};
+      const nameKey = e.nombre.trim().toLowerCase();
+      if(!byMonth[monthKey][nameKey]) byMonth[monthKey][nameKey] = { nombre:e.nombre, verde:0, amarillo:0, rojo:0 };
+      byMonth[monthKey][nameKey][e.color]++;
+    });
+
+    const monthKeys = Object.keys(byMonth).sort().reverse();
+    monthKeys.forEach(monthKey=>{
+      const section = document.createElement('div');
+      section.className = 'worker-summary-month';
+      const title = document.createElement('h4');
+      title.className = 'worker-summary-month-title';
+      title.textContent = formatMonthLabel(monthKey);
+      section.appendChild(title);
+
+      const grid = document.createElement('div');
+      grid.className = 'worker-summary-month-grid';
+      Object.keys(byMonth[monthKey]).forEach(nameKey=>{
+        const w = byMonth[monthKey][nameKey];
+        const rojasEfectivas = w.rojo + Math.floor(w.amarillo / 4);
+        const div = document.createElement('div');
+        div.className = 'worker-card';
+        div.innerHTML = `
+          <div class="name">${escapeHtml(w.nombre)}</div>
+          <div class="counts">
+            <span><span class="dotc verde"></span><span class="sr-only">Verde: </span>${w.verde}</span>
+            <span><span class="dotc amarillo"></span><span class="sr-only">Amarillo: </span>${w.amarillo}</span>
+            <span><span class="dotc rojo"></span><span class="sr-only">Rojo: </span>${w.rojo}</span>
+          </div>
+          <div class="flag ${rojasEfectivas > 2 ? 'show':''}">Más de 2 rojas efectivas: reportar al administrador</div>
+        `;
+        grid.appendChild(div);
+      });
+      section.appendChild(grid);
+      wrap.appendChild(section);
     });
   }
 
@@ -1749,12 +1805,47 @@
   async function loadQbank(){
     document.getElementById('qbank-list').innerHTML = '<div class="empty">Cargando...</div>';
     const raw = await storeGet('escalera-preguntas');
-    qbank = raw ? JSON.parse(raw) : [
-      '¿Qué elemento de protección personal debes usar al limpiar las zonas temáticas?',
-      '¿Qué haces si encuentras un producto químico sin identificación en el almacén?',
-      '¿Cómo evitas malas posturas al levantar objetos pesados en el parque?',
-      '¿Qué debes revisar antes de subir a una escalera portátil?'
-    ];
+    const parsed = raw ? JSON.parse(raw) : null;
+    if (parsed && parsed.length) {
+      // Compatibilidad con el formato anterior (solo texto, sin respuesta).
+      qbank = parsed.map(item => typeof item === 'string' ? { pregunta: item, respuesta: '' } : item);
+    } else {
+      qbank = [
+        { pregunta: '¿Cuándo hago dilución de productos químicos, qué EPP debo usar?', respuesta: 'Monogafa, mascarilla y guantes industriales.' },
+        { pregunta: 'En el protocolo de limpieza, ¿qué significa la palabra "LIMPIEZA"?', respuesta: 'Eliminación de desechos visibles orgánicos e inorgánicos.' },
+        { pregunta: 'Mencione al menos una sustancia química desinfectante a utilizar según el protocolo.', respuesta: 'Hipoclorito de sodio (clorox), jabón multiusos.' },
+        { pregunta: 'Cuando usamos lavaloza líquido antibacterial para labores de limpieza, ¿este requiere dilución?', respuesta: 'FALSO.' },
+        { pregunta: '¿El lavaloza líquido nos sirve solamente para limpieza?', respuesta: 'FALSO.' },
+        { pregunta: '¿El limpiador o jabón multiusos requiere dilución?', respuesta: 'VERDADERO.' },
+        { pregunta: '¿Cómo se realiza la dilución del limpiador o jabón multiusos?', respuesta: 'Disolución de X parte de producto por XX de agua (depende del proveedor).' },
+        { pregunta: '¿Qué función cumple el limpiavidrios al aplicarlo: limpieza, desinfección o ambas?', respuesta: 'Ambas.' },
+        { pregunta: '¿Las diluciones de hipoclorito de sodio mantienen el efecto desinfectante por cuánto tiempo después de su preparación?', respuesta: '12 horas.' },
+        { pregunta: 'Cuando se hace trasvase de productos o dilución en otro envase, ¿qué se debe hacer?', respuesta: 'Notificar al servicio general para que apoye en el trasvase y etiquetar el envase con el nombre de la sustancia, su composición y la fecha.' },
+        { pregunta: 'Cuando se hace trasvase de productos o dilución, ¿qué cuidados debe tener? Mencione al menos dos según el protocolo de limpieza.', respuesta: 'Realizar en un lugar apropiado, usando los EPP y los elementos adecuados; evitar derrames, salpicaduras y el contacto dérmico.' },
+        { pregunta: 'Cuando manipulo productos químicos, ¿qué debo tener en cuenta aparte del uso de los EPP? Mencione al menos una recomendación según el protocolo de limpieza.', respuesta: 'Consultar la Ficha de Datos de Seguridad, identificar los peligros a los que estoy expuesto y saber qué hacer en caso de emergencia.' },
+        { pregunta: '¿Qué es la matriz de compatibilidad de productos químicos?', respuesta: 'Es una estrategia de seguridad para el almacenamiento correcto de los productos químicos.' },
+        { pregunta: 'Cuando los envases de los productos químicos están vacíos, ¿cómo debo disponerlos?', respuesta: 'Se depositarán en los puntos ecológicos en las canecas, de acuerdo con el tipo de producto.' },
+        { pregunta: '¿En qué consiste la técnica de arrastre para la limpieza de superficies planas?', respuesta: 'Limpiar de arriba hacia abajo en un solo sentido, evitando pasar el paño varias veces por el mismo sitio.' },
+        { pregunta: 'Una vez finalizada la limpieza, ¿qué debo hacer con las escobas, traperos y trapos?', respuesta: 'Deben lavarse con jabón multiusos y colocarse en la poceta.' },
+        { pregunta: '¿En qué consiste retirar el polvo en húmedo?', respuesta: 'Humedecer un trapo y pasarlo por las superficies con polvo para evitar la generación de nubes.' },
+        { pregunta: 'Si voy a trapear un área de piso, ¿debo señalizarla?', respuesta: 'VERDADERO.' },
+        { pregunta: '¿Siempre debo restregar las áreas que voy a limpiar?', respuesta: 'FALSO: Se puede simplemente trapear con solución jabonosa.' },
+        { pregunta: '¿Puedo mezclar el hipoclorito con el jabón y el desengrasante?', respuesta: 'FALSO.' },
+        { pregunta: '¿Qué debo hacer primero, la limpieza o la desinfección?', respuesta: 'Realizar limpieza y luego desinfección si es necesario.' },
+        { pregunta: '¿Cada cuánto debo limpiar las máquinas de videojuegos o de redención? Mencione al menos dos frecuencias según el protocolo de limpieza.', respuesta: 'Cada 8 días se debe hacer un aseo general, y diariamente se debe limpiar las partes de mayor contacto.' },
+        { pregunta: '¿Puedo utilizar cepillos o elementos que generan salpicaduras para la limpieza?', respuesta: 'Sí, puedo usarlos, pero debo tener precaución para evitar salpicaduras.' },
+        { pregunta: '¿Existen normas para la limpieza de los botiquines y las camillas?', respuesta: 'VERDADERO.' },
+        { pregunta: '¿Debo limpiar los radios de comunicación?', respuesta: 'Antes de iniciar la operación y durante la operación según necesidad.' },
+        { pregunta: 'Cuando lavo los trapos utilizados para el aseo, ¿debo escurrirlos torciéndolos lo máximo posible?', respuesta: 'FALSO.' },
+        { pregunta: 'Para la limpieza de máquinas altas, ¿se deben usar escaleras sin sobrepasar más de tres escalones y con el apoyo de extensor o escoba?', respuesta: 'VERDADERO.' },
+        { pregunta: '¿Siempre se debe limpiar de lo menos contaminado a lo más contaminado?', respuesta: 'VERDADERO.' },
+        { pregunta: 'Mencione como mínimo dos peligros a los cuales está expuesto en las labores de aseo y limpieza, y cómo se deben evitar.', respuesta: 'Respuesta abierta.' },
+        { pregunta: 'Para la limpieza del playground, ¿debo subir el balde totalmente lleno de agua junto con el trapero y la escoba?', respuesta: 'FALSO: El balde se debe subir con un máximo de 2 L de agua de ser necesario, y siempre apoyándose con las sogas de la atracción.' },
+        { pregunta: '¿En qué actividades de limpieza debo usar botas de caña alta?', respuesta: 'Limpieza de piso en general, salones de fiesta, baños y pocetas.' },
+        { pregunta: 'Para la limpieza de vidrios, ¿debo usar una escalera de más de cinco pasos y un trapo húmedo?', respuesta: 'FALSO: Se debe hacer uso del extensor hasta donde se alcance con él y usar un máximo de tres escalones de la escalera.' },
+        { pregunta: '¿Cuándo se realiza la limpieza de pantallas de dispositivos del parque se puede aplicar el producto directamente en las pantallas?', respuesta: 'FALSO.' },
+      ];
+    }
     renderQbank();
   }
   async function saveQbank(){ await storeSet('escalera-preguntas', JSON.stringify(qbank)); }
@@ -1768,7 +1859,17 @@
     qbank.forEach((q, idx)=>{
       const row = document.createElement('div');
       row.className = 'qbank-item';
-      row.innerHTML = `<span>${escapeHtml(q)}</span><button class="qbank-del">eliminar</button>`;
+      const respuestaHtml = q.respuesta
+        ? `<button class="qbank-ver-respuesta" type="button">Ver respuesta</button><span class="qbank-respuesta">${escapeHtml(q.respuesta)}</span>`
+        : '';
+      row.innerHTML = `<span>${escapeHtml(q.pregunta)}${respuestaHtml}</span><button class="qbank-del">eliminar</button>`;
+      const verBtn = row.querySelector('.qbank-ver-respuesta');
+      if (verBtn) {
+        verBtn.addEventListener('click', () => {
+          const shown = row.classList.toggle('show-respuesta');
+          verBtn.textContent = shown ? 'Ocultar respuesta' : 'Ver respuesta';
+        });
+      }
       attachConfirmDelete(row.querySelector('.qbank-del'), async ()=>{
         const removed = qbank.splice(idx, 1)[0];
         await saveQbank();
@@ -1784,18 +1885,31 @@
   }
   document.getElementById('qbank-add').addEventListener('click', async ()=>{
     const input = document.getElementById('qbank-new');
+    const respuestaInput = document.getElementById('qbank-new-respuesta');
     const v = input.value.trim();
     if(!v) return;
-    qbank.push(v);
+    qbank.push({ pregunta: v, respuesta: respuestaInput.value.trim() });
     await saveQbank();
     input.value = '';
+    respuestaInput.value = '';
     renderQbank();
   });
   document.getElementById('qbank-sortear').addEventListener('click', ()=>{
     const drawn = document.getElementById('qbank-drawn');
     if(qbank.length === 0){ drawn.classList.remove('show'); return; }
     const pick = qbank[Math.floor(Math.random()*qbank.length)];
-    drawn.textContent = pick;
+    drawn.innerHTML = pick.respuesta
+      ? `<div>${escapeHtml(pick.pregunta)}</div><button class="qbank-ver-respuesta" type="button">Ver respuesta</button><div class="qbank-respuesta"></div>`
+      : escapeHtml(pick.pregunta);
+    if (pick.respuesta) {
+      const verBtn = drawn.querySelector('.qbank-ver-respuesta');
+      const respuestaDiv = drawn.querySelector('.qbank-respuesta');
+      verBtn.addEventListener('click', () => {
+        const shown = drawn.classList.toggle('show-respuesta');
+        verBtn.textContent = shown ? 'Ocultar respuesta' : 'Ver respuesta';
+        respuestaDiv.textContent = shown ? pick.respuesta : '';
+      });
+    }
     drawn.classList.add('show');
   });
 
