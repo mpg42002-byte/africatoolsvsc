@@ -38,6 +38,7 @@
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
+.hidden{display:none !important;}
 body{
   font-family: var(--font-body);
   background: var(--bg-body);
@@ -152,6 +153,64 @@ button{font-family:inherit;}
 .empty-msg h3{font-family:var(--font-heading); color:var(--text-card); margin:0 0 6px; font-size:16px; text-transform:uppercase;}
 .empty-msg p{margin:0; font-size:13px;}
 
+/* ---------- Navegador de periodo (semana/mes) ---------- */
+.period-nav{ display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:16px; }
+.period-nav #periodLabel{ font-family:var(--font-heading); font-weight:600; font-size:14px; text-transform:capitalize; min-width:170px; text-align:center; }
+.btn-period-today{
+  font-family:var(--font-heading); cursor:pointer; border:2px solid var(--card-border); background:var(--card-bg);
+  color:var(--text-card); border-radius:16px; padding:6px 14px; font-size:11px; font-weight:700; text-transform:uppercase;
+}
+.btn-period-today:hover{border-color:var(--primary); color:var(--primary);}
+
+/* ---------- Vista semanal ---------- */
+.week-day{ margin-bottom:14px; }
+.week-day-head{ display:flex; align-items:baseline; gap:8px; margin-bottom:6px; padding-left:2px; }
+.week-day-head b{ font-family:var(--font-heading); font-size:13px; text-transform:uppercase; color:var(--text-card); }
+.week-day-head span{ font-size:11px; color:var(--text-muted); }
+.week-day-head.is-today b{ color:var(--primary); }
+.week-chip-list{ display:flex; flex-direction:column; gap:6px; }
+.week-chip{
+  display:flex; align-items:center; gap:8px; background:var(--card-bg); border:2px solid var(--card-border);
+  border-radius:12px; padding:8px 12px; font-size:12.5px;
+}
+.week-chip.completada{opacity:.6; text-decoration:line-through;}
+.week-chip.vencida{border-color:var(--danger);}
+.week-chip .wc-name{flex:1; font-weight:700; color:var(--text-card);}
+.week-day-empty{ font-size:12px; color:var(--text-muted); opacity:.7; padding:4px 2px; }
+
+/* ---------- Vista mensual (calendario) ---------- */
+.month-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
+.month-dow{ text-align:center; font-size:10.5px; font-weight:800; color:var(--text-muted); text-transform:uppercase; padding-bottom:4px; }
+.month-cell{
+  background:var(--card-bg); border:2px solid var(--card-border); border-radius:12px;
+  padding:6px 5px; min-height:56px; cursor:pointer; transition:.12s; display:flex; flex-direction:column; gap:3px;
+}
+.month-cell:hover{border-color:var(--primary);}
+.month-cell.other-month{opacity:.35;}
+.month-cell.is-today{border-color:var(--primary); border-width:3px;}
+.month-cell.selected{background:var(--card-bg-hover); border-color:var(--primary);}
+.month-cell .mc-num{font-family:var(--font-heading); font-weight:700; font-size:12.5px; color:var(--text-card);}
+.month-cell .mc-dots{display:flex; gap:3px; flex-wrap:wrap;}
+.mc-dot{width:7px; height:7px; border-radius:50%;}
+.mc-dot.pendiente{background:var(--af-blue);}
+.mc-dot.vencida{background:var(--danger);}
+.mc-dot.completada{background:var(--success);}
+.month-day-detail{ margin-top:18px; }
+.month-day-detail h4{font-family:var(--font-heading); font-size:14px; text-transform:capitalize; margin:0 0 10px; color:var(--text-card);}
+
+/* ---------- Cumplimiento (Mis tareas) ---------- */
+.cumplimiento{ margin-top:6px; display:flex; align-items:center; gap:8px; }
+.cumplimiento-bar{ flex:1; height:7px; background:var(--card-bg-hover); border-radius:6px; overflow:hidden; max-width:140px; }
+.cumplimiento-bar-fill{ height:100%; background:var(--success); }
+.cumplimiento-label{ font-size:11px; color:var(--text-muted); font-weight:700; white-space:nowrap; }
+
+@media (max-width:600px){
+  .task-card{flex-wrap:wrap;}
+  .task-actions{width:100%; justify-content:flex-start; margin-top:6px;}
+  .field-row{flex-direction:column;}
+  .month-cell{min-height:44px; padding:4px 3px;}
+}
+
 /* ---------- MODAL genérico ---------- */
 .modal-backdrop{
   position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:200;
@@ -207,11 +266,6 @@ button{font-family:inherit;}
 .toast{background:var(--af-coffee); color:var(--af-cream); padding:10px 18px; border-radius:20px; font-size:13px; font-weight:700; box-shadow:0 6px 18px rgba(0,0,0,.3); animation:toast-in .2s ease;}
 @keyframes toast-in{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);}}
 
-@media (max-width:600px){
-  .task-card{flex-wrap:wrap;}
-  .task-actions{width:100%; justify-content:flex-start; margin-top:6px;}
-  .field-row{flex-direction:column;}
-}
 </style>
 
 <style>
@@ -246,10 +300,20 @@ button{font-family:inherit;}
   <div class="tabs">
     <button class="tab-btn active" data-tab="pendientes">Pendientes <span class="count" id="tabCountPendientes">0</span></button>
     <button class="tab-btn" data-tab="completadas">Completadas hoy <span class="count" id="tabCountCompletadas">0</span></button>
+    <button class="tab-btn" data-tab="semana">Semana</button>
+    <button class="tab-btn" data-tab="mes">Mes</button>
     <button class="tab-btn" data-tab="todas">Mis tareas <span class="count" id="tabCountTodas">0</span></button>
   </div>
 
+  <div class="period-nav hidden" id="periodNav">
+    <button type="button" class="icon-btn" id="periodPrev" title="Anterior">◀</button>
+    <span id="periodLabel"></span>
+    <button type="button" class="icon-btn" id="periodNext" title="Siguiente">▶</button>
+    <button type="button" class="btn-period-today" id="periodToday">Hoy</button>
+  </div>
+
   <div class="task-list" id="taskList"></div>
+  <div id="calendarView"></div>
   <div class="empty-msg hidden" id="emptyMsg">
     <span class="emoji">🌴</span>
     <h3>Nada por aquí</h3>
@@ -404,6 +468,9 @@ let pendingReprogramCtx = null; // {taskId, fecha} para el modal de reprogramar
 let pendingHistoryTaskId = null;
 let pendingDeleteTaskId = null;
 let currentUserNombre = '';
+let weekOffset = 0;   // 0 = semana actual, -1 = anterior, +1 = siguiente
+let monthOffset = 0;  // 0 = mes actual
+let selectedMonthDay = null; // fecha 'YYYY-MM-DD' seleccionada en la vista mensual
 
 /* ---------- Fechas: todo en horario local, formato YYYY-MM-DD ---------- */
 function todayStr(){ return dateToStr(new Date()); }
@@ -481,6 +548,32 @@ function ocurrenciaRelevante(task, hoy){
   return null;
 }
 
+// Todas las ocurrencias de una tarea dentro de un rango de fechas cerrado
+// [fromStr, toStr] (máx. 370 días, para vistas de semana/mes y cumplimiento).
+function ocurrenciasEnRango(task, fromStr, toStr){
+  const out = [];
+  let cursor = fromStr < task.fechaInicio ? task.fechaInicio : fromStr;
+  let guard = 0;
+  while (cursor <= toStr && guard < 370) {
+    const oc = getOcurrencia(task, cursor, todayStr());
+    if (oc) out.push(oc);
+    cursor = addDays(cursor, 1);
+    guard++;
+  }
+  return out;
+}
+
+// % de cumplimiento de una tarea en los últimos N días: completadas / (completadas + vencidas + reprogramadas + pendientes-pasadas).
+// Las ocurrencias de hoy/futuras no cuentan todavía (no ha pasado su plazo).
+function cumplimientoTarea(task, dias){
+  const hoy = todayStr();
+  const desde = addDays(hoy, -dias);
+  const ocs = ocurrenciasEnRango(task, desde, addDays(hoy, -1)); // hasta ayer
+  if (ocs.length === 0) return null;
+  const completadas = ocs.filter(o => o.estado === 'completada').length;
+  return { pct: Math.round((completadas / ocs.length) * 100), completadas, total: ocs.length };
+}
+
 /* ---------- Persistencia ---------- */
 async function loadTasks(){
   tasks = await OfflineStorage.get(MODULE_KEY, 'tasks', []);
@@ -511,6 +604,20 @@ function periodicidadLabel(task){
   return map[task.periodicidad] || task.periodicidad;
 }
 
+// "Completadas hoy" = completadas en el momento (fechaRealizacion es de
+// hoy), sin importar para qué fecha estaba programada la ocurrencia
+// originalmente — una tarea atrasada que se pone al día hoy sí cuenta.
+function completadaHoyEntry(task, hoy){
+  if (!task.registros) return null;
+  for (const fecha of Object.keys(task.registros)) {
+    const r = task.registros[fecha];
+    if (r.estado === 'completada' && r.fechaRealizacion && r.fechaRealizacion.slice(0,10) === hoy) {
+      return { fecha, registro: r };
+    }
+  }
+  return null;
+}
+
 function computeSummary(){
   const hoy = todayStr();
   let pendientes = 0, vencidas = 0, completadas = 0, total = 0;
@@ -522,8 +629,7 @@ function computeSummary(){
       if (oc.estado === 'vencida') vencidas++;
       else if (oc.estado === 'pendiente') pendientes++;
     }
-    const registroHoy = task.registros && task.registros[hoy];
-    if (registroHoy && registroHoy.estado === 'completada') completadas++;
+    if (completadaHoyEntry(task, hoy)) completadas++;
   });
   return { pendientes, vencidas, completadas, total };
 }
@@ -544,7 +650,21 @@ function renderTaskList(){
   const listEl = document.getElementById('taskList');
   const emptyEl = document.getElementById('emptyMsg');
   const emptyText = document.getElementById('emptyMsgText');
+  const calEl = document.getElementById('calendarView');
+  const periodNav = document.getElementById('periodNav');
   listEl.innerHTML = '';
+  calEl.innerHTML = '';
+
+  if (currentTab === 'semana' || currentTab === 'mes') {
+    listEl.classList.add('hidden');
+    emptyEl.classList.add('hidden');
+    periodNav.classList.remove('hidden');
+    if (currentTab === 'semana') renderSemanaView(calEl); else renderMesView(calEl);
+    renderSummary();
+    return;
+  }
+  listEl.classList.remove('hidden');
+  periodNav.classList.add('hidden');
 
   if (currentTab === 'todas') {
     renderTodasTab(listEl, emptyEl, emptyText);
@@ -560,10 +680,8 @@ function renderTaskList(){
       const oc = ocurrenciaRelevante(task, hoy);
       if (oc) items.push({ task, oc });
     } else if (currentTab === 'completadas') {
-      const registroHoy = task.registros && task.registros[hoy];
-      if (registroHoy && registroHoy.estado === 'completada') {
-        items.push({ task, oc: { fecha: hoy, estado: 'completada', registro: registroHoy } });
-      }
+      const entry = completadaHoyEntry(task, hoy);
+      if (entry) items.push({ task, oc: { fecha: entry.fecha, estado: 'completada', registro: entry.registro } });
     }
   });
 
@@ -595,6 +713,170 @@ function renderTodasTab(listEl, emptyEl, emptyText){
   activas.sort((a,b) => a.nombre.localeCompare(b.nombre));
   activas.forEach(task => listEl.appendChild(buildTaskDefCard(task)));
 }
+
+/* ---------- Vista semanal ---------- */
+function getMondayOfWeek(dateStr){
+  const d = strToDate(dateStr);
+  const dow = d.getDay(); // 0=domingo..6=sábado
+  const diffToMonday = dow === 0 ? -6 : 1 - dow;
+  d.setDate(d.getDate() + diffToMonday);
+  return dateToStr(d);
+}
+function renderSemanaView(container){
+  const hoy = todayStr();
+  const monday = addDays(getMondayOfWeek(hoy), weekOffset * 7);
+  const sunday = addDays(monday, 6);
+  document.getElementById('periodLabel').textContent = `${fmtFechaCorta(monday)} – ${fmtFechaCorta(sunday)}`;
+
+  const dias = [];
+  for (let i = 0; i < 7; i++) dias.push(addDays(monday, i));
+  const nombresDia = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+
+  const activas = tasks.filter(t => t.activa);
+  let huboAlgo = false;
+
+  dias.forEach((fecha, idx) => {
+    const ocsDelDia = [];
+    activas.forEach(task => {
+      const oc = getOcurrencia(task, fecha, hoy);
+      if (oc) ocsDelDia.push({ task, oc });
+    });
+    ocsDelDia.sort((a,b) => (a.task.hora||'99:99').localeCompare(b.task.hora||'99:99'));
+
+    const dayWrap = document.createElement('div');
+    dayWrap.className = 'week-day';
+    const head = document.createElement('div');
+    head.className = 'week-day-head' + (fecha === hoy ? ' is-today' : '');
+    head.innerHTML = `<b>${nombresDia[idx]}</b><span>${fmtFechaCorta(fecha)}${fecha===hoy?' · hoy':''}</span>`;
+    dayWrap.appendChild(head);
+
+    const chipList = document.createElement('div');
+    chipList.className = 'week-chip-list';
+    if (ocsDelDia.length === 0) {
+      const emptyLine = document.createElement('div');
+      emptyLine.className = 'week-day-empty';
+      emptyLine.textContent = 'Sin tareas';
+      chipList.appendChild(emptyLine);
+    } else {
+      huboAlgo = true;
+      ocsDelDia.forEach(({task, oc}) => {
+        const chip = document.createElement('div');
+        chip.className = 'week-chip' + (oc.estado === 'completada' ? ' completada' : '') + (oc.estado === 'vencida' ? ' vencida' : '');
+        const estadoTxt = { completada:'✅', reprogramada:'📅', vencida:'⚠️', pendiente:'⏳' }[oc.estado] || '';
+        chip.innerHTML = `<span class="wc-name">${task.hora ? `🕐 ${escapeHtml(task.hora)} · ` : ''}${escapeHtml(task.nombre)}</span><span>${estadoTxt}</span>`;
+        chip.addEventListener('click', () => openHistorialModal(task.id));
+        chipList.appendChild(chip);
+      });
+    }
+    dayWrap.appendChild(chipList);
+    container.appendChild(dayWrap);
+  });
+
+  if (!huboAlgo) {
+    const msg = document.createElement('div');
+    msg.className = 'empty-msg';
+    msg.innerHTML = '<span class="emoji">🗓️</span><h3>Semana libre</h3><p>No hay tareas programadas en estos 7 días.</p>';
+    container.appendChild(msg);
+  }
+}
+
+/* ---------- Vista mensual ---------- */
+function renderMesView(container){
+  const hoy = todayStr();
+  const base = strToDate(hoy);
+  const year = base.getFullYear();
+  const month = base.getMonth() + monthOffset;
+  const firstOfMonth = new Date(year, month, 1);
+  const lastOfMonth = new Date(year, month + 1, 0);
+  const monthLabel = firstOfMonth.toLocaleDateString('es-CO', { month:'long', year:'numeric' });
+  document.getElementById('periodLabel').textContent = monthLabel;
+
+  const firstOfMonthStr = dateToStr(firstOfMonth);
+  const lastOfMonthStr = dateToStr(lastOfMonth);
+  const gridStart = getMondayOfWeek(firstOfMonthStr);
+  const dowLastCell = new Date(lastOfMonth); // domingo que cierra la última semana visible
+  const gridEndDow = dowLastCell.getDay();
+  const gridEnd = addDays(lastOfMonthStr, gridEndDow === 0 ? 0 : 7 - gridEndDow);
+
+  const activas = tasks.filter(t => t.activa);
+  const conteoPorDia = {}; // fecha -> {pendiente,vencida,completada}
+  let cursor = gridStart;
+  while (cursor <= gridEnd) {
+    conteoPorDia[cursor] = { pendiente:0, vencida:0, completada:0 };
+    cursor = addDays(cursor, 1);
+  }
+  activas.forEach(task => {
+    ocurrenciasEnRango(task, gridStart, gridEnd).forEach(oc => {
+      if (conteoPorDia[oc.fecha] && conteoPorDia[oc.fecha][oc.estado] !== undefined) conteoPorDia[oc.fecha][oc.estado]++;
+    });
+  });
+
+  const grid = document.createElement('div');
+  grid.className = 'month-grid';
+  ['L','M','X','J','V','S','D'].forEach(d => {
+    const dow = document.createElement('div'); dow.className = 'month-dow'; dow.textContent = d;
+    grid.appendChild(dow);
+  });
+
+  cursor = gridStart;
+  while (cursor <= gridEnd) {
+    const cell = document.createElement('div');
+    const inMonth = cursor >= firstOfMonthStr && cursor <= lastOfMonthStr;
+    cell.className = 'month-cell' + (inMonth ? '' : ' other-month') + (cursor === hoy ? ' is-today' : '') + (cursor === selectedMonthDay ? ' selected' : '');
+    const counts = conteoPorDia[cursor];
+    const dots = ['pendiente','vencida','completada'].filter(k => counts[k] > 0)
+      .map(k => `<span class="mc-dot ${k}"></span>`).join('');
+    cell.innerHTML = `<span class="mc-num">${strToDate(cursor).getDate()}</span><span class="mc-dots">${dots}</span>`;
+    cell.addEventListener('click', () => { selectedMonthDay = cursor; renderMesView(container); renderMonthDayDetail(cursor); });
+    grid.appendChild(cell);
+    cursor = addDays(cursor, 1);
+  }
+  container.innerHTML = '';
+  container.appendChild(grid);
+
+  const detailWrap = document.createElement('div');
+  detailWrap.id = 'monthDayDetail';
+  detailWrap.className = 'month-day-detail';
+  container.appendChild(detailWrap);
+  renderMonthDayDetail(selectedMonthDay || hoy);
+}
+function renderMonthDayDetail(fecha){
+  selectedMonthDay = fecha;
+  const wrap = document.getElementById('monthDayDetail');
+  if (!wrap) return;
+  const hoy = todayStr();
+  const activas = tasks.filter(t => t.activa);
+  const ocsDelDia = [];
+  activas.forEach(task => {
+    const oc = getOcurrencia(task, fecha, hoy);
+    if (oc) ocsDelDia.push({ task, oc });
+  });
+  ocsDelDia.sort((a,b) => (a.task.hora||'99:99').localeCompare(b.task.hora||'99:99'));
+
+  let html = `<h4>${fmtFechaLarga(fecha)}</h4>`;
+  if (ocsDelDia.length === 0) {
+    html += `<div class="week-day-empty">Sin tareas programadas este día.</div>`;
+  } else {
+    html += `<div class="week-chip-list">` + ocsDelDia.map(({task, oc}) => {
+      const estadoTxt = { completada:'✅', reprogramada:'📅', vencida:'⚠️', pendiente:'⏳' }[oc.estado] || '';
+      return `<div class="week-chip${oc.estado==='completada'?' completada':''}${oc.estado==='vencida'?' vencida':''}"><span class="wc-name">${task.hora ? `🕐 ${escapeHtml(task.hora)} · ` : ''}${escapeHtml(task.nombre)}</span><span>${estadoTxt}</span></div>`;
+    }).join('') + `</div>`;
+  }
+  wrap.innerHTML = html;
+}
+
+document.getElementById('periodPrev').addEventListener('click', () => {
+  if (currentTab === 'semana') weekOffset--; else monthOffset--;
+  renderTaskList();
+});
+document.getElementById('periodNext').addEventListener('click', () => {
+  if (currentTab === 'semana') weekOffset++; else monthOffset++;
+  renderTaskList();
+});
+document.getElementById('periodToday').addEventListener('click', () => {
+  weekOffset = 0; monthOffset = 0; selectedMonthDay = null;
+  renderTaskList();
+});
 
 function buildOcurrenciaCard(task, oc, hoy){
   const card = document.createElement('div');
@@ -657,6 +939,7 @@ function buildTaskDefCard(task){
   card.className = 'task-card';
   const body = document.createElement('div');
   body.className = 'task-body';
+  const cump = cumplimientoTarea(task, 30);
   body.innerHTML = `
     <div class="task-top-row">
       <span class="task-name">${escapeHtml(task.nombre)}</span>
@@ -667,6 +950,7 @@ function buildTaskDefCard(task){
       ${periodicidadLabel(task)} · desde ${fmtFechaCorta(task.fechaInicio)}${task.hora ? ` · 🕐 ${escapeHtml(task.hora)}` : ''}${task.responsable ? ` · Responsable: <b>${escapeHtml(task.responsable)}</b>` : ''}
     </div>
     ${task.descripcion ? `<div class="task-desc">${escapeHtml(task.descripcion)}</div>` : ''}
+    ${cump ? `<div class="cumplimiento"><div class="cumplimiento-bar"><div class="cumplimiento-bar-fill" style="width:${cump.pct}%; background:${cump.pct>=80?'var(--success)':cump.pct>=50?'var(--af-amber)':'var(--danger)'}"></div></div><span class="cumplimiento-label">${cump.pct}% cumplimiento (${cump.completadas}/${cump.total}, últimos 30 días)</span></div>` : ''}
   `;
   const actions = document.createElement('div');
   actions.className = 'task-actions';
@@ -874,7 +1158,12 @@ function openHistorialModal(taskId){
       const r = task.registros[fecha];
       const el = document.createElement('div');
       el.className = 'history-item';
-      const estadoLabel = { completada:'✅ Completada', reprogramada:`📅 Reprogramada → ${fmtFechaCorta(r.reprogramadaA)}`, pendiente:'⏳ Pendiente', vencida:'⚠️ Vencida' }[r.estado] || r.estado;
+      let estadoLabel;
+      if (r.estado === 'completada') estadoLabel = '✅ Completada';
+      else if (r.estado === 'reprogramada') estadoLabel = `📅 Reprogramada → ${fmtFechaCorta(r.reprogramadaA)}`;
+      else if (r.estado === 'pendiente') estadoLabel = '⏳ Pendiente';
+      else if (r.estado === 'vencida') estadoLabel = '⚠️ Vencida';
+      else estadoLabel = r.estado;
       let extra = '';
       if (r.reprogramadaDesde) extra += `<div class="h-obs">Reprogramada desde ${fmtFechaCorta(r.reprogramadaDesde)}</div>`;
       if (r.historialReprogramaciones && r.historialReprogramaciones.length) {
@@ -916,6 +1205,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     currentTab = btn.getAttribute('data-tab');
+    weekOffset = 0; monthOffset = 0; selectedMonthDay = null;
     renderTaskList();
   });
 });
