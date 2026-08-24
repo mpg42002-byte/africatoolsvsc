@@ -7,6 +7,9 @@ const MODULES = [
   { key: 'wow-tablero', label: 'Tablero Wow Points', icon: '⭐', description: 'Crea tableros de reconocimiento Wow.' },
   { key: 'wow-calificacion', label: 'Calificación Wow Points', icon: '🏆', description: 'Prepara tarjetas de calificación Wow.' },
   { key: 'habladores', label: 'Habladores Winner', icon: '📢', description: 'Diseña habladores y señalética Winner.' },
+  // alwaysAvailable: se agrega a TODOS los roles sin importar su lista de
+  // módulos — es personal de cada usuario, no depende de su rol/cargo.
+  { key: 'diaadia', label: 'Día a Día', icon: '✅', description: 'Tus tareas periódicas: qué te toca hoy.', alwaysAvailable: true },
 ];
 
 const ROLES = {
@@ -34,7 +37,8 @@ const ROLES = {
 
 function resolvePermittedModules(userRoles) {
   const allKeys = MODULES.map(m => m.key);
-  const set = new Set();
+  const alwaysKeys = MODULES.filter(m => m.alwaysAvailable).map(m => m.key);
+  const set = new Set(alwaysKeys);
   (userRoles || []).forEach(roleKey => {
     const role = ROLES[roleKey];
     if (!role) return;
