@@ -14,6 +14,7 @@ const MODULE_SOURCES = {
   'wow-tablero': 'modules/wow-tablero/tablero-wow-points.html',
   'wow-calificacion': 'modules/wow-calificacion/calificacion-wow-points.html',
   'habladores': 'modules/habladores/habladores-winner.html',
+  'agenda': 'modules/agenda/AgendaFiestas.html',
   'diaadia': 'modules/diaadia/africaDiaADia.html',
 };
 

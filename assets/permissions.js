@@ -7,6 +7,7 @@ const MODULES = [
   { key: 'wow-tablero', label: 'Tablero Wow Points', icon: '⭐', description: 'Crea tableros de reconocimiento Wow.' },
   { key: 'wow-calificacion', label: 'Calificación Wow Points', icon: '🏆', description: 'Prepara tarjetas de calificación Wow.' },
   { key: 'habladores', label: 'Habladores Winner', icon: '📢', description: 'Diseña habladores y señalética Winner.' },
+  { key: 'agenda', label: 'Agenda de Fiestas', icon: '🎉', description: 'Calendario y disponibilidad de salones para eventos.' },
   // alwaysAvailable: se agrega a TODOS los roles sin importar su lista de
   // módulos — es personal de cada usuario, no depende de su rol/cargo.
   { key: 'diaadia', label: 'Día a Día', icon: '✅', description: 'Tus tareas periódicas: qué te toca hoy.', alwaysAvailable: true },
@@ -31,6 +32,11 @@ const ROLES = {
   lider_seguridad: {
     label: 'Líder de Seguridad',
     modules: ['lider'],
+    isAdmin: false,
+  },
+  cajero: {
+    label: 'Cajero',
+    modules: ['agenda'],
     isAdmin: false,
   },
 };
