@@ -226,6 +226,60 @@ button{font-family:inherit;}
   padding:10px 14px; font-size:12px; color:var(--text-muted); margin-bottom:14px;
 }
 
+/* ---------- Selector de vista (Día/Semana/Mes) ---------- */
+.view-switch{ display:flex; gap:4px; background:var(--card-bg-hover); border:2px solid var(--card-border); border-radius:14px; padding:3px; }
+.view-switch-btn{
+  border:none; background:transparent; color:var(--text-card); cursor:pointer;
+  font-family:var(--font-heading); font-weight:700; font-size:12px; text-transform:uppercase;
+  padding:7px 13px; border-radius:11px;
+}
+.view-switch-btn.active{ background:var(--primary); color:#fff; }
+
+/* ---------- Vista Semana ---------- */
+.week-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:8px; }
+.week-day-col{
+  background:var(--card-bg); border:2px solid var(--card-border); border-radius:14px;
+  padding:8px 6px; min-height:120px; display:flex; flex-direction:column; gap:6px;
+}
+.week-day-col.is-today{ border-color:var(--primary); border-width:3px; }
+.week-day-col.drag-over{ background:var(--card-bg-hover); border-color:var(--primary); border-style:dashed; }
+.week-day-head{ text-align:center; font-family:var(--font-heading); font-weight:700; font-size:11px; text-transform:uppercase; color:var(--text-muted); padding-bottom:2px; border-bottom:1px solid var(--card-border); }
+.week-day-head b{ display:block; font-size:15px; color:var(--text-card); }
+.week-day-head.is-today-text b{ color:var(--primary); }
+.week-event-chip{
+  background:var(--card-bg-hover); border:1px solid var(--card-border); border-left:4px solid var(--primary);
+  border-radius:8px; padding:5px 7px; font-size:10.5px; cursor:pointer; line-height:1.35;
+}
+.week-event-chip.estado-cancelado{ opacity:.55; border-left-color:var(--text-muted); }
+.week-event-chip.estado-finalizado{ border-left-color:var(--success); }
+.week-event-chip[draggable="true"]{ cursor:grab; }
+.week-event-chip.dragging{ opacity:.4; }
+.week-event-chip b{ display:block; font-family:var(--font-heading); font-size:11px; }
+.week-day-empty{ font-size:10.5px; color:var(--text-muted); opacity:.6; text-align:center; padding:6px 0; }
+
+/* ---------- Vista Mes ---------- */
+.month-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:5px; margin-bottom:18px; }
+.month-dow{ text-align:center; font-size:10.5px; font-weight:800; color:var(--text-muted); text-transform:uppercase; padding-bottom:4px; }
+.month-cell{
+  background:var(--card-bg); border:2px solid var(--card-border); border-radius:12px;
+  padding:6px 5px; min-height:52px; cursor:pointer; transition:.12s; display:flex; flex-direction:column; gap:3px;
+}
+.month-cell:hover{ border-color:var(--primary); }
+.month-cell.other-month{ opacity:.35; }
+.month-cell.is-today{ border-color:var(--primary); border-width:3px; }
+.month-cell.selected{ background:var(--card-bg-hover); border-color:var(--primary); }
+.month-cell .mc-num{ font-family:var(--font-heading); font-weight:700; font-size:12.5px; color:var(--text-card); }
+.month-cell .mc-dots{ display:flex; gap:3px; flex-wrap:wrap; }
+.mc-dot{ width:7px; height:7px; border-radius:50%; }
+.mc-dot.reservado{ background:var(--af-blue); }
+.mc-dot.finalizado{ background:var(--success); }
+.mc-dot.cancelado{ background:var(--text-muted); }
+.month-day-detail h4{ font-family:var(--font-heading); font-size:14px; text-transform:capitalize; margin:0 0 10px; color:var(--text-card); }
+
+@media (max-width:700px){
+  .week-grid{ grid-template-columns:1fr; }
+  .week-day-col{ min-height:auto; }
+}
 @media (max-width:600px){
   .event-card{flex-wrap:wrap;}
   .event-actions{width:100%; justify-content:flex-start; margin-top:6px;}
@@ -265,19 +319,40 @@ button{font-family:inherit;}
   <!-- ============ Sección: Agenda (día) ============ -->
   <div id="section-agenda">
     <div class="toolbar">
+      <div class="view-switch">
+        <button type="button" class="view-switch-btn active" data-view="day">Día</button>
+        <button type="button" class="view-switch-btn" data-view="week">Semana</button>
+        <button type="button" class="view-switch-btn" data-view="month">Mes</button>
+      </div>
       <div class="date-nav">
-        <button type="button" class="icon-btn" id="datePrev" title="Día anterior">◀</button>
+        <button type="button" class="icon-btn" id="datePrev" title="Anterior">◀</button>
         <input type="date" id="agendaDate">
-        <button type="button" class="icon-btn" id="dateNext" title="Día siguiente">▶</button>
+        <button type="button" class="icon-btn" id="dateNext" title="Siguiente">▶</button>
       </div>
       <button type="button" class="btn-pill secondary" id="dateToday" style="padding:9px 16px; font-size:12px;">Hoy</button>
       <div class="spacer"></div>
     </div>
-    <div id="eventList"></div>
-    <div class="empty-msg hidden" id="emptyEventMsg">
-      <span class="emoji">🎈</span>
-      <h3>Sin eventos</h3>
-      <p>No hay reservas para este día.</p>
+
+    <!-- ---- Vista Día ---- -->
+    <div id="view-day">
+      <div id="eventList"></div>
+      <div class="empty-msg hidden" id="emptyEventMsg">
+        <span class="emoji">🎈</span>
+        <h3>Sin eventos</h3>
+        <p>No hay reservas para este día.</p>
+      </div>
+    </div>
+
+    <!-- ---- Vista Semana ---- -->
+    <div id="view-week" class="hidden">
+      <p class="modal-sub" id="weekDragHint" style="margin:0 0 12px;">Arrastra un evento a otro día para moverlo (revalida disponibilidad automáticamente).</p>
+      <div class="week-grid" id="weekGrid"></div>
+    </div>
+
+    <!-- ---- Vista Mes ---- -->
+    <div id="view-month" class="hidden">
+      <div class="month-grid" id="monthGrid"></div>
+      <div id="monthDayDetail" class="month-day-detail"></div>
     </div>
   </div>
 
@@ -498,6 +573,19 @@ async function loadEventsForDate(fecha){
   events = data || [];
 }
 
+// Para las vistas Semana/Mes: trae todos los eventos entre dos fechas
+// (inclusive) en una sola consulta.
+async function loadEventsForRange(fromStr, toStr){
+  const { data, error } = await supabaseClient
+    .from('park_events')
+    .select('*, party_types(id,nombre), park_event_rooms(room_id, park_rooms(id,nombre))')
+    .gte('fecha', fromStr)
+    .lte('fecha', toStr)
+    .order('hora_inicio', { ascending: true });
+  if (error) { toast('No se pudieron cargar los eventos de ese rango'); return []; }
+  return data || [];
+}
+
 // Salones ocupados (con datos de quién los ocupa) para una fecha/horario dado,
 // excluyendo opcionalmente un evento (el que se está editando).
 async function getOccupiedRooms(fecha, horaInicio, horaFin, excludeEventId){
@@ -585,7 +673,7 @@ function buildEventCard(ev){
           const { error } = await supabaseClient.rpc('set_park_event_estado', { p_event_id: ev.id, p_estado: 'finalizado' });
           if (error) { toast(friendlyError(error)); return; }
           toast('Evento marcado como finalizado');
-          renderAgendaDay();
+          renderCurrentView();
         });
       });
       actions.appendChild(btnFin);
@@ -598,7 +686,7 @@ function buildEventCard(ev){
           const { error } = await supabaseClient.rpc('set_park_event_estado', { p_event_id: ev.id, p_estado: 'cancelado' });
           if (error) { toast(friendlyError(error)); return; }
           toast('Evento cancelado');
-          renderAgendaDay();
+          renderCurrentView();
         });
       });
       actions.appendChild(btnCancel);
@@ -612,7 +700,7 @@ function buildEventCard(ev){
         const { error } = await supabaseClient.rpc('delete_park_event', { p_event_id: ev.id });
         if (error) { toast(friendlyError(error)); return; }
         toast('Evento eliminado');
-        renderAgendaDay();
+        renderCurrentView();
       });
     });
     actions.appendChild(btnDel);
@@ -698,9 +786,9 @@ async function refreshRoomAvailability(preselectedIds){
   });
 }
 
-function openEventModal(eventId){
+function openEventModal(eventId, preloadedEv){
   editingEventId = eventId || null;
-  const ev = eventId ? events.find(e => e.id === eventId) : null;
+  const ev = eventId ? (preloadedEv || events.find(e => e.id === eventId)) : null;
   document.getElementById('eventModalTitle').textContent = ev ? 'Editar evento' : 'Nuevo evento';
   document.getElementById('ef-room-error').classList.remove('show');
   populatePartyTypeSelect();
@@ -770,7 +858,7 @@ document.getElementById('ef-save-btn').addEventListener('click', async () => {
   }
   toast(editingEventId ? 'Evento actualizado' : 'Evento creado');
   closeModal('modal-event');
-  renderAgendaDay();
+  renderCurrentView();
 });
 
 /* ---------- Gestión: Salones y Tipos de fiesta ---------- */
@@ -886,16 +974,196 @@ document.querySelectorAll('.tab-sub-btn').forEach(btn => {
   });
 });
 
-/* ---------- Navegación de fecha ---------- */
+/* ---------- Selector de vista + navegación de fecha (consciente del modo) ---------- */
+let viewMode = 'day'; // 'day' | 'week' | 'month'
+let selectedMonthDay = null;
+
 function setDate(dateStr){
   currentDate = dateStr;
   document.getElementById('agendaDate').value = dateStr;
-  renderAgendaDay();
+  renderCurrentView();
 }
+function renderCurrentView(){
+  if (viewMode === 'day') renderAgendaDay();
+  else if (viewMode === 'week') renderWeekView();
+  else renderMonthView();
+}
+document.querySelectorAll('.view-switch-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.view-switch-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    viewMode = btn.getAttribute('data-view');
+    document.getElementById('view-day').classList.toggle('hidden', viewMode !== 'day');
+    document.getElementById('view-week').classList.toggle('hidden', viewMode !== 'week');
+    document.getElementById('view-month').classList.toggle('hidden', viewMode !== 'month');
+    document.getElementById('weekDragHint').style.display = canManage ? '' : 'none';
+    selectedMonthDay = null;
+    renderCurrentView();
+  });
+});
 document.getElementById('agendaDate').addEventListener('change', (e) => setDate(e.target.value));
-document.getElementById('datePrev').addEventListener('click', () => setDate(addDaysStr(currentDate, -1)));
-document.getElementById('dateNext').addEventListener('click', () => setDate(addDaysStr(currentDate, 1)));
+document.getElementById('datePrev').addEventListener('click', () => {
+  if (viewMode === 'day') setDate(addDaysStr(currentDate, -1));
+  else if (viewMode === 'week') setDate(addDaysStr(currentDate, -7));
+  else setDate(addMonthsStr(currentDate, -1));
+});
+document.getElementById('dateNext').addEventListener('click', () => {
+  if (viewMode === 'day') setDate(addDaysStr(currentDate, 1));
+  else if (viewMode === 'week') setDate(addDaysStr(currentDate, 7));
+  else setDate(addMonthsStr(currentDate, 1));
+});
 document.getElementById('dateToday').addEventListener('click', () => setDate(todayStr()));
+
+function addMonthsStr(dateStr, n){
+  const d = strToDate(dateStr);
+  d.setMonth(d.getMonth() + n);
+  return dateToStr(d);
+}
+function getMondayOfWeek(dateStr){
+  const d = strToDate(dateStr);
+  const dow = d.getDay(); // 0=domingo..6=sábado
+  const diffToMonday = dow === 0 ? -6 : 1 - dow;
+  d.setDate(d.getDate() + diffToMonday);
+  return dateToStr(d);
+}
+
+/* ---------- Vista Semana ---------- */
+async function renderWeekView(){
+  const hoy = todayStr();
+  const monday = getMondayOfWeek(currentDate);
+  const sunday = addDaysStr(monday, 6);
+  const rangeEvents = await loadEventsForRange(monday, sunday);
+  const nombresDia = ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'];
+
+  const grid = document.getElementById('weekGrid');
+  grid.innerHTML = '';
+  for (let i = 0; i < 7; i++) {
+    const fecha = addDaysStr(monday, i);
+    const col = document.createElement('div');
+    col.className = 'week-day-col' + (fecha === hoy ? ' is-today' : '');
+    col.dataset.fecha = fecha;
+
+    const head = document.createElement('div');
+    head.className = 'week-day-head' + (fecha === hoy ? ' is-today-text' : '');
+    head.innerHTML = `${nombresDia[i]} ${fmtFechaCorta(fecha).split(' ')[0]}<b>${strToDate(fecha).getDate()}</b>`;
+    col.appendChild(head);
+
+    const dayEvents = rangeEvents.filter(ev => ev.fecha === fecha);
+    if (dayEvents.length === 0) {
+      const empty = document.createElement('div');
+      empty.className = 'week-day-empty';
+      empty.textContent = '—';
+      col.appendChild(empty);
+    } else {
+      dayEvents.forEach(ev => col.appendChild(buildWeekChip(ev)));
+    }
+
+    // Dropzone (solo importa si canManage; si no, el evento no será draggable y esto no hace nada dañino)
+    col.addEventListener('dragover', (e) => { e.preventDefault(); col.classList.add('drag-over'); });
+    col.addEventListener('dragleave', () => col.classList.remove('drag-over'));
+    col.addEventListener('drop', async (e) => {
+      e.preventDefault();
+      col.classList.remove('drag-over');
+      const eventId = e.dataTransfer.getData('text/plain');
+      if (!eventId) return;
+      await moveEventToDate(eventId, fecha, rangeEvents);
+    });
+
+    grid.appendChild(col);
+  }
+}
+function buildWeekChip(ev){
+  const chip = document.createElement('div');
+  chip.className = 'week-event-chip estado-' + ev.estado;
+  const roomNames = (ev.park_event_rooms || []).map(r => r.park_rooms && r.park_rooms.nombre).filter(Boolean).join(', ');
+  chip.innerHTML = `<b>${hhmm(ev.hora_inicio)}-${hhmm(ev.hora_fin)}</b>${escapeHtml(ev.cliente_nombre)}${roomNames ? '<br>🏛️ ' + escapeHtml(roomNames) : ''}`;
+  chip.title = 'Ver detalle';
+  chip.addEventListener('click', () => { canManage ? openEventModal(ev.id, ev) : openHistorialModal(ev.id, ev.cliente_nombre); });
+
+  if (canManage && ev.estado === 'reservado') {
+    chip.draggable = true;
+    chip.addEventListener('dragstart', (e) => {
+      e.dataTransfer.setData('text/plain', ev.id);
+      chip.classList.add('dragging');
+    });
+    chip.addEventListener('dragend', () => chip.classList.remove('dragging'));
+  }
+  return chip;
+}
+// Mover un evento a otro día (drag-and-drop): conserva horario/salones/demás
+// campos, solo cambia la fecha. Pasa por la misma RPC de edición, así que la
+// disponibilidad se revalida automáticamente contra el día destino.
+async function moveEventToDate(eventId, newFecha, sourceEvents){
+  const ev = sourceEvents.find(e => e.id === eventId);
+  if (!ev) return;
+  if (ev.fecha === newFecha) return;
+  const roomIds = (ev.park_event_rooms || []).map(r => r.room_id);
+  const { error } = await supabaseClient.rpc('update_park_event', {
+    p_event_id: ev.id, p_fecha: newFecha, p_hora_inicio: ev.hora_inicio, p_hora_fin: ev.hora_fin,
+    p_party_type_id: ev.party_type_id, p_cliente_nombre: ev.cliente_nombre, p_invitados: ev.invitados,
+    p_telefono: ev.telefono, p_observaciones: ev.observaciones, p_room_ids: roomIds,
+  });
+  if (error) { toast(friendlyError(error)); return; }
+  toast(`Movido a ${fmtFechaCorta(newFecha)}`);
+  renderWeekView();
+}
+
+/* ---------- Vista Mes ---------- */
+async function renderMonthView(){
+  const hoy = todayStr();
+  const base = strToDate(currentDate);
+  const firstOfMonth = new Date(base.getFullYear(), base.getMonth(), 1);
+  const lastOfMonth = new Date(base.getFullYear(), base.getMonth() + 1, 0);
+  const firstOfMonthStr = dateToStr(firstOfMonth);
+  const lastOfMonthStr = dateToStr(lastOfMonth);
+  const gridStart = getMondayOfWeek(firstOfMonthStr);
+  const lastDow = lastOfMonth.getDay();
+  const gridEnd = addDaysStr(lastOfMonthStr, lastDow === 0 ? 0 : 7 - lastDow);
+
+  const rangeEvents = await loadEventsForRange(gridStart, gridEnd);
+  const porDia = {};
+  rangeEvents.forEach(ev => { (porDia[ev.fecha] = porDia[ev.fecha] || []).push(ev); });
+
+  const grid = document.getElementById('monthGrid');
+  grid.innerHTML = '';
+  ['L','M','X','J','V','S','D'].forEach(d => {
+    const dow = document.createElement('div'); dow.className = 'month-dow'; dow.textContent = d;
+    grid.appendChild(dow);
+  });
+
+  let cursor = gridStart;
+  while (cursor <= gridEnd) {
+    const cell = document.createElement('div');
+    const inMonth = cursor >= firstOfMonthStr && cursor <= lastOfMonthStr;
+    cell.className = 'month-cell' + (inMonth ? '' : ' other-month') + (cursor === hoy ? ' is-today' : '') + (cursor === selectedMonthDay ? ' selected' : '');
+    const dayEvents = porDia[cursor] || [];
+    const estadosPresentes = [...new Set(dayEvents.map(e => e.estado))];
+    const dots = estadosPresentes.map(es => `<span class="mc-dot ${es}"></span>`).join('');
+    cell.innerHTML = `<span class="mc-num">${strToDate(cursor).getDate()}</span><span class="mc-dots">${dots}</span>`;
+    const fechaCursor = cursor;
+    cell.addEventListener('click', () => { selectedMonthDay = fechaCursor; renderMonthView(); });
+    grid.appendChild(cell);
+    cursor = addDaysStr(cursor, 1);
+  }
+
+  renderMonthDayDetail(selectedMonthDay || hoy, rangeEvents);
+}
+function renderMonthDayDetail(fecha, rangeEvents){
+  selectedMonthDay = fecha;
+  const wrap = document.getElementById('monthDayDetail');
+  const dayEvents = rangeEvents.filter(ev => ev.fecha === fecha).sort((a,b) => (a.hora_inicio||'').localeCompare(b.hora_inicio||''));
+  let html = `<h4>${fmtFechaLarga(fecha)}</h4>`;
+  wrap.innerHTML = html;
+  if (dayEvents.length === 0) {
+    const p = document.createElement('div');
+    p.className = 'week-day-empty';
+    p.style.textAlign = 'left';
+    p.textContent = 'Sin eventos programados este día.';
+    wrap.appendChild(p);
+  } else {
+    dayEvents.forEach(ev => wrap.appendChild(buildEventCard(ev)));
+  }
+}
 
 /* ---------- Tema ---------- */
 function applyTheme(theme){
