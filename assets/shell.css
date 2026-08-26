@@ -313,6 +313,7 @@ button { font-family: inherit; cursor: pointer; }
 
 .module-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px;
+  margin-bottom: 8px;
 }
 @media (min-width: 900px) {
   .module-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; }

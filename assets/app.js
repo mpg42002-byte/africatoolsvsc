@@ -346,33 +346,27 @@ function renderDashboard() {
   const grid = document.getElementById('module-grid');
   grid.innerHTML = '';
 
-  let totalCards = 0;
+  // Sin encabezados de categoría aquí (esos solo van en el sidebar) — se
+  // recorren las categorías únicamente para mantener un orden agrupado
+  // agradable a la vista, pero todas las tarjetas caen en una sola grilla.
+  const cards = [];
   MODULE_CATEGORIES.forEach(cat => {
-    const modsInCat = MODULES.filter(m => (m.category || 'otros') === cat.key && permitted.includes(m.key));
-    if (modsInCat.length === 0) return;
-    totalCards += modsInCat.length;
+    MODULES.filter(m => (m.category || 'otros') === cat.key && permitted.includes(m.key)).forEach(m => cards.push(m));
+  });
 
-    const catLabel = document.createElement('div');
-    catLabel.className = 'dash-category-label';
-    catLabel.textContent = cat.label;
-    grid.appendChild(catLabel);
-
-    const catGrid = document.createElement('div');
-    catGrid.className = 'module-grid';
-    modsInCat.forEach(m => {
+  if (cards.length === 0) {
+    grid.innerHTML = '<p style="color:var(--text-muted)">No tienes módulos asignados todavía. Pide a un administrador que te asigne un rol.</p>';
+  } else {
+    cards.forEach(m => {
       const card = document.createElement('button');
       card.className = 'module-card';
       const iconDisplay = m.icon || '•';
       card.innerHTML = `<div class="cardIcon" aria-hidden="true">${iconDisplay}</div><div class="cardTitle">${escapeHtmlLocal(m.label)}</div>${m.description ? `<div class="cardDesc">${escapeHtmlLocal(m.description)}</div>` : ''}<div class="cardGo">Abrir →</div>`;
       card.addEventListener('click', () => goToView(m.key));
-      catGrid.appendChild(card);
+      grid.appendChild(card);
     });
-    grid.appendChild(catGrid);
-  });
-
-  if (totalCards === 0) {
-    grid.innerHTML = '<p style="color:var(--text-muted)">No tienes módulos asignados todavía. Pide a un administrador que te asigne un rol.</p>';
   }
+
   if (currentUser.roles.includes('lider_seguridad') || userIsAdmin(currentUser.roles)) { renderDashboardSummary(permitted); } else { document.getElementById('dash-summary').innerHTML = ''; }
 }
 

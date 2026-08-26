@@ -7,7 +7,7 @@ const MODULES = [
   { key: 'diaadia', label: 'Día a Día', icon: '✅', description: 'Tus tareas periódicas: qué te toca hoy.', alwaysAvailable: true, category: 'operacion' },
   { key: 'inventario', label: 'Inventario', icon: '📦', description: 'Procesa y organiza archivos de inventario.', category: 'impresion' },
   { key: 'folders', label: 'Folders', icon: '🏷️', description: 'Genera marcación lista para imprimir.', category: 'impresion' },
-  { key: 'habladores', label: 'Habladores Winner', icon: '📢', description: 'Diseña habladores y señalética Winner.', category: 'impresion' },
+  { key: 'habladores', label: 'Habladores Winner', icon: '📢', description: 'Diseña habladores y carteles Winner.', category: 'impresion' },
   { key: 'wow-tablero', label: 'Tablero Wow Points', icon: '⭐', description: 'Crea tableros de reconocimiento Wow.', category: 'wow' },
   { key: 'wow-calificacion', label: 'Calificación Wow Points', icon: '🏆', description: 'Prepara tarjetas de calificación Wow.', category: 'wow' },
   { key: 'agenda', label: 'Agenda de Fiestas', icon: '🎉', description: 'Calendario y disponibilidad de salones para eventos.', category: 'eventos' },
@@ -18,7 +18,7 @@ const MODULES = [
 // dudas) cae en un grupo "Otros" al final.
 const MODULE_CATEGORIES = [
   { key: 'operacion', label: 'Operación diaria' },
-  { key: 'impresion', label: 'Impresión y señalética' },
+  { key: 'impresion', label: 'Impresión' },
   { key: 'wow', label: 'Reconocimiento Wow' },
   { key: 'eventos', label: 'Eventos' },
   { key: 'otros', label: 'Otros' },
