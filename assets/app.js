@@ -228,13 +228,14 @@ function renderNav() {
   const dashBtn = navButton('Inicio', 'dashboard', currentView === 'dashboard', '🏠');
   nav.appendChild(dashBtn);
 
-  const label = document.createElement('div');
-  label.className = 'nav-section-label';
-  label.textContent = 'Módulos';
-  nav.appendChild(label);
-
-  MODULES.filter(m => permitted.includes(m.key)).forEach(m => {
-    nav.appendChild(navButton(m.label, m.key, currentView === m.key, m.icon));
+  MODULE_CATEGORIES.forEach(cat => {
+    const modsInCat = MODULES.filter(m => (m.category || 'otros') === cat.key && permitted.includes(m.key));
+    if (modsInCat.length === 0) return;
+    const label = document.createElement('div');
+    label.className = 'nav-section-label';
+    label.textContent = cat.label;
+    nav.appendChild(label);
+    modsInCat.forEach(m => nav.appendChild(navButton(m.label, m.key, currentView === m.key, m.icon)));
   });
 
   const adminSection = document.getElementById('nav-admin-section');
@@ -344,19 +345,33 @@ function renderDashboard() {
   document.getElementById('dash-greeting-name').textContent = currentUser.nombre || currentUser.usuario;
   const grid = document.getElementById('module-grid');
   grid.innerHTML = '';
-  const cards = [];
-  MODULES.filter(m => permitted.includes(m.key)).forEach(m => {
-    const card = document.createElement('button');
-    card.className = 'module-card';
-    const iconDisplay = m.icon || '•';
-    card.innerHTML = `<div class="cardIcon" aria-hidden="true">${iconDisplay}</div><div class="cardTitle">${escapeHtmlLocal(m.label)}</div>${m.description ? `<div class="cardDesc">${escapeHtmlLocal(m.description)}</div>` : ''}<div class="cardGo">Abrir →</div>`;
-    card.addEventListener('click', () => goToView(m.key));
-    cards.push(card);
+
+  let totalCards = 0;
+  MODULE_CATEGORIES.forEach(cat => {
+    const modsInCat = MODULES.filter(m => (m.category || 'otros') === cat.key && permitted.includes(m.key));
+    if (modsInCat.length === 0) return;
+    totalCards += modsInCat.length;
+
+    const catLabel = document.createElement('div');
+    catLabel.className = 'dash-category-label';
+    catLabel.textContent = cat.label;
+    grid.appendChild(catLabel);
+
+    const catGrid = document.createElement('div');
+    catGrid.className = 'module-grid';
+    modsInCat.forEach(m => {
+      const card = document.createElement('button');
+      card.className = 'module-card';
+      const iconDisplay = m.icon || '•';
+      card.innerHTML = `<div class="cardIcon" aria-hidden="true">${iconDisplay}</div><div class="cardTitle">${escapeHtmlLocal(m.label)}</div>${m.description ? `<div class="cardDesc">${escapeHtmlLocal(m.description)}</div>` : ''}<div class="cardGo">Abrir →</div>`;
+      card.addEventListener('click', () => goToView(m.key));
+      catGrid.appendChild(card);
+    });
+    grid.appendChild(catGrid);
   });
-  if (cards.length === 0) {
+
+  if (totalCards === 0) {
     grid.innerHTML = '<p style="color:var(--text-muted)">No tienes módulos asignados todavía. Pide a un administrador que te asigne un rol.</p>';
-  } else {
-    cards.forEach(c => grid.appendChild(c));
   }
   if (currentUser.roles.includes('lider_seguridad') || userIsAdmin(currentUser.roles)) { renderDashboardSummary(permitted); } else { document.getElementById('dash-summary').innerHTML = ''; }
 }

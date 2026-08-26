@@ -466,7 +466,7 @@ button{font-family:inherit;}
 let currentUserNombre = '';
 let currentUserRoles = [];
 let canManage = false;   // administrador | lider_parque | supervisor
-let canCreate = false;   // canManage || cajero
+let canCreate = false;   // canManage || cajero || anfitrion_fiesta
 let currentDate = '';
 let rooms = [];
 let partyTypes = [];
@@ -485,7 +485,7 @@ function hhmm(t){ return (t||'').slice(0,5); }
 function escapeHtml(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
 /* ---------- Rol del usuario ---------- */
-const ROLE_LABELS = { administrador:'Administrador', lider_parque:'Líder de Parque', supervisor:'Supervisor', cajero:'Cajero', lider_seguridad:'Líder de Seguridad' };
+const ROLE_LABELS = { administrador:'Administrador', lider_parque:'Líder de Parque', supervisor:'Supervisor', cajero:'Cajero', anfitrion_fiesta:'Anfitrión de Fiesta', lider_seguridad:'Líder de Seguridad' };
 async function loadUserRole(){
   try{
     const { data } = await supabaseClient.auth.getSession();
@@ -498,12 +498,12 @@ async function loadUserRole(){
     }
   }catch(e){ /* sin sesión: se queda sin permisos, modo solo-lectura */ }
   canManage = currentUserRoles.some(r => ['administrador','lider_parque','supervisor'].includes(r));
-  canCreate = canManage || currentUserRoles.includes('cajero');
+  canCreate = canManage || currentUserRoles.includes('cajero') || currentUserRoles.includes('anfitrion_fiesta');
   applyRoleGating();
 }
 function applyRoleGating(){
   const badge = document.getElementById('roleBadge');
-  const principal = ['administrador','lider_parque','supervisor','cajero'].find(r => currentUserRoles.includes(r));
+  const principal = ['administrador','lider_parque','supervisor','cajero','anfitrion_fiesta'].find(r => currentUserRoles.includes(r));
   if (principal) { badge.textContent = ROLE_LABELS[principal]; badge.style.display = ''; }
   document.getElementById('btnNewEvent').style.display = canCreate ? '' : 'none';
   document.getElementById('salonAddInline').style.display = canManage ? '' : 'none';
@@ -624,9 +624,26 @@ async function renderAgendaDay(){
 
 const ESTADO_LABEL = { reservado:'Reservado', finalizado:'Finalizado', cancelado:'Cancelado' };
 
+// Un evento 'reservado' cuya fecha ya pasó y nadie canceló se asume
+// finalizado con éxito — es una inferencia SOLO visual (no se reescribe
+// `estado` en la base de datos, evita depender de un cron job en Supabase).
+// Se usa en todos lados donde se muestra/filtra por estado.
+function estadoEfectivo(ev){
+  if (ev.estado === 'reservado' && ev.fecha < todayStr()) return 'finalizado';
+  return ev.estado;
+}
+// Nombre del salón/tipo tal como eran AL MOMENTO de la reserva (snapshot),
+// no el nombre actual — así renombrar o desactivar un salón/tipo no
+// reescribe cómo se ve un evento ya pasado. Cae al nombre en vivo (join)
+// solo para eventos creados antes de que existiera esta columna.
+function roomLabel(r){ return r.room_nombre || (r.park_rooms && r.park_rooms.nombre) || '(salón eliminado)'; }
+function tipoLabel(ev){ return ev.party_type_nombre || (ev.party_types && ev.party_types.nombre) || null; }
+
+
 function buildEventCard(ev){
+  const efectivo = estadoEfectivo(ev);
   const card = document.createElement('div');
-  card.className = 'event-card estado-' + ev.estado;
+  card.className = 'event-card estado-' + efectivo;
 
   const time = document.createElement('div');
   time.className = 'event-time';
@@ -634,12 +651,13 @@ function buildEventCard(ev){
 
   const body = document.createElement('div');
   body.className = 'event-body';
-  const roomNames = (ev.park_event_rooms || []).map(r => r.park_rooms && r.park_rooms.nombre).filter(Boolean);
+  const roomNames = (ev.park_event_rooms || []).map(roomLabel);
+  const tipoNombre = tipoLabel(ev);
   body.innerHTML = `
     <div class="event-top-row">
       <span class="event-cliente">${escapeHtml(ev.cliente_nombre)}</span>
-      <span class="badge estado-${ev.estado}">${ESTADO_LABEL[ev.estado] || ev.estado}</span>
-      ${ev.party_types && ev.party_types.nombre ? `<span class="badge tipo">${escapeHtml(ev.party_types.nombre)}</span>` : ''}
+      <span class="badge estado-${efectivo}">${ESTADO_LABEL[efectivo] || efectivo}</span>
+      ${tipoNombre ? `<span class="badge tipo">${escapeHtml(tipoNombre)}</span>` : ''}
       ${roomNames.map(n => `<span class="badge salon">🏛️ ${escapeHtml(n)}</span>`).join('')}
     </div>
     <div class="event-meta">
@@ -658,13 +676,20 @@ function buildEventCard(ev){
   actions.appendChild(btnHist);
 
   if (canManage) {
+    // Editar sigue disponible aunque ya se asuma finalizado por fecha vencida
+    // (corregir un dato, agregar una nota) — igual que permite la RPC.
     if (ev.estado === 'reservado') {
       const btnEdit = document.createElement('button');
       btnEdit.className = 'icon-btn'; btnEdit.type = 'button'; btnEdit.title = 'Editar';
       btnEdit.textContent = '✏️';
       btnEdit.addEventListener('click', () => openEventModal(ev.id));
       actions.appendChild(btnEdit);
+    }
 
+    // Finalizar/Cancelar solo tienen sentido mientras el evento sigue
+    // vigente (no ha pasado su fecha) — una vez vencido ya se asume
+    // finalizado, no tiene caso ofrecer estas acciones manuales.
+    if (ev.estado === 'reservado' && efectivo === 'reservado') {
       const btnFin = document.createElement('button');
       btnFin.className = 'icon-btn'; btnFin.type = 'button'; btnFin.title = 'Marcar como finalizado';
       btnFin.textContent = '✅';
@@ -747,12 +772,16 @@ async function openHistorialModal(eventId, clienteNombre){
 }
 
 /* ---------- Modal: Nuevo/Editar evento ---------- */
-function populatePartyTypeSelect(){
+// currentTipoId: si estamos editando un evento cuyo tipo de fiesta quedó
+// inactivo después, igual se incluye en la lista (marcado) para que no
+// desaparezca en silencio y el guardado no borre el dato sin querer.
+function populatePartyTypeSelect(currentTipoId){
   const sel = document.getElementById('ef-tipo');
   sel.innerHTML = '<option value="">— Sin especificar —</option>';
-  partyTypes.filter(t => t.activo).forEach(t => {
+  const activos = partyTypes.filter(t => t.activo || t.id === currentTipoId);
+  activos.forEach(t => {
     const opt = document.createElement('option');
-    opt.value = t.id; opt.textContent = t.nombre;
+    opt.value = t.id; opt.textContent = t.nombre + (!t.activo ? ' (inactivo)' : '');
     sel.appendChild(opt);
   });
 }
@@ -786,14 +815,22 @@ async function refreshRoomAvailability(preselectedIds){
   });
 }
 
+let editingEventOriginalFecha = null;
+
 function openEventModal(eventId, preloadedEv){
   editingEventId = eventId || null;
   const ev = eventId ? (preloadedEv || events.find(e => e.id === eventId)) : null;
+  editingEventOriginalFecha = ev ? ev.fecha : null;
   document.getElementById('eventModalTitle').textContent = ev ? 'Editar evento' : 'Nuevo evento';
   document.getElementById('ef-room-error').classList.remove('show');
-  populatePartyTypeSelect();
+  populatePartyTypeSelect(ev ? ev.party_type_id : null);
 
   document.getElementById('ef-fecha').value = ev ? ev.fecha : currentDate;
+  // Al crear, no se puede elegir el pasado. Al editar un evento que YA era
+  // de una fecha pasada, no se fuerza el mínimo (si no, el navegador
+  // rechazaría mostrar su propia fecha) — la validación de "no mover al
+  // pasado" para ese caso se hace en JS al guardar, no aquí.
+  document.getElementById('ef-fecha').min = (!ev || ev.fecha >= todayStr()) ? todayStr() : '';
   document.getElementById('ef-hora-inicio').value = ev ? hhmm(ev.hora_inicio) : '';
   document.getElementById('ef-hora-fin').value = ev ? hhmm(ev.hora_fin) : '';
   document.getElementById('ef-tipo').value = ev && ev.party_type_id ? ev.party_type_id : '';
@@ -824,6 +861,13 @@ document.getElementById('ef-save-btn').addEventListener('click', async () => {
 
   if (!fecha || !horaInicio || !horaFin) { toast('Completa fecha, hora inicio y hora fin'); return; }
   if (horaFin <= horaInicio) { toast('La hora de fin debe ser posterior a la hora de inicio'); return; }
+  // Al crear: nunca en el pasado. Al editar: solo si REALMENTE están
+  // cambiando la fecha hacia el pasado (si ya era de una fecha pasada y no
+  // la tocan, se deja seguir editando el resto sin problema).
+  if (fecha < todayStr() && fecha !== editingEventOriginalFecha) {
+    toast(editingEventId ? 'No puedes mover un evento a una fecha que ya pasó' : 'No puedes agendar un evento en una fecha que ya pasó');
+    return;
+  }
   if (!cliente) { toast('El nombre del cliente/responsable es obligatorio'); return; }
   if (roomIds.length === 0) {
     document.getElementById('ef-room-error').classList.add('show');
@@ -1073,14 +1117,16 @@ async function renderWeekView(){
   }
 }
 function buildWeekChip(ev){
+  const efectivo = estadoEfectivo(ev);
   const chip = document.createElement('div');
-  chip.className = 'week-event-chip estado-' + ev.estado;
-  const roomNames = (ev.park_event_rooms || []).map(r => r.park_rooms && r.park_rooms.nombre).filter(Boolean).join(', ');
+  chip.className = 'week-event-chip estado-' + efectivo;
+  const roomNames = (ev.park_event_rooms || []).map(roomLabel).join(', ');
   chip.innerHTML = `<b>${hhmm(ev.hora_inicio)}-${hhmm(ev.hora_fin)}</b>${escapeHtml(ev.cliente_nombre)}${roomNames ? '<br>🏛️ ' + escapeHtml(roomNames) : ''}`;
   chip.title = 'Ver detalle';
   chip.addEventListener('click', () => { canManage ? openEventModal(ev.id, ev) : openHistorialModal(ev.id, ev.cliente_nombre); });
 
-  if (canManage && ev.estado === 'reservado') {
+  // Solo se puede arrastrar mientras sigue vigente (no vencido ni cancelado/finalizado).
+  if (canManage && efectivo === 'reservado') {
     chip.draggable = true;
     chip.addEventListener('dragstart', (e) => {
       e.dataTransfer.setData('text/plain', ev.id);
@@ -1137,7 +1183,7 @@ async function renderMonthView(){
     const inMonth = cursor >= firstOfMonthStr && cursor <= lastOfMonthStr;
     cell.className = 'month-cell' + (inMonth ? '' : ' other-month') + (cursor === hoy ? ' is-today' : '') + (cursor === selectedMonthDay ? ' selected' : '');
     const dayEvents = porDia[cursor] || [];
-    const estadosPresentes = [...new Set(dayEvents.map(e => e.estado))];
+    const estadosPresentes = [...new Set(dayEvents.map(estadoEfectivo))];
     const dots = estadosPresentes.map(es => `<span class="mc-dot ${es}"></span>`).join('');
     cell.innerHTML = `<span class="mc-num">${strToDate(cursor).getDate()}</span><span class="mc-dots">${dots}</span>`;
     const fechaCursor = cursor;
@@ -1181,6 +1227,13 @@ document.getElementById('themeToggle').addEventListener('click', () => {
 (async function init(){
   applyTheme(localStorage.getItem('africa_agenda_theme') || document.documentElement.getAttribute('data-theme') || 'light');
   await loadUserRole();
+  // Auto-corrección: cualquier evento reservado cuya fecha ya pasó (y nadie
+  // canceló) se marca finalizado de verdad en la base — no depende de un
+  // cron/pg_cron, se dispara con el uso normal del módulo. Es best-effort:
+  // si falla (ej. función no existe todavía porque no se ha corrido la
+  // migración v3), no bloquea el resto de la carga — estadoEfectivo() sigue
+  // cubriendo la vista mientras tanto.
+  try { await supabaseClient.rpc('auto_finalizar_eventos_vencidos'); } catch(e) { /* silencioso, ver comentario arriba */ }
   await Promise.all([loadRooms(), loadPartyTypes()]);
   renderRoomsList();
   renderTiposList();
