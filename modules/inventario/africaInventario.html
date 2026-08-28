@@ -6,7 +6,9 @@
 <script>(function(){try{var t=new URLSearchParams(location.search).get('theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>PDF → Excel · África Parque de Diversiones</title>
+<title>Convertidor de Inventario · Africa Parque de Diversiones</title>
+<link rel="icon" type="image/svg+xml" href="../../assets/icons/icon.svg">
+<link rel="stylesheet" href="../../assets/design-tokens.css">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
 
@@ -16,50 +18,23 @@
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 
 <style>
+  /* Paleta, tipografía y radios base ahora vienen de design-tokens.css
+     (linkeado arriba). Este módulo tiene una escala extendida propia
+     (espaciados, warning/info, radius-pill) y algunos valores que se
+     apartan intencionalmente del token compartido — quedan explícitos
+     abajo. [data-theme="dark"] es idéntico al de design-tokens.css,
+     ya no se redeclara. */
   :root {
-    --af-orange: #E85D25;
-    --af-amber: #F5A623;
-    --af-red: #D9481F;
-    --af-coffee: #4A2F1F;
-    --af-yellow: #F5D414;
-    --af-green: #7CB342;
-    --af-cream: #EDE0C8;
-    --af-white: #FFFFFF;
-    --bg-body: var(--af-cream);
-    --bg-pattern: radial-gradient(rgba(245, 166, 35, 0.15) 2px, transparent 2px);
-    
-    --text-main: var(--af-coffee);
-    
-    --card-bg: var(--af-white);
-    --card-bg-hover: #F8F1E1;
-    --card-border: #D8B37C;
-    --card-shadow: rgba(0,0,0,0.1);
-    
-    --text-card: var(--af-coffee);
-    --text-muted: #5C3A22;
-    
-    --primary: var(--af-orange);
-    --primary-shadow: #B54215;
-    --primary-text: var(--af-white);
+    --card-bg-hover: #F8F1E1; /* diverge del token compartido (#F9F9F9) */
+    --text-muted: #5C3A22; /* diverge del token compartido (#68452C) */
     --primary-btn-bg: #D14E1C;
-    
-    --secondary: var(--af-amber);
-    --secondary-shadow: #C48214;
-    --secondary-text: var(--af-coffee);
-    
-    --accent-badge: var(--af-yellow);
-    --danger: var(--af-red);
-    --success: var(--af-green);
+
+    --accent-badge: var(--af-yellow); /* diverge: el resto de la app usa --af-green */
     --warning: var(--af-yellow);
     --warning-text: var(--af-coffee);
     --info: #2F8FA3;
     --info-text: var(--af-white);
-    
-    --line: #D8B37C;
-    --input-bg: var(--af-white);
-    
-    --font-heading: 'Fredoka', sans-serif;
-    --font-body: 'Nunito', sans-serif;
+
     --font-mono: 'Nunito', monospace;
 
     --space-1: 4px;
@@ -71,34 +46,9 @@
     --space-6: 32px;
     --space-7: 48px;
 
-    --radius-sm: 8px;
-    --radius-md: 16px;
-    --radius-lg: 24px;
+    --radius-sm: 8px; /* diverge del token compartido (12px) */
+    --radius-md: 16px; /* diverge del token compartido (18px) */
     --radius-pill: 999px;
-  }
-  [data-theme="dark"] {
-    --bg-body: #1E1610;
-    --bg-pattern: radial-gradient(rgba(245, 166, 35, 0.05) 2px, transparent 2px);
-    
-    --text-main: #F5EBDA;
-    
-    --card-bg: #2A1E14;
-    --card-bg-hover: #33261A;
-    --card-border: #4A3624;
-    --card-shadow: #0F0A07;
-    
-    --text-card: #F5EBDA;
-    --text-muted: #D9BE9D;
-    
-    --primary: var(--af-orange);
-    --primary-shadow: #A33A10;
-    --primary-text: var(--af-white);
-    
-    --secondary: var(--af-amber);
-    --secondary-text: var(--af-coffee);
-    
-    --line: #4A3624;
-    --input-bg: #1E1610;
   }
   * { box-sizing: border-box; }
   
@@ -630,7 +580,7 @@
   </div>
   </main>
 
-  <footer>Los datos se procesan en tu navegador — el PDF no se sube a ningún servidor. <span aria-hidden="true">🌿</span> África Parque de Diversiones</footer>
+  <footer>Los datos se procesan en tu navegador — el PDF no se sube a ningún servidor. <span aria-hidden="true">🌿</span> Africa Parque de Diversiones</footer>
 </div>
 
 <script>

@@ -22,7 +22,7 @@ button { font-family: inherit; cursor: pointer; }
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+  background: linear-gradient(135deg, var(--primary), var(--accent-badge));
   color: white;
   display: inline-flex;
   align-items: center;
@@ -46,7 +46,7 @@ button { font-family: inherit; cursor: pointer; }
   min-width: 36px;
   height: 36px;
   padding: 8px 12px;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--card-border);
   background: var(--card-bg);
   color: var(--text-main);
   border-radius: 6px;
@@ -56,9 +56,9 @@ button { font-family: inherit; cursor: pointer; }
 }
 
 .pagination button:hover:not(:disabled) {
-  background: var(--color-primary);
+  background: var(--primary);
   color: white;
-  border-color: var(--color-primary);
+  border-color: var(--primary);
 }
 
 .pagination button:disabled {
@@ -455,7 +455,7 @@ button, input, select, textarea { touch-action: manipulation; }
   background: var(--card-bg); color: var(--text-main); font-weight: 600; font-size: 14px;
   padding: 12px 24px; border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);
   z-index: 10000; opacity: 0; transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
-  display: flex; align-items: center; gap: 8px; border: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px; border: 1px solid var(--line);
 }
 .toast-error { border-color: var(--danger); }
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }

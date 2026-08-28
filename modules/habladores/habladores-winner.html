@@ -10,13 +10,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Habladores Winner · Africa Parque de Diversiones</title>
+<link rel="icon" type="image/svg+xml" href="../../assets/icons/icon.svg">
+<link rel="stylesheet" href="../../assets/design-tokens.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
 /* Century Gothic Bold, empaquetada con el módulo — así se ve igual sin
    importar si el equipo que imprime la tiene instalada o no. Uso interno,
-   ver nota de licencia en la conversación con Miguel. */
+   ver nota de licencia en la conversación con Miguel.
+   Exclusiva del material impreso (habladores) — no usar en textos de
+   interfaz; la UI usa Fredoka/Nunito (ver design-tokens.css). */
 @font-face {
   font-family: 'Century Gothic';
   src: url('fonts/CenturyGothicBold.woff2') format('woff2'),
@@ -25,30 +29,19 @@
   font-style: normal;
   font-display: block;
 }
+/* Paleta base viene de design-tokens.css (linkeado arriba). Este
+   módulo invierte intencionalmente el esquema claro (fondo oscuro,
+   texto claro, tarjeta clara) para el look de los "habladores"; por
+   eso redeclara --bg-body/--text-main/--card-bg/--card-shadow/
+   --text-muted en vez de heredarlos. */
 :root {
-  --af-orange: #E85D25; --af-amber: #F5A623; --af-red: #D9481F;
-  --af-coffee: #4A2F1F; --af-yellow: #F5D414; --af-green: #7CB342;
-  --af-cream: #EDE0C8; --af-white: #FFFFFF;
-  --font-heading: 'Fredoka', sans-serif; --font-body: 'Nunito', sans-serif;
   --bg-body: var(--af-coffee);
-  --bg-pattern: radial-gradient(rgba(245, 166, 35, 0.15) 2px, transparent 2px);
   --text-main: var(--af-cream);
-  --card-bg: var(--af-cream); --card-bg-hover: #F8F1E1; --card-border: #D8B37C;
-  --card-shadow: #26170E; --text-card: var(--af-coffee); --text-muted: #7A5A3D;
-  --primary: var(--af-orange); --primary-shadow: #B54215; --primary-text: var(--af-white);
-  --secondary: var(--af-amber); --secondary-shadow: #C48214; --secondary-text: var(--af-coffee);
-  --accent-badge: var(--af-green); --danger: var(--af-red); --success: var(--af-green);
-  --line: #D8B37C; --input-bg: var(--af-white);
+  --card-bg: var(--af-cream); --card-bg-hover: #F8F1E1; /* card-bg-hover diverge del token compartido (#F9F9F9) */
+  --card-shadow: #26170E; --text-muted: #7A5A3D;
 }
 [data-theme="dark"] {
-  --bg-body: #1E1610;
-  --bg-pattern: radial-gradient(rgba(245, 166, 35, 0.05) 2px, transparent 2px);
-  --text-main: #F5EBDA;
-  --card-bg: #2A1E14; --card-bg-hover: #33261A; --card-border: #4A3624;
-  --card-shadow: #0F0A07; --text-card: #F5EBDA; --text-muted: #C7A98A;
-  --primary: var(--af-orange); --primary-shadow: #A33A10; --primary-text: var(--af-white);
-  --secondary: var(--af-amber); --secondary-text: var(--af-coffee);
-  --line: #4A3624; --input-bg: #1E1610;
+  --text-muted: #C7A98A; /* diverge del token compartido (#D9BE9D) */
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
@@ -356,7 +349,7 @@ button{
   <!-- ============ SIDEBAR ============ -->
   <aside class="sidebar">
     <div class="brand">
-      <img src="../../assets/icons/shared/logo-951292dae0.jpg" alt="Africa">
+      <img src="../../assets/icons/icon.svg" alt="Africa">
       <div class="brand-text">
         <h1>Habladores Winner</h1>
         <span>Africa Parque de Diversiones</span>
@@ -430,7 +423,6 @@ button{
     </div>
 
     <div class="sidebar-foot">
-      Artefacto 4 de 4 · Habladores Winner<br>
       Formato de impresión: Carta · 15 habladores por hoja (3×5)
     </div>
   </aside>
@@ -454,7 +446,7 @@ button{
     <div id="pagesWrap" style="transform-origin: top center;">
       <div class="pages-scroll" id="pagesScroll">
         <div class="empty-state" id="emptyState">
-          <img src="../../assets/icons/shared/logo-951292dae0.jpg" alt="">
+          <img src="../../assets/icons/icon.svg" alt="">
           <h3>Todavía no hay nada que mostrar</h3>
           <p>Sube el PDF del inventario o agrega productos manualmente, luego presiona <b>Generar habladores</b>.</p>
         </div>

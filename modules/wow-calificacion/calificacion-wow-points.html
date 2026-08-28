@@ -10,33 +10,17 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Calificación Wow Points · Africa Parque de Diversiones</title>
+<link rel="icon" type="image/svg+xml" href="../../assets/icons/icon.svg">
+<link rel="stylesheet" href="../../assets/design-tokens.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
+/* Paleta, tipografía y radios base ahora vienen de design-tokens.css
+   (linkeado arriba). Aquí solo queda lo que se aparta intencionalmente
+   del token compartido. [data-theme="dark"] es idéntico al de
+   design-tokens.css, ya no se redeclara. */
 :root {
-  --af-orange: #E85D25; --af-amber: #F5A623; --af-red: #D9481F;
-  --af-coffee: #4A2F1F; --af-yellow: #F5D414; --af-green: #7CB342;
-  --af-cream: #EDE0C8; --af-white: #FFFFFF;
-  --font-heading: 'Fredoka', sans-serif; --font-body: 'Nunito', sans-serif;
-  --bg-body: var(--af-cream);
-  --bg-pattern: radial-gradient(rgba(245, 166, 35, 0.15) 2px, transparent 2px);
-  --text-main: var(--af-coffee);
-  --card-bg: var(--af-white); --card-bg-hover: #F8F1E1; --card-border: #D8B37C;
-  --card-shadow: rgba(0,0,0,0.1); --text-card: var(--af-coffee); --text-muted: #68452C;
-  --primary: var(--af-orange); --primary-shadow: #B54215; --primary-text: var(--af-white);
-  --secondary: var(--af-amber); --secondary-shadow: #C48214; --secondary-text: var(--af-coffee);
-  --accent-badge: var(--af-green); --danger: var(--af-red); --success: var(--af-green);
-  --line: #D8B37C; --input-bg: var(--af-white);
-}
-[data-theme="dark"] {
-  --bg-body: #1E1610;
-  --bg-pattern: radial-gradient(rgba(245, 166, 35, 0.05) 2px, transparent 2px);
-  --text-main: #F5EBDA;
-  --card-bg: #2A1E14; --card-bg-hover: #33261A; --card-border: #4A3624;
-  --card-shadow: #0F0A07; --text-card: #F5EBDA; --text-muted: #D9BE9D;
-  --primary: var(--af-orange); --primary-shadow: #A33A10; --primary-text: var(--af-white);
-  --secondary: var(--af-amber); --secondary-text: var(--af-coffee);
-  --line: #4A3624; --input-bg: #1E1610;
+  --card-bg-hover: #F8F1E1; /* diverge del token compartido (#F9F9F9) */
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
@@ -228,6 +212,9 @@ button{
   line-height:1;
 }
 
+/* "Raspberry Sherbet" es exclusiva del material impreso generado por este
+   módulo (tarjetas/etiquetas). No usar en textos de interfaz — la UI usa
+   Fredoka/Nunito (ver design-tokens.css). */
 @font-face{
   font-family:"Raspberry Sherbet";
   src: url(../../assets/fonts/raspberry-sherbet.ttf) format('truetype');
@@ -278,7 +265,7 @@ button{
   <!-- ============ SIDEBAR ============ -->
   <aside class="sidebar">
     <div class="brand">
-      <img src="../../assets/icons/shared/logo-951292dae0.jpg" alt="Africa">
+      <img src="../../assets/icons/icon.svg" alt="Africa">
       <div class="brand-text">
         <h1>Calificación Wow Points</h1>
         <span>Africa Parque de Diversiones</span>
@@ -316,7 +303,6 @@ button{
     </div>
 
     <div class="sidebar-foot">
-      Artefacto 3 de 4 · Calificación Wow Points<br>
       Formato de impresión: Carta · 12 recuadros por hoja (2×6)
     </div>
   </aside>
@@ -340,7 +326,7 @@ button{
     <div id="pagesWrap" style="transform-origin: top center;">
       <div class="pages-scroll" id="pagesScroll">
         <div class="empty-state" id="emptyState">
-          <img src="../../assets/icons/shared/logo-951292dae0.jpg" alt="">
+          <img src="../../assets/icons/icon.svg" alt="">
           <h3>Todavía no hay nada que mostrar</h3>
           <p>Agrega el nombre y puntaje de cada empleado y presiona <b>Generar vista previa</b>.</p>
         </div>

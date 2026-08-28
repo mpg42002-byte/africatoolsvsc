@@ -1,0 +1,94 @@
+# Africa Tools — Estructura de datos
+
+**Última actualización:** agosto 2026 — refleja la arquitectura real después de migrar a Supabase (Fases 1-4).
+
+---
+
+## Dónde vive cada cosa
+
+Africa Tools ya **no** guarda usuarios ni sesión en `localStorage` — eso vive en Supabase (autenticación real, base de datos Postgres). Lo que queda en el navegador es: preferencias de tema, y una copia local + cola de sincronización para trabajar sin conexión.
+
+## 1. Supabase — `auth.users` (autenticación)
+
+Manejado enteramente por Supabase Auth, no por nuestro código. El login sigue siendo por **nombre de usuario** (no correo) de cara al equipo — internamente se traduce a un correo falso `usuario@africatools.internal` antes de hablar con Supabase, transparente para quien usa la app. Ver `assets/shell.js` (`usuarioToEmail`).
+
+## 2. Supabase — tabla `profiles`
+
+Datos adicionales de cada cuenta que Supabase Auth no guarda por sí solo:
+
+```sql
+id uuid primary key references auth.users(id)
+usuario text unique not null
+nombre text not null default ''
+roles text[] not null default '{}'
+activo boolean not null default true
+must_change_password boolean not null default false
+created_at timestamptz not null default now()
+```
+
+Roles válidos hoy: `administrador`, `supervisor`, `lider-seguridad`. Seguridad por fila (RLS): cada quien lee su propio perfil; solo administradores leen/editan/eliminan cualquier perfil (verificado con la función `is_admin()` + un trigger `prevent_self_privilege_escalation` que bloquea que alguien se autoasigne un rol).
+
+## 3. Supabase — tabla `activity_log`
+
+Registro de qué se hizo desde el panel de Administración (crear/editar/activar/desactivar/eliminar usuarios):
+
+```sql
+id bigint generated always as identity primary key
+actor text not null
+actor_id uuid references auth.users(id)
+action text not null
+created_at timestamptz not null default now()
+```
+
+Solo administradores pueden leerlo completo; cualquier persona autenticada puede insertar una entrada sobre su propia acción.
+
+## 4. Supabase — tabla `module_data` (datos privados por persona)
+
+Una sola tabla genérica reutilizada por los módulos que necesitan guardar algo — cada fila es "esta persona, en este módulo, guardó este dato bajo esta clave":
+
+```sql
+user_id uuid not null references auth.users(id)
+module text not null
+key text not null
+value jsonb not null
+updated_at timestamptz not null default now()
+primary key (user_id, module, key)
+```
+
+Es **100% privado por persona** — nadie más, ni siquiera un administrador, puede leer los datos de otra persona en esta tabla (RLS: `auth.uid() = user_id`, sin excepción). Módulos que la usan y sus claves:
+
+| Módulo (`module`) | Claves (`key`) |
+|---|---|
+| `limpieza` | `emp`, `hist`, `maq`, `sched`, `taskSel`, `tasks`, `lastResult` |
+| `lider` | `epp-log`, `checklist-YYYY-MM` (una por mes), `archivos-formatos`, `recursos-formularios`, `recursos-sst`, `escalera-preguntas`, `temas-sst` |
+| `wow-tablero` | `africa_wow_employees`, `africa_wow_selected` |
+| `folders` | `africa_labels_folders`/`az`/`lockers`, `africa_labels_last_format`, `africa_combo_folders`/`az`/`lockers` |
+| `habladores` | `africa_habladores` |
+| `wow-calificacion` | `africa_wow_scores` |
+
+Inventario es el único módulo sin datos persistentes — su flujo es solo subir un PDF y descargar el Excel resultante, no hay nada que guardar entre sesiones.
+
+## 5. Navegador — `localStorage` (lo poco que queda ahí)
+
+Solo preferencias de interfaz, nunca datos de negocio:
+
+- `africa_tools_theme` — tema del shell (claro/oscuro)
+- `africa_labels_theme`, `africa_habladores_theme`, `africa_wow_theme`, `africa_wow_scores_theme`, `af_theme`, `africa-theme` — cada módulo guarda su propio tema por separado (así puede recordarlo incluso si se abre suelto, fuera del shell)
+- `africa_tools_login_attempts` (en `sessionStorage`, no `localStorage`) — límite de intentos de login, se borra solo al cerrar la pestaña
+
+## 6. Navegador — IndexedDB (`africa-tools-offline`), modo sin conexión
+
+Usada por `assets/offline-storage.js`, la capa compartida que permite seguir trabajando sin señal en Limpieza, Líder de Seguridad, Wow Tablero, Folders, Habladores y Wow Calificación:
+
+- **Store `cache`**: última copia conocida de cada dato (`{id: "modulo::clave", module, key, value, updatedAt}`) — lo que se muestra en pantalla cuando no hay conexión.
+- **Store `queue`**: cambios guardados localmente que todavía no se subieron a Supabase (`{id, module, key, value, updatedAt}`) — se reintenta solo al reconectar y cada 30 segundos.
+
+El indicador de conexión del shell muestra cuántos cambios quedan pendientes de subir cuando esta cola no está vacía.
+
+## Respaldo y restauración
+
+Ya **no existe** el botón de "Respaldo de datos" (exportar/restaurar un `.json`) que tenía el panel de Administración — tenía sentido cuando todo vivía en `localStorage` de un solo dispositivo, pero ahora los datos ya están en Supabase, con toda la durabilidad y las copias de seguridad que da esa plataforma. Sacarlo del panel es parte de la limpieza de esta ronda.
+
+## Netlify Function: `manage-user.js`
+
+La única pieza que corre en un servidor, no en el navegador. Usa la llave `service_role` de Supabase (variable de entorno en Netlify, nunca en el código) para crear y eliminar cuentas — acciones que requieren privilegios que el navegador nunca debe tener. Verifica primero, contra el propio servidor, que quien está llamando sea un administrador activo.

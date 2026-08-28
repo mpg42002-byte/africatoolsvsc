@@ -11,40 +11,25 @@
 <script src="../../assets/offline-storage.js"></script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>City Park Africa – Limpieza</title>
+<title>Limpieza · Africa Parque de Diversiones</title>
+<link rel="icon" type="image/svg+xml" href="../../assets/icons/icon.svg">
+<link rel="stylesheet" href="../../assets/design-tokens.css">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
+/* Paleta, tipografía y radios base ahora vienen de design-tokens.css
+   (linkeado arriba). Aquí solo quedan los tokens propios de este
+   módulo o los que se apartan intencionalmente del token compartido. */
 :root {
-  --af-orange: #E85D25; --af-amber: #F5A623; --af-red: #D9481F; 
-  --af-coffee: #4A2F1F; --af-yellow: #F5D414; --af-green: #7CB342; 
-  --af-cream: #EDE0C8; --af-white: #FFFFFF;
-  --font-heading: 'Fredoka', sans-serif; --font-body: 'Nunito', sans-serif; --font-mono: 'Nunito', monospace;
-  --bg-body: var(--af-cream);
-  --bg-pattern: radial-gradient(rgba(245, 166, 35, 0.15) 2px, transparent 2px);
-  --text-main: var(--af-coffee);
-  --card-bg: var(--af-white); --card-bg-hover: #F8F1E1; --card-border: #D8B37C;
-  --card-shadow: rgba(0,0,0,0.1); --text-card: var(--af-coffee); --text-muted: #68452C;
-  --primary: var(--af-orange); --primary-shadow: #B54215; --primary-text: var(--af-white);
-  --secondary: var(--af-amber); --secondary-shadow: #C48214; --secondary-text: var(--af-coffee);
-  --accent-badge: var(--af-green); --danger: var(--af-red); --success: var(--af-green);
-  --line: #D8B37C; --input-bg: var(--af-white);
-  
+  --font-mono: 'Nunito', monospace;
+  --card-bg-hover: #F8F1E1; /* diverge del token compartido (#F9F9F9) */
   --alta: #FFCCCC; --media: #FFF3CD; --baja: #D4EDDA; --solo: #FFE0CC;
-  --radius: 24px;
+  --radius: var(--radius-lg);
 }
-[data-theme="dark"] {
-  --bg-body: #1E1610;
-  --bg-pattern: radial-gradient(rgba(245, 166, 35, 0.05) 2px, transparent 2px);
-  --text-main: #F5EBDA;
-  --card-bg: #2A1E14; --card-bg-hover: #33261A; --card-border: #4A3624;
-  --card-shadow: #0F0A07; --text-card: #F5EBDA; --text-muted: #D9BE9D;
-  --primary: var(--af-orange); --primary-shadow: #A33A10; --primary-text: var(--af-white);
-  --secondary: var(--af-amber); --secondary-text: var(--af-coffee);
-  --line: #4A3624; --input-bg: #1E1610;
-}
+/* [data-theme="dark"]: idéntico al de design-tokens.css salvo las
+   variantes de --alta/--media/--baja propias de este módulo. */
+[data-theme="dark"] { --alta: #5C1414; --media: #5A4712; --baja: #1F4A2C; }
 [data-theme="dark"] .badge-pair{background:rgba(124,179,66,0.32);color:#A6D785}
 [data-theme="dark"] .badge-solo{background:rgba(232,93,37,0.32);color:#FFAD7A}
-[data-theme="dark"] { --alta: #5C1414; --media: #5A4712; --baja: #1F4A2C; }
 [data-theme="dark"] .badge-alta{color:#FF9E9E}
 [data-theme="dark"] .badge-media{color:#F5D97A}
 [data-theme="dark"] .badge-baja{color:#8FDCA8}
@@ -345,7 +330,6 @@ table.sched tr:last-child td{border-bottom:none}
 </head>
 <body data-theme="dark">
 <nav>
-  <div class="logo">🦁 AFRICA <span style="font-size:12px;font-family:var(--font-body);font-weight:700;color:var(--text-muted);letter-spacing:0;margin-left:6px;text-transform:none">limpieza</span></div>
   <!-- Botón de exportar omitido (global en admin) -->
   <div class="nav-tabs">
     <button class="nav-tab active" onclick="showPage('horario')">📋 Horario</button>
