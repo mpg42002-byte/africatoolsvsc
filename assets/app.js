@@ -480,6 +480,13 @@ async function renderAdmin() {
         showShellToast('Usuario eliminado.');
       });
       actionsTd.appendChild(deleteBtn);
+
+      const resetBtn = document.createElement('button');
+      resetBtn.className = 'btn-secondary';
+      resetBtn.style.marginLeft = '6px';
+      resetBtn.textContent = 'Resetear clave';
+      resetBtn.addEventListener('click', () => openResetPasswordModal(u));
+      actionsTd.appendChild(resetBtn);
     } else if (isSelf) {
       const selfLabel = document.createElement('span');
       selfLabel.textContent = 'Tu usuario';
@@ -724,6 +731,66 @@ function showConfirm(title, body) {
     cancelBtn.addEventListener('click', onCancel);
     acceptBtn.addEventListener('click', onAccept);
   });
+}
+
+/* ---------- RESETEO DE CONTRASEÑA POR UN ADMIN ---------- */
+function openResetPasswordModal(targetUser) {
+  const backdrop = document.getElementById('reset-pw-modal-backdrop');
+  if (!backdrop) return;
+
+  document.getElementById('reset-pw-target-label').textContent =
+    `Vas a definir una clave temporal para ${targetUser.nombre || targetUser.usuario}. Deberá cambiarla en su próximo ingreso.`;
+  const claveInput = document.getElementById('reset-pw-clave');
+  const clave2Input = document.getElementById('reset-pw-clave2');
+  const errorBox = document.getElementById('reset-pw-error');
+  claveInput.value = '';
+  clave2Input.value = '';
+  errorBox.classList.add('hidden');
+  backdrop.classList.remove('hidden');
+
+  const cancelBtn = document.getElementById('reset-pw-cancel');
+  const saveBtn = document.getElementById('reset-pw-save');
+
+  const cleanup = () => {
+    backdrop.classList.add('hidden');
+    cancelBtn.removeEventListener('click', onCancel);
+    saveBtn.removeEventListener('click', onSave);
+  };
+  const onCancel = () => cleanup();
+  const onSave = async () => {
+    const clave = claveInput.value;
+    const clave2 = clave2Input.value;
+    errorBox.classList.add('hidden');
+
+    if (!clave || clave.length < 6) {
+      errorBox.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+      errorBox.classList.remove('hidden');
+      return;
+    }
+    if (clave !== clave2) {
+      errorBox.textContent = 'Las contraseñas no coinciden.';
+      errorBox.classList.remove('hidden');
+      return;
+    }
+
+    saveBtn.disabled = true;
+    saveBtn.textContent = 'Guardando...';
+    const result = await resetPasswordRemote(targetUser.id, clave);
+    saveBtn.disabled = false;
+    saveBtn.textContent = 'Resetear clave';
+
+    if (!result.ok) {
+      errorBox.textContent = result.error || 'No se pudo resetear la clave.';
+      errorBox.classList.remove('hidden');
+      return;
+    }
+
+    await logActivity(`Reseteó la contraseña de: ${targetUser.nombre || targetUser.usuario}`);
+    cleanup();
+    showShellToast('Contraseña actualizada. La persona deberá cambiarla en su próximo ingreso.');
+  };
+  cancelBtn.addEventListener('click', onCancel);
+  saveBtn.addEventListener('click', onSave);
 }
 
 /* ---------- CAMBIO DE CONTRASEÑA OBLIGATORIO (primer login) ---------- */

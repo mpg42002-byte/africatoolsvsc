@@ -128,6 +128,37 @@ exports.handler = async (event) => {
       return { statusCode: 200, body: JSON.stringify({ ok: true }) };
     }
 
+    if (body.action === 'reset-password') {
+      const { id, nuevaClave } = body;
+      if (!id || !nuevaClave) {
+        return { statusCode: 400, body: JSON.stringify({ error: 'Falta el id del usuario o la nueva clave.' }) };
+      }
+      if (nuevaClave.length < 6) {
+        return { statusCode: 400, body: JSON.stringify({ error: 'La nueva clave debe tener al menos 6 caracteres.' }) };
+      }
+
+      const resetRes = await supabaseFetch(`/auth/v1/admin/users/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ password: nuevaClave }),
+      });
+      if (!resetRes.ok) {
+        const msg = (resetRes.data && (resetRes.data.msg || resetRes.data.error_description)) || 'No se pudo cambiar la clave.';
+        return { statusCode: 400, body: JSON.stringify({ error: msg }) };
+      }
+
+      // Forzamos a que la persona la cambie apenas entre, igual que un usuario nuevo.
+      const flagRes = await supabaseFetch(`/rest/v1/profiles?id=eq.${id}`, {
+        method: 'PATCH',
+        headers: { 'Prefer': 'return=minimal' },
+        body: JSON.stringify({ must_change_password: true }),
+      });
+      if (!flagRes.ok) {
+        // La clave sí quedó cambiada; esto solo es un detalle de UX, no lo tratamos como error fatal.
+        return { statusCode: 200, body: JSON.stringify({ ok: true, warning: 'Clave cambiada, pero no se pudo marcar el cambio obligatorio en el próximo login.' }) };
+      }
+      return { statusCode: 200, body: JSON.stringify({ ok: true }) };
+    }
+
     return { statusCode: 400, body: JSON.stringify({ error: 'Acción no reconocida.' }) };
   } catch (e) {
     return { statusCode: 500, body: JSON.stringify({ error: 'Error inesperado del servidor.' }) };

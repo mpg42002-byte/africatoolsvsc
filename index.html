@@ -222,6 +222,27 @@
   </div>
 </div>
 
+<!-- Modal para que un admin resetee la clave de otra persona -->
+<div id="reset-pw-modal-backdrop" class="modal-backdrop hidden">
+  <div class="modal-card">
+    <h3>Resetear contraseña</h3>
+    <p id="reset-pw-target-label" style="font-size:13px; color:var(--text-muted); margin-top:-6px;"></p>
+    <div class="field">
+      <label for="reset-pw-clave">Nueva contraseña temporal</label>
+      <input id="reset-pw-clave" type="password" autocomplete="new-password" />
+    </div>
+    <div class="field">
+      <label for="reset-pw-clave2">Confirmar contraseña</label>
+      <input id="reset-pw-clave2" type="password" autocomplete="new-password" />
+    </div>
+    <div id="reset-pw-error" class="login-error hidden"></div>
+    <div class="modal-actions">
+      <button id="reset-pw-cancel" class="btn-secondary">Cancelar</button>
+      <button id="reset-pw-save" class="btn-primary" style="width:auto; padding:10px 18px;">Resetear clave</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal de confirmación personalizado -->
 <div id="confirm-modal-backdrop" class="modal-backdrop hidden">
   <div class="modal-card confirm-card">

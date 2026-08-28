@@ -132,6 +132,13 @@ async function deleteUserRemote(id) {
   return callManageUserFunction('delete', { id });
 }
 
+// Permite que un administrador resetee la clave de otra persona (ej. si se
+// bloqueó y no tiene forma de recuperarla por su cuenta). Marca la cuenta
+// para que la persona deba cambiarla de nuevo en su próximo login.
+async function resetPasswordRemote(id, nuevaClave) {
+  return callManageUserFunction('reset-password', { id, nuevaClave });
+}
+
 function getLoginAttempts() {
   try {
     const raw = sessionStorage.getItem(STORAGE_LOGIN_ATTEMPTS);

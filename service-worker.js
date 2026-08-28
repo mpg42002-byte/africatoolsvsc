@@ -1,6 +1,6 @@
 /* AFRICA TOOLS · SERVICE WORKER */
 
-const CACHE_NAME = 'africa-tools-v16';
+const CACHE_NAME = 'africa-tools-v18';
 
 const CORE_ASSETS = [
   './',
@@ -17,6 +17,10 @@ const CORE_ASSETS = [
   './assets/icons/icon-192.png',
   './assets/icons/icon-512.png',
   './assets/icons/icon-maskable-512.png',
+  './assets/icons/shared/logo-951292dae0.jpg',
+  './assets/icons/shared/logo-24b168388c.png',
+  './assets/icons/shared/logo-5de33a18b7.jpg',
+  './assets/fonts/raspberry-sherbet.ttf',
   './modules/limpieza/africaLimpieza.html',
   './modules/inventario/africaInventario.html',
   './modules/lider/LiderAfrica.html',
@@ -24,6 +28,8 @@ const CORE_ASSETS = [
   './modules/wow-tablero/tablero-wow-points.html',
   './modules/wow-calificacion/calificacion-wow-points.html',
   './modules/habladores/habladores-winner.html',
+  './modules/diaadia/africaDiaADia.html',
+  './modules/agenda/AgendaFiestas.html',
 ];
 
 self.addEventListener('install', (event) => {

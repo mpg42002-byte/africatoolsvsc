@@ -1030,8 +1030,18 @@ async function generatePdfFromHtml(html, filenameBase){
     const filename=`${filenameBase}.pdf`;
     const blob=pdf.output('blob');
 
+    // El Web Share API (panel de "compartir" del sistema) solo tiene sentido
+    // en celular — es lo que evita el atrapamiento de navegación en PWA de
+    // iOS/Android. En Windows/Mac/Linux, Chrome/Brave/Edge también exponen
+    // navigator.share con archivos, pero ahí abre el panel de "compartir" de
+    // Windows (Tu Teléfono, contactos, WhatsApp Desktop, etc.) en vez de
+    // simplemente descargar — confuso en escritorio, donde no hace falta:
+    // window.open nunca estuvo atrapado ahí. Por eso el share solo se
+    // intenta en un teléfono real.
+    const esCelular = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
     let shared=false;
-    if(navigator.canShare){
+    if(esCelular && navigator.canShare){
       try{
         const file=new File([blob],filename,{type:'application/pdf'});
         if(navigator.canShare({files:[file]})){
