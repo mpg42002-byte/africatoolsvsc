@@ -21,9 +21,11 @@
    módulo o los que se apartan intencionalmente del token compartido. */
 :root {
   --font-mono: 'Nunito', monospace;
-  --card-bg-hover: #F8F1E1; /* diverge del token compartido (#F9F9F9) */
   --alta: #FFCCCC; --media: #FFF3CD; --baja: #D4EDDA; --solo: #FFE0CC;
   --radius: var(--radius-lg);
+}
+:root:not([data-theme="dark"]) {
+  --card-bg-hover: #F8F1E1; /* diverge del token compartido (#F9F9F9), solo en modo claro */
 }
 /* [data-theme="dark"]: idéntico al de design-tokens.css salvo las
    variantes de --alta/--media/--baja propias de este módulo. */
@@ -328,7 +330,7 @@ table.sched tr:last-child td{border-bottom:none}
   document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
 </script>
 </head>
-<body data-theme="dark">
+<body>
 <nav>
   <!-- Botón de exportar omitido (global en admin) -->
   <div class="nav-tabs">
@@ -451,24 +453,25 @@ table.sched tr:last-child td{border-bottom:none}
 <script>
 // ── THEME TOGGLE ───────────────────────────────────────────────────────────
 function toggleTheme(){
-  const body = document.body;
-  const currentTheme = body.getAttribute('data-theme');
+  const root = document.documentElement;
+  const currentTheme = root.getAttribute('data-theme');
   const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-  body.setAttribute('data-theme', newTheme);
+  root.setAttribute('data-theme', newTheme);
   const btn = document.querySelector('.theme-toggle');
   btn.textContent = newTheme === 'dark' ? '🌙' : '☀️';
   btn.setAttribute('aria-label', newTheme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
-  try { localStorage.setItem('af_theme', newTheme); } catch(e){}
+  try { localStorage.setItem('africa_tools_theme', newTheme); } catch(e){}
 }
 (function(){
   try {
-    const saved = localStorage.getItem('af_theme');
-    if(saved){
-      document.body.setAttribute('data-theme', saved);
-      const themeBtn = document.querySelector('.theme-toggle');
-      themeBtn.textContent = saved === 'dark' ? '🌙' : '☀️';
-      themeBtn.setAttribute('aria-label', saved === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
-    }
+    // El tema que trae el shell (vía ?theme= en la URL, ya aplicado arriba
+    // en <head>) siempre manda. Solo si el módulo se abre suelto, sin shell,
+    // se usa la última preferencia guardada.
+    const initial = document.documentElement.getAttribute('data-theme') || localStorage.getItem('africa_tools_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', initial);
+    const themeBtn = document.querySelector('.theme-toggle');
+    themeBtn.textContent = initial === 'dark' ? '🌙' : '☀️';
+    themeBtn.setAttribute('aria-label', initial === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
   }catch(e){}
 })();
 
@@ -1305,13 +1308,13 @@ function removeTask(i){
 window.addEventListener('message', function(e){
   if(!e.data || e.data.type !== 'africa-tools-set-theme') return;
   var theme = e.data.theme === 'dark' ? 'dark' : 'light';
-  document.body.setAttribute('data-theme', theme);
+  document.documentElement.setAttribute('data-theme', theme);
   var btn = document.querySelector('.theme-toggle');
   if(btn){
     btn.textContent = theme === 'dark' ? '🌙' : '☀️';
     btn.setAttribute('aria-label', theme === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
   }
-  try { localStorage.setItem('af_theme', theme); } catch(err){}
+  try { localStorage.setItem('africa_tools_theme', theme); } catch(err){}
 });
 if (window.parent !== window) { var localToggle = document.querySelector('.theme-toggle'); if (localToggle) localToggle.style.display = 'none'; }
 

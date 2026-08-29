@@ -25,8 +25,6 @@
      abajo. [data-theme="dark"] es idéntico al de design-tokens.css,
      ya no se redeclara. */
   :root {
-    --card-bg-hover: #F8F1E1; /* diverge del token compartido (#F9F9F9) */
-    --text-muted: #5C3A22; /* diverge del token compartido (#68452C) */
     --primary-btn-bg: #D14E1C;
 
     --accent-badge: var(--af-yellow); /* diverge: el resto de la app usa --af-green */
@@ -49,6 +47,10 @@
     --radius-sm: 8px; /* diverge del token compartido (12px) */
     --radius-md: 16px; /* diverge del token compartido (18px) */
     --radius-pill: 999px;
+  }
+  :root:not([data-theme="dark"]) {
+    --card-bg-hover: #F8F1E1; /* diverge del token compartido (#F9F9F9), solo en modo claro */
+    --text-muted: #5C3A22; /* diverge del token compartido (#68452C), solo en modo claro */
   }
   * { box-sizing: border-box; }
   

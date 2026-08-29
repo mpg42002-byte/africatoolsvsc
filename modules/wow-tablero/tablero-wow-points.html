@@ -19,8 +19,8 @@
    (linkeado arriba). Aquí solo queda lo que se aparta intencionalmente
    del token compartido. [data-theme="dark"] es idéntico al de
    design-tokens.css, ya no se redeclara. */
-:root {
-  --card-bg-hover: #F8F1E1; /* diverge del token compartido (#F9F9F9) */
+:root:not([data-theme="dark"]) {
+  --card-bg-hover: #F8F1E1; /* diverge del token compartido (#F9F9F9), solo en modo claro */
 }
 *{box-sizing:border-box;}
 html,body{margin:0;padding:0;}
@@ -937,7 +937,7 @@ function applyTheme(theme){
 themeToggle.addEventListener('click', ()=>{
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   const next = isDark ? 'light' : 'dark';
-  localStorage.setItem('africa_wow_theme', next);
+  localStorage.setItem('africa_tools_theme', next);
   applyTheme(next);
 });
 
@@ -946,7 +946,7 @@ themeToggle.addEventListener('click', ()=>{
   await loadEmployees();
   await loadSelection();
   renderRoster();
-  applyTheme(localStorage.getItem('africa_wow_theme') || 'dark');
+  applyTheme(document.documentElement.getAttribute('data-theme') || localStorage.getItem('africa_tools_theme') || 'light');
   pagesWrap.style.transform = 'scale(0.55)';
 })();
 </script>
@@ -956,7 +956,7 @@ window.addEventListener('message', function(e){
   if(!e.data || e.data.type !== 'africa-tools-set-theme') return;
   var theme = e.data.theme === 'dark' ? 'dark' : 'light';
   if(typeof applyTheme === 'function') applyTheme(theme);
-  try { localStorage.setItem('africa_wow_theme', theme); } catch(err){}
+  try { localStorage.setItem('africa_tools_theme', theme); } catch(err){}
 });
 if (window.parent !== window) { var localToggle = document.getElementById('themeToggle'); if (localToggle) localToggle.style.display = 'none'; }
 </script>

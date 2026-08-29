@@ -31,10 +31,12 @@
 }
 /* Paleta base viene de design-tokens.css (linkeado arriba). Este
    módulo invierte intencionalmente el esquema claro (fondo oscuro,
-   texto claro, tarjeta clara) para el look de los "habladores"; por
-   eso redeclara --bg-body/--text-main/--card-bg/--card-shadow/
-   --text-muted en vez de heredarlos. */
-:root {
+   texto claro, tarjeta clara) para el look de los "habladores" —
+   pero SOLO en modo claro. Se usa :not([data-theme="dark"]) para que,
+   en modo oscuro, el módulo caiga limpiamente en la paleta oscura
+   compartida (igual que el resto de la app) en vez de que esta regla
+   le gane por especificidad/orden. */
+:root:not([data-theme="dark"]) {
   --bg-body: var(--af-coffee);
   --text-main: var(--af-cream);
   --card-bg: var(--af-cream); --card-bg-hover: #F8F1E1; /* card-bg-hover diverge del token compartido (#F9F9F9) */
@@ -824,14 +826,14 @@ function applyTheme(theme){
 themeToggle.addEventListener('click', ()=>{
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   const next = isDark ? 'light' : 'dark';
-  localStorage.setItem('africa_habladores_theme', next);
+  localStorage.setItem('africa_tools_theme', next);
   applyTheme(next);
 });
 
 (async function init(){
   await loadEntries();
   renderEntryList();
-  applyTheme(localStorage.getItem('africa_habladores_theme') || 'dark');
+  applyTheme(document.documentElement.getAttribute('data-theme') || localStorage.getItem('africa_tools_theme') || 'light');
   pagesWrap.style.transform = 'scale(0.55)';
 })();
 </script>
@@ -841,7 +843,7 @@ window.addEventListener('message', function(e){
   if(!e.data || e.data.type !== 'africa-tools-set-theme') return;
   var theme = e.data.theme === 'dark' ? 'dark' : 'light';
   if(typeof applyTheme === 'function') applyTheme(theme);
-  try { localStorage.setItem('africa_habladores_theme', theme); } catch(err){}
+  try { localStorage.setItem('africa_tools_theme', theme); } catch(err){}
 });
 if (window.parent !== window) { var localToggle = document.getElementById('themeToggle'); if (localToggle) localToggle.style.display = 'none'; }
 </script>

@@ -19,8 +19,10 @@
    módulo o los que se apartan intencionalmente del token compartido. */
 :root {
   --font-mono: 'Nunito', monospace;
-  --card-bg-hover: #F8F1E1; /* diverge del token compartido (#F9F9F9) */
   --radius:10px;
+}
+:root:not([data-theme="dark"]) {
+  --card-bg-hover: #F8F1E1; /* diverge del token compartido (#F9F9F9), solo en modo claro */
 }
 /* [data-theme="dark"]: idéntico al de design-tokens.css, ya no se
    redeclara aquí. */
@@ -1052,7 +1054,7 @@ function applyTheme(theme){
 themeToggle.addEventListener('click', ()=>{
   const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
   const next = isDark ? 'light' : 'dark';
-  localStorage.setItem('africa_labels_theme', next);
+  localStorage.setItem('africa_tools_theme', next);
   applyTheme(next);
 });
 
@@ -1061,7 +1063,7 @@ themeToggle.addEventListener('click', ()=>{
   const lastFmt = await mdGet('africa_labels_last_format', 'folders');
   await setFormat(lastFmt);
   pagesWrap.style.transform = 'scale(0.55)';
-  applyTheme(localStorage.getItem('africa_labels_theme') || 'dark');
+  applyTheme(document.documentElement.getAttribute('data-theme') || localStorage.getItem('africa_tools_theme') || 'light');
 })();
 </script>
 
@@ -1070,7 +1072,7 @@ window.addEventListener('message', function(e){
   if(!e.data || e.data.type !== 'africa-tools-set-theme') return;
   var theme = e.data.theme === 'dark' ? 'dark' : 'light';
   if(typeof applyTheme === 'function') applyTheme(theme);
-  try { localStorage.setItem('africa_labels_theme', theme); } catch(err){}
+  try { localStorage.setItem('africa_tools_theme', theme); } catch(err){}
 });
 if (window.parent !== window) { var localToggle = document.getElementById('themeToggle'); if (localToggle) localToggle.style.display = 'none'; }
 </script>

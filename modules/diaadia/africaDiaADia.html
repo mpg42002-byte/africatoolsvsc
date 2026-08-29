@@ -20,7 +20,9 @@
    módulo o los que se apartan intencionalmente del token compartido. */
 :root {
   --af-blue: #3B82C4;
-  --card-bg-hover: #F8F1E1; /* diverge del token compartido (#F9F9F9) */
+}
+:root:not([data-theme="dark"]) {
+  --card-bg-hover: #F8F1E1; /* diverge del token compartido (#F9F9F9), solo en modo claro */
 }
 /* [data-theme="dark"]: idéntico al de design-tokens.css, ya no se
    redeclara aquí. */
@@ -1207,12 +1209,12 @@ document.getElementById('themeToggle').addEventListener('click', () => {
   const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
   const next = current === 'dark' ? 'light' : 'dark';
   applyTheme(next);
-  try { localStorage.setItem('africa_diaadia_theme', next); } catch(e){}
+  try { localStorage.setItem('africa_tools_theme', next); } catch(e){}
 });
 
 /* ---------- Init ---------- */
 (async function init(){
-  applyTheme(localStorage.getItem('africa_diaadia_theme') || document.documentElement.getAttribute('data-theme') || 'light');
+  applyTheme(document.documentElement.getAttribute('data-theme') || localStorage.getItem('africa_tools_theme') || 'light');
   await loadCurrentUserNombre();
   await loadTasks();
   renderTaskList();
@@ -1224,7 +1226,7 @@ window.addEventListener('message', function(e){
   if(!e.data || e.data.type !== 'africa-tools-set-theme') return;
   var theme = e.data.theme === 'dark' ? 'dark' : 'light';
   if(typeof applyTheme === 'function') applyTheme(theme);
-  try { localStorage.setItem('africa_diaadia_theme', theme); } catch(err){}
+  try { localStorage.setItem('africa_tools_theme', theme); } catch(err){}
 });
 if (window.parent !== window) { var localToggle = document.getElementById('themeToggle'); if (localToggle) localToggle.style.display = 'none'; }
 </script>

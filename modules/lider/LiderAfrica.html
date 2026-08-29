@@ -24,8 +24,10 @@
      --primary-text-safe/--danger-text-safe, propios del módulo. */
   :root {
     --font-mono: 'Nunito', monospace;
-    --card-bg-hover: #F8F1E1; /* diverge del token compartido (#F9F9F9) */
     --primary-text-safe: #B54215; --danger-text-safe: #B33814;
+  }
+  :root:not([data-theme="dark"]) {
+    --card-bg-hover: #F8F1E1; /* diverge del token compartido (#F9F9F9), solo en modo claro */
   }
   [data-theme="dark"] {
     --primary-text-safe: var(--af-orange); --danger-text-safe: var(--af-red);
@@ -1232,8 +1234,10 @@
     themeToggleBtn.setAttribute('aria-pressed', isDark ? 'true' : 'false');
   }
 
-  // Check saved theme preference
-  const savedTheme = localStorage.getItem('africa-theme') || 'light';
+  // El tema que trae el shell (vía ?theme= en la URL, ya aplicado arriba
+  // en <head>) siempre manda. Solo si el módulo se abre suelto, sin shell,
+  // se usa la última preferencia guardada.
+  const savedTheme = htmlRoot.getAttribute('data-theme') || localStorage.getItem('africa_tools_theme') || 'light';
   if(savedTheme === 'dark'){
     htmlRoot.setAttribute('data-theme', 'dark');
     setThemeIcon(true);
@@ -1245,11 +1249,11 @@
   themeToggleBtn.addEventListener('click', ()=>{
     if(htmlRoot.getAttribute('data-theme') === 'dark'){
       htmlRoot.removeAttribute('data-theme');
-      localStorage.setItem('africa-theme', 'light');
+      localStorage.setItem('africa_tools_theme', 'light');
       setThemeIcon(false);
     } else {
       htmlRoot.setAttribute('data-theme', 'dark');
-      localStorage.setItem('africa-theme', 'dark');
+      localStorage.setItem('africa_tools_theme', 'dark');
       setThemeIcon(true);
     }
   });
@@ -2311,7 +2315,7 @@
       if(icon) icon.innerHTML = MOON_ICON;
       if(btn) btn.setAttribute('aria-pressed', 'false');
     }
-    try { localStorage.setItem('africa-theme', theme); } catch(err){}
+    try { localStorage.setItem('africa_tools_theme', theme); } catch(err){}
   });
 })();
 if (window.parent !== window) { var localToggle = document.getElementById('theme-toggle-btn'); if (localToggle) localToggle.style.display = 'none'; }
