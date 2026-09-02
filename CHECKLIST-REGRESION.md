@@ -25,7 +25,7 @@ Derivado del análisis real de cada archivo (no inventado). Marca cada punto la 
 - [ ] Semáforo EPP: registrar estado semanal
 - [ ] Checklist mensual: marcar ítems y que persistan
 - [ ] Banco de preguntas (Juegos ARL SURA): navegar y usar
-- [ ] Recursos y formularios: subir un archivo (imagen o PDF) y confirmar que se guarda (usa IndexedDB, no localStorage — probar que sobrevive a un refresh)
+- [ ] Recursos y formularios: subir un archivo (imagen o PDF) y confirmar que se guarda (va directo a Supabase — `lider_shared_data`, compartido con todo el equipo, sin cola offline — probar que sobrevive a un refresh y que otro líder lo ve al recargar)
 - [ ] Resumen del rol carga sin errores
 
 ## 4. Marcación Folders/Lockers/A-Z

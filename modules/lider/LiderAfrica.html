@@ -1484,7 +1484,18 @@
   });
 
   const fFecha = document.getElementById('f-fecha');
-  fFecha.valueAsDate = new Date();
+  // OJO: NO usar fFecha.valueAsDate = new Date() — valueAsDate interpreta
+  // el Date en UTC, no en hora local. En Colombia (UTC-5), desde las 7pm
+  // hora local en adelante ya es "mañana" en UTC, así que el campo quedaba
+  // autocompletado con el día siguiente al registrar de noche. Se arma el
+  // string YYYY-MM-DD a mano con los componentes LOCALES de la fecha.
+  (function setFechaHoyLocal(){
+    const hoy = new Date();
+    const y = hoy.getFullYear();
+    const m = String(hoy.getMonth() + 1).padStart(2, '0');
+    const d = String(hoy.getDate()).padStart(2, '0');
+    fFecha.value = `${y}-${m}-${d}`;
+  })();
 
   let eppLog = [];
   const EPP_EMPTY_TEXT = 'Aún no hay abordajes registrados.';

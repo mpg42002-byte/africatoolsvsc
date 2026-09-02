@@ -26,7 +26,7 @@ must_change_password boolean not null default false
 created_at timestamptz not null default now()
 ```
 
-Roles válidos hoy: `administrador`, `supervisor`, `lider-seguridad`. Seguridad por fila (RLS): cada quien lee su propio perfil; solo administradores leen/editan/eliminan cualquier perfil (verificado con la función `is_admin()` + un trigger `prevent_self_privilege_escalation` que bloquea que alguien se autoasigne un rol).
+Roles válidos hoy (ver `assets/permissions.js`, objeto `ROLES` — usan guion bajo, no guion): `administrador`, `supervisor`, `lider_parque`, `lider_seguridad`, `cajero`, `anfitrion_fiesta`. Seguridad por fila (RLS): cada quien lee su propio perfil; solo administradores leen/editan/eliminan cualquier perfil (verificado con la función `is_admin()` + un trigger `prevent_self_privilege_escalation` que bloquea que alguien se autoasigne un rol).
 
 ## 3. Supabase — tabla `activity_log`
 
@@ -60,15 +60,44 @@ Es **100% privado por persona** — nadie más, ni siquiera un administrador, pu
 | Módulo (`module`) | Claves (`key`) |
 |---|---|
 | `limpieza` | `emp`, `hist`, `maq`, `sched`, `taskSel`, `tasks`, `lastResult` |
-| `lider` | `epp-log`, `checklist-YYYY-MM` (una por mes), `archivos-formatos`, `recursos-formularios`, `recursos-sst`, `escalera-preguntas`, `temas-sst` |
 | `wow-tablero` | `africa_wow_employees`, `africa_wow_selected` |
 | `folders` | `africa_labels_folders`/`az`/`lockers`, `africa_labels_last_format`, `africa_combo_folders`/`az`/`lockers` |
 | `habladores` | `africa_habladores` |
 | `wow-calificacion` | `africa_wow_scores` |
 
-Inventario es el único módulo sin datos persistentes — su flujo es solo subir un PDF y descargar el Excel resultante, no hay nada que guardar entre sesiones.
+Inventario es el único módulo sin datos persistentes — su flujo es solo subir un PDF y descargar el Excel resultante, no hay nada que guardar entre sesiones. **Líder de Seguridad tampoco usa esta tabla** — ver sección 5, es el único módulo con datos compartidos en vez de privados por persona.
 
-## 5. Navegador — `localStorage` (lo poco que queda ahí)
+## 5. Supabase — `lider_shared_data` y `lider_abordajes` (datos compartidos de Líder de Seguridad)
+
+A diferencia de todos los demás módulos, Líder de Seguridad **no** guarda en `module_data` — sus datos son compartidos entre todo el equipo con acceso al módulo (administrador, supervisor, líder de parque, líder de seguridad), no privados por persona.
+
+**`lider_shared_data`** (clave/valor, igual de genérica que `module_data` pero sin `user_id`):
+
+```sql
+key text primary key
+value jsonb not null
+updated_by uuid references auth.users(id)
+updated_at timestamptz not null default now()
+```
+
+Claves usadas: `checklist-YYYY-MM` (una por mes), `archivos-formatos`, `recursos-formularios`, `recursos-sst`, `escalera-preguntas`, `temas-sst`. Si un líder edita cualquiera de estos, todos los demás lo ven al recargar — es la fuente de verdad para el resumen del Dashboard también (`assets/app.js`, `renderDashboardSummary`, que lee la clave `checklist-YYYY-MM` de esta tabla, no de `module_data`).
+
+**`lider_abordajes`** (una fila por abordaje de EPP registrado, no clave/valor):
+
+```sql
+id bigint generated always as identity primary key
+fecha date not null
+trabajador_nombre text not null
+color text not null           -- 'verde' | 'amarillo' | 'rojo'
+nota text
+registrado_por_id uuid references auth.users(id)
+registrado_por_nombre text
+created_at timestamptz not null default now()
+```
+
+También compartida y sin filtro por usuario — cualquier líder ve la bitácora completa, el resumen por trabajador y el reporte semanal con los abordajes de todo el equipo.
+
+## 6. Navegador — `localStorage` (lo poco que queda ahí)
 
 Solo preferencias de interfaz, nunca datos de negocio:
 
@@ -76,9 +105,9 @@ Solo preferencias de interfaz, nunca datos de negocio:
 - `africa_labels_theme`, `africa_habladores_theme`, `africa_wow_theme`, `africa_wow_scores_theme`, `af_theme`, `africa-theme` — cada módulo guarda su propio tema por separado (así puede recordarlo incluso si se abre suelto, fuera del shell)
 - `africa_tools_login_attempts` (en `sessionStorage`, no `localStorage`) — límite de intentos de login, se borra solo al cerrar la pestaña
 
-## 6. Navegador — IndexedDB (`africa-tools-offline`), modo sin conexión
+## 7. Navegador — IndexedDB (`africa-tools-offline`), modo sin conexión
 
-Usada por `assets/offline-storage.js`, la capa compartida que permite seguir trabajando sin señal en Limpieza, Líder de Seguridad, Wow Tablero, Folders, Habladores y Wow Calificación:
+Usada por `assets/offline-storage.js`, la capa compartida que permite seguir trabajando sin señal en Limpieza, Wow Tablero, Folders, Habladores y Wow Calificación. **Líder de Seguridad no la usa** — ese módulo no carga `offline-storage.js` y habla directo con Supabase (`lider_shared_data`/`lider_abordajes`); sin conexión, cada guardado o carga simplemente falla con un aviso en pantalla, sin cola de reintento.
 
 - **Store `cache`**: última copia conocida de cada dato (`{id: "modulo::clave", module, key, value, updatedAt}`) — lo que se muestra en pantalla cuando no hay conexión.
 - **Store `queue`**: cambios guardados localmente que todavía no se subieron a Supabase (`{id, module, key, value, updatedAt}`) — se reintenta solo al reconectar y cada 30 segundos.

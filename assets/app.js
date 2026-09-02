@@ -377,16 +377,20 @@ function renderDashboardSummary(permitted) {
   if (currentUser.roles.includes('lider_seguridad')) {
     const now = new Date();
     const monthKey = 'checklist-' + now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    // El checklist de Líder de Seguridad vive en lider_shared_data (tabla
+    // compartida entre todo el equipo, sin partición por usuario) — NO en
+    // module_data como los demás módulos. Su columna "value" ya es un
+    // objeto jsonb (no hace falta JSON.parse).
     supabaseClient
-      .from('module_data')
+      .from('lider_shared_data')
       .select('value')
-      .eq('user_id', currentUser.id).eq('module', 'lider').eq('key', monthKey)
+      .eq('key', monthKey)
       .maybeSingle()
       .then(({ data, error }) => {
         let label = 'Checklist mensual sin iniciar';
         if (!error && data && data.value) {
           try {
-            const state = JSON.parse(data.value);
+            const state = data.value;
             const total = Object.keys(state).length;
             const done = Object.values(state).filter(Boolean).length;
             if (total > 0) label = `${done}/${total} tareas completadas este mes`;
@@ -668,9 +672,10 @@ async function openUserModal(existingUser) {
         saveBtn.textContent = originalText;
         return;
       }
-      // Cambiar la contraseña de OTRA persona necesita privilegios que el
-      // navegador nunca debe tener — solo se puede cambiar la propia.
-      // Queda pendiente para una fase posterior (reset de clave por admin).
+      // Este modal edita nombre/roles, no la contraseña de otra persona —
+      // eso necesita privilegios que el navegador nunca debe tener y ya
+      // está resuelto aparte, con el botón "Resetear clave" de la tabla
+      // (ver openResetPasswordModal / resetPasswordRemote más abajo).
       await logActivity(`Editó al usuario "${nombre || usuario}"`);
     } else {
       if (users.some(u => u.usuario.toLowerCase() === usuario.toLowerCase())) {
