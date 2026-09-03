@@ -80,6 +80,12 @@ button{font-family:inherit;}
 .main-wrap{ max-width:980px; margin:0 auto; padding:20px 20px 70px; }
 
 .toolbar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:18px; }
+.search-row{ display:flex; align-items:center; gap:8px; margin-bottom:18px; }
+.search-row input[type=text]{
+  flex:1; background:var(--input-bg); color:var(--text-card); border:2px solid var(--card-border);
+  border-radius:12px; padding:10px 14px; font-family:var(--font-body); font-size:14px;
+}
+.search-row input[type=text]:focus{ outline:2px solid var(--primary); outline-offset:1px; }
 .date-nav{ display:flex; align-items:center; gap:8px; }
 .date-nav input[type=date]{
   background:var(--input-bg); color:var(--text-card); border:2px solid var(--card-border);
@@ -93,6 +99,7 @@ button{font-family:inherit;}
 }
 .icon-btn:hover{transform:translateY(-1px); border-color:var(--primary);}
 .icon-btn.danger:hover{border-color:var(--danger); color:var(--danger);}
+.icon-btn[disabled]{opacity:.3; cursor:not-allowed; pointer-events:none;}
 .spacer{flex:1;}
 .tabs-sub{ display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
 .tab-sub-btn{
@@ -334,6 +341,11 @@ button{font-family:inherit;}
       <div class="spacer"></div>
     </div>
 
+    <div class="search-row">
+      <input type="text" id="agendaSearch" placeholder="🔍 Buscar por cliente, teléfono o tipo de fiesta…">
+      <button type="button" class="icon-btn" id="agendaSearchClear" title="Cerrar búsqueda" style="display:none;">✕</button>
+    </div>
+
     <!-- ---- Vista Día ---- -->
     <div id="view-day">
       <div id="eventList"></div>
@@ -354,6 +366,16 @@ button{font-family:inherit;}
     <div id="view-month" class="hidden">
       <div class="month-grid" id="monthGrid"></div>
       <div id="monthDayDetail" class="month-day-detail"></div>
+    </div>
+
+    <!-- ---- Resultados de búsqueda (todas las fechas) ---- -->
+    <div id="view-search" class="hidden">
+      <div id="searchResultsList"></div>
+      <div class="empty-msg hidden" id="emptySearchMsg">
+        <span class="emoji">🔍</span>
+        <h3>Sin resultados</h3>
+        <p>No hay eventos que coincidan con la búsqueda.</p>
+      </div>
     </div>
   </div>
 
@@ -392,6 +414,10 @@ button{font-family:inherit;}
         <input type="date" id="ef-fecha">
       </div>
     </div>
+    <div class="field">
+      <label for="ef-tipo">Tipo de fiesta</label>
+      <select id="ef-tipo"><option value="">— Sin especificar —</option></select>
+    </div>
     <div class="field-row">
       <div class="field">
         <label for="ef-hora-inicio">Hora inicio *</label>
@@ -406,10 +432,6 @@ button{font-family:inherit;}
       <label>Salón(es) *</label>
       <div class="room-checks" id="ef-room-checks"></div>
       <div class="field-error" id="ef-room-error">Selecciona al menos un salón disponible en ese horario.</div>
-    </div>
-    <div class="field">
-      <label for="ef-tipo">Tipo de fiesta</label>
-      <select id="ef-tipo"><option value="">— Sin especificar —</option></select>
     </div>
     <div class="field">
       <label for="ef-cliente">Nombre del cliente/responsable *</label>
@@ -555,12 +577,12 @@ function friendlyError(error){
 
 /* ---------- Carga de datos ---------- */
 async function loadRooms(){
-  const { data, error } = await supabaseClient.from('park_rooms').select('*').order('nombre');
+  const { data, error } = await supabaseClient.from('park_rooms').select('*').order('orden', { ascending: true });
   if (error) { toast('No se pudieron cargar los salones'); return; }
   rooms = data || [];
 }
 async function loadPartyTypes(){
-  const { data, error } = await supabaseClient.from('party_types').select('*').order('nombre');
+  const { data, error } = await supabaseClient.from('party_types').select('*').order('orden', { ascending: true });
   if (error) { toast('No se pudieron cargar los tipos de fiesta'); return; }
   partyTypes = data || [];
 }
@@ -683,7 +705,7 @@ function buildEventCard(ev){
       const btnEdit = document.createElement('button');
       btnEdit.className = 'icon-btn'; btnEdit.type = 'button'; btnEdit.title = 'Editar';
       btnEdit.textContent = '✏️';
-      btnEdit.addEventListener('click', () => openEventModal(ev.id));
+      btnEdit.addEventListener('click', () => openEventModal(ev.id, ev));
       actions.appendChild(btnEdit);
     }
 
@@ -907,7 +929,7 @@ document.getElementById('ef-save-btn').addEventListener('click', async () => {
 });
 
 /* ---------- Gestión: Salones y Tipos de fiesta ---------- */
-function buildManageItem(item, kind){
+function buildManageItem(item, kind, index, total){
   // kind: 'room' -> tabla park_rooms, lista `rooms`  |  'tipo' -> tabla party_types, lista `partyTypes`
   const table = kind === 'room' ? 'park_rooms' : 'party_types';
   const div = document.createElement('div');
@@ -919,6 +941,20 @@ function buildManageItem(item, kind){
   div.appendChild(nameSpan);
 
   if (canManage) {
+    const btnUp = document.createElement('button');
+    btnUp.className = 'icon-btn'; btnUp.type = 'button'; btnUp.title = 'Subir';
+    btnUp.textContent = '↑';
+    if (index === 0) btnUp.disabled = true;
+    btnUp.addEventListener('click', () => moveItem(item, kind, -1));
+    div.appendChild(btnUp);
+
+    const btnDown = document.createElement('button');
+    btnDown.className = 'icon-btn'; btnDown.type = 'button'; btnDown.title = 'Bajar';
+    btnDown.textContent = '↓';
+    if (index === total - 1) btnDown.disabled = true;
+    btnDown.addEventListener('click', () => moveItem(item, kind, 1));
+    div.appendChild(btnDown);
+
     const btnEdit = document.createElement('button');
     btnEdit.className = 'icon-btn'; btnEdit.type = 'button'; btnEdit.title = 'Renombrar';
     btnEdit.textContent = '✏️';
@@ -971,26 +1007,46 @@ function buildManageItem(item, kind){
   }
   return div;
 }
+// Intercambia el valor de `orden` de un ítem con su vecino (arriba o abajo)
+// y persiste ambas filas en Supabase. direction: -1 sube, +1 baja.
+async function moveItem(item, kind, direction){
+  const table = kind === 'room' ? 'park_rooms' : 'party_types';
+  const list = kind === 'room' ? rooms : partyTypes;
+  const idx = list.indexOf(item);
+  const swapIdx = idx + direction;
+  if (swapIdx < 0 || swapIdx >= list.length) return;
+  const other = list[swapIdx];
+  const ordenA = item.orden, ordenB = other.orden;
+  const [{ error: e1 }, { error: e2 }] = await Promise.all([
+    supabaseClient.from(table).update({ orden: ordenB }).eq('id', item.id),
+    supabaseClient.from(table).update({ orden: ordenA }).eq('id', other.id),
+  ]);
+  if (e1 || e2) { toast('No se pudo reordenar'); return; }
+  item.orden = ordenB; other.orden = ordenA;
+  list[idx] = other; list[swapIdx] = item;
+  kind === 'room' ? renderRoomsList() : renderTiposList();
+}
 function renderRoomsList(){
   const el = document.getElementById('roomsList');
   el.innerHTML = '';
   if (rooms.length === 0) { el.innerHTML = '<div class="empty-msg"><span class="emoji">🏛️</span><h3>Sin salones</h3><p>Agrega el primero arriba.</p></div>'; return; }
-  rooms.forEach(r => el.appendChild(buildManageItem(r, 'room')));
+  rooms.forEach((r, i) => el.appendChild(buildManageItem(r, 'room', i, rooms.length)));
 }
 function renderTiposList(){
   const el = document.getElementById('tiposList');
   el.innerHTML = '';
   if (partyTypes.length === 0) { el.innerHTML = '<div class="empty-msg"><span class="emoji">🎟️</span><h3>Sin tipos de fiesta</h3><p>Agrega el primero arriba.</p></div>'; return; }
-  partyTypes.forEach(t => el.appendChild(buildManageItem(t, 'tipo')));
+  partyTypes.forEach((t, i) => el.appendChild(buildManageItem(t, 'tipo', i, partyTypes.length)));
 }
 
 document.getElementById('btnAddRoom').addEventListener('click', async () => {
   const input = document.getElementById('newRoomName');
   const nombre = input.value.trim();
   if (!nombre) { toast('Escribe un nombre'); return; }
-  const { data, error } = await supabaseClient.from('park_rooms').insert({ nombre }).select().single();
+  const nextOrden = rooms.reduce((max, r) => Math.max(max, r.orden || 0), 0) + 1;
+  const { data, error } = await supabaseClient.from('park_rooms').insert({ nombre, orden: nextOrden }).select().single();
   if (error) { toast(error.message.includes('duplicate') ? 'Ya existe un salón con ese nombre' : 'No se pudo crear'); return; }
-  rooms.push(data); rooms.sort((a,b) => a.nombre.localeCompare(b.nombre));
+  rooms.push(data);
   input.value = '';
   renderRoomsList();
   toast('Salón creado');
@@ -999,9 +1055,10 @@ document.getElementById('btnAddTipo').addEventListener('click', async () => {
   const input = document.getElementById('newTipoName');
   const nombre = input.value.trim();
   if (!nombre) { toast('Escribe un nombre'); return; }
-  const { data, error } = await supabaseClient.from('party_types').insert({ nombre }).select().single();
+  const nextOrden = partyTypes.reduce((max, t) => Math.max(max, t.orden || 0), 0) + 1;
+  const { data, error } = await supabaseClient.from('party_types').insert({ nombre, orden: nextOrden }).select().single();
   if (error) { toast(error.message.includes('duplicate') ? 'Ya existe un tipo con ese nombre' : 'No se pudo crear'); return; }
-  partyTypes.push(data); partyTypes.sort((a,b) => a.nombre.localeCompare(b.nombre));
+  partyTypes.push(data);
   input.value = '';
   renderTiposList();
   toast('Tipo de fiesta creado');
@@ -1029,6 +1086,8 @@ function setDate(dateStr){
   renderCurrentView();
 }
 function renderCurrentView(){
+  const searchValue = document.getElementById('agendaSearch').value;
+  if (searchValue.trim().length >= 2) { runSearch(searchValue); return; }
   if (viewMode === 'day') renderAgendaDay();
   else if (viewMode === 'week') renderWeekView();
   else renderMonthView();
@@ -1058,6 +1117,55 @@ document.getElementById('dateNext').addEventListener('click', () => {
   else setDate(addMonthsStr(currentDate, 1));
 });
 document.getElementById('dateToday').addEventListener('click', () => setDate(todayStr()));
+
+/* ---------- Búsqueda de eventos (todas las fechas, no solo el día actual) ---------- */
+let searchDebounceTimer = null;
+async function searchEvents(query){
+  // Los paréntesis y comas rompen la sintaxis del filtro .or() de PostgREST,
+  // así que se quitan de la búsqueda (nombres/teléfonos no los necesitan).
+  const safeQ = query.trim().replace(/[,()]/g, '');
+  const { data, error } = await supabaseClient
+    .from('park_events')
+    .select('*, party_types(id,nombre), park_event_rooms(room_id, park_rooms(id,nombre))')
+    .or(`cliente_nombre.ilike.%${safeQ}%,telefono.ilike.%${safeQ}%,party_type_nombre.ilike.%${safeQ}%`)
+    .order('fecha', { ascending: false })
+    .limit(60);
+  if (error) { toast('No se pudo buscar'); return []; }
+  return data || [];
+}
+function setSearchViewVisible(visible){
+  document.getElementById('view-day').classList.toggle('hidden', visible || viewMode !== 'day');
+  document.getElementById('view-week').classList.toggle('hidden', visible || viewMode !== 'week');
+  document.getElementById('view-month').classList.toggle('hidden', visible || viewMode !== 'month');
+  document.getElementById('view-search').classList.toggle('hidden', !visible);
+  document.getElementById('agendaSearchClear').style.display = visible ? '' : 'none';
+}
+async function runSearch(query){
+  const q = query.trim();
+  if (q.length < 2) { setSearchViewVisible(false); return; }
+  setSearchViewVisible(true);
+  const results = await searchEvents(q);
+  const listEl = document.getElementById('searchResultsList');
+  const emptyEl = document.getElementById('emptySearchMsg');
+  listEl.innerHTML = '';
+  if (results.length === 0) {
+    emptyEl.classList.remove('hidden');
+  } else {
+    emptyEl.classList.add('hidden');
+    results.forEach(ev => listEl.appendChild(buildEventCard(ev)));
+  }
+}
+document.getElementById('agendaSearch').addEventListener('input', (e) => {
+  clearTimeout(searchDebounceTimer);
+  const value = e.target.value;
+  searchDebounceTimer = setTimeout(() => runSearch(value), 300);
+});
+document.getElementById('agendaSearchClear').addEventListener('click', () => {
+  const input = document.getElementById('agendaSearch');
+  input.value = '';
+  runSearch('');
+  input.focus();
+});
 
 function addMonthsStr(dateStr, n){
   const d = strToDate(dateStr);
@@ -1188,7 +1296,11 @@ async function renderMonthView(){
     const dots = estadosPresentes.map(es => `<span class="mc-dot ${es}"></span>`).join('');
     cell.innerHTML = `<span class="mc-num">${strToDate(cursor).getDate()}</span><span class="mc-dots">${dots}</span>`;
     const fechaCursor = cursor;
-    cell.addEventListener('click', () => { selectedMonthDay = fechaCursor; renderMonthView(); });
+    cell.addEventListener('click', () => {
+      selectedMonthDay = fechaCursor;
+      document.getElementById('agendaDate').value = fechaCursor;
+      renderMonthView();
+    });
     grid.appendChild(cell);
     cursor = addDaysStr(cursor, 1);
   }
