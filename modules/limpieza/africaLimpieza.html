@@ -312,13 +312,23 @@ table.sched tr:last-child td{border-bottom:none}
   *{transition-duration:0.01ms!important;animation-duration:0.01ms!important}
 }
 </style>
-
 <style>
   /* Prevenir Auto-Zoom en iOS al enfocar inputs y el molesto doble-tap zoom en componentes */
   @media (max-width: 768px) {
     input, select, textarea { font-size: 16px !important; }
   }
   * { touch-action: manipulation !important; }
+</style>
+<style>
+  #af-confirm-backdrop{position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; z-index:9999;}
+  #af-confirm-backdrop.hidden{display:none;}
+  #af-confirm-card{background:var(--card-bg); color:var(--text-card); border-radius:var(--radius); box-shadow:var(--shadow); padding:22px; max-width:360px; width:90%;}
+  #af-confirm-card h3{margin:0 0 8px; font-family:var(--font-heading); font-size:18px;}
+  #af-confirm-card p{margin:0 0 18px; font-size:14px; color:var(--text-muted);}
+  #af-confirm-actions{display:flex; justify-content:flex-end; gap:10px;}
+  #af-confirm-actions button{border:none; border-radius:8px; padding:9px 16px; font-family:var(--font-body); font-weight:700; font-size:14px; cursor:pointer;}
+  #af-confirm-cancel{background:var(--card-bg-hover); color:var(--text-main);}
+  #af-confirm-accept{background:var(--primary); color:var(--primary-text);}
 </style>
 <script>
   // touch-action:manipulation ya bloquea el doble-tap-zoom, pero Safari en iOS
@@ -331,6 +341,16 @@ table.sched tr:last-child td{border-bottom:none}
 </script>
 </head>
 <body>
+<div id="af-confirm-backdrop" class="hidden">
+  <div id="af-confirm-card">
+    <h3 id="af-confirm-title">¿Confirmar acción?</h3>
+    <p id="af-confirm-body"></p>
+    <div id="af-confirm-actions">
+      <button id="af-confirm-cancel">Cancelar</button>
+      <button id="af-confirm-accept">Confirmar</button>
+    </div>
+  </div>
+</div>
 <nav>
   <!-- Botón de exportar omitido (global en admin) -->
   <div class="nav-tabs">
@@ -451,6 +471,35 @@ table.sched tr:last-child td{border-bottom:none}
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
 <script>
+// ── CONFIRMACIÓN Y ESCAPE DE HTML ──────────────────────────────────────────
+function afConfirm(title, body) {
+  const backdrop = document.getElementById('af-confirm-backdrop');
+  document.getElementById('af-confirm-title').textContent = title;
+  document.getElementById('af-confirm-body').textContent = body || '';
+  backdrop.classList.remove('hidden');
+  return new Promise((resolve) => {
+    const cancelBtn = document.getElementById('af-confirm-cancel');
+    const acceptBtn = document.getElementById('af-confirm-accept');
+    const cleanup = (result) => {
+      backdrop.classList.add('hidden');
+      cancelBtn.removeEventListener('click', onCancel);
+      acceptBtn.removeEventListener('click', onAccept);
+      resolve(result);
+    };
+    const onCancel = () => cleanup(false);
+    const onAccept = () => cleanup(true);
+    cancelBtn.addEventListener('click', onCancel);
+    acceptBtn.addEventListener('click', onAccept);
+  });
+}
+function escapeHtml(str){
+  const d = document.createElement('div');
+  d.textContent = str == null ? '' : String(str);
+  return d.innerHTML;
+}
+function escapeAttr(str){
+  return String(str == null ? '' : str).replace(/&/g,'&amp;').replace(/"/g,'&quot;');
+}
 // ── THEME TOGGLE ───────────────────────────────────────────────────────────
 function toggleTheme(){
   const root = document.documentElement;
@@ -583,14 +632,14 @@ async function buildTable(){
   h+='</tr></thead><tbody>';
   let cards='';
   employees.forEach(w=>{
-    h+=`<tr><td class="worker-cell">${w}</td>`;
-    cards+=`<div class="emp-card"><div class="emp-card-hdr">${w}</div><div class="emp-card-days">`;
+    h+=`<tr><td class="worker-cell">${escapeHtml(w)}</td>`;
+    cards+=`<div class="emp-card"><div class="emp-card-hdr">${escapeHtml(w)}</div><div class="emp-card-days">`;
     DAYS.forEach((day,i)=>{
       const ev=sched[w]&&sched[w][i]?sched[w][i]:{e:'',s:''};
       const key=w.replace(/\s/g,'_');
-      h+=`<td class="time-cell"><input type="text" id="e_${i}_${key}" aria-label="${w} - ${day} - Entrada" placeholder="D" value="${ev.e}"></td>`;
-      h+=`<td class="time-cell"><input type="text" id="s_${i}_${key}" aria-label="${w} - ${day} - Salida" placeholder="D" value="${ev.s}"></td>`;
-      cards+=`<div class="emp-day"><span class="emp-day-name">${day}</span><div class="emp-day-inputs"><div class="emp-day-input-wrap"><input type="text" id="ce_${i}_${key}" data-mirror="e_${i}_${key}" aria-label="${w} - ${day} - Entrada" placeholder="—" value="${ev.e}"><span class="ilbl">Entra</span></div><div class="emp-day-input-wrap"><input type="text" id="cs_${i}_${key}" data-mirror="s_${i}_${key}" aria-label="${w} - ${day} - Salida" placeholder="—" value="${ev.s}"><span class="ilbl">Sale</span></div></div></div>`;
+      h+=`<td class="time-cell"><input type="text" id="e_${i}_${key}" aria-label="${escapeAttr(w)} - ${day} - Entrada" placeholder="D" value="${escapeAttr(ev.e)}"></td>`;
+      h+=`<td class="time-cell"><input type="text" id="s_${i}_${key}" aria-label="${escapeAttr(w)} - ${day} - Salida" placeholder="D" value="${escapeAttr(ev.s)}"></td>`;
+      cards+=`<div class="emp-day"><span class="emp-day-name">${day}</span><div class="emp-day-inputs"><div class="emp-day-input-wrap"><input type="text" id="ce_${i}_${key}" data-mirror="e_${i}_${key}" aria-label="${escapeAttr(w)} - ${day} - Entrada" placeholder="—" value="${escapeAttr(ev.e)}"><span class="ilbl">Entra</span></div><div class="emp-day-input-wrap"><input type="text" id="cs_${i}_${key}" data-mirror="s_${i}_${key}" aria-label="${escapeAttr(w)} - ${day} - Salida" placeholder="—" value="${escapeAttr(ev.s)}"><span class="ilbl">Sale</span></div></div></div>`;
     });
     h+='</tr>';
     cards+='</div></div>';
@@ -624,7 +673,7 @@ async function saveSched(){
   await save('sched',d);
 }
 
-async function clearSched(){if(!confirm('¿Limpiar la tabla de asignación? Se eliminarán los horarios guardados.'))return;await save('sched',{});await buildTable();toast('Tabla limpiada');}
+async function clearSched(){if(!(await afConfirm('¿Limpiar la tabla de asignación?','Se eliminarán los horarios guardados.')))return;await save('sched',{});await buildTable();toast('Tabla limpiada');}
 
 // ── TIME PARSING ───────────────────────────────────────────────────────────
 function parseTime(t){
@@ -1065,8 +1114,8 @@ function renderEmp(){
   if(!employees.length){el.innerHTML='<div style="border:2px dashed var(--card-border);border-radius:var(--radius);padding:24px 16px;text-align:center"><div style="font-size:32px;margin-bottom:8px">🧹</div><div style="color:var(--text-muted);font-family:var(--font-heading);font-weight:700">No hay empleados</div></div>';return;}
   el.innerHTML=employees.map(w=>`
     <div class="list-item">
-      <span style="color:var(--text-card)">${w}</span>
-      <button class="btn btn-sm btn-danger" onclick="removeEmp('${w.replace(/'/g,"\\'")}')">🗑 Quitar</button>
+      <span style="color:var(--text-card)">${escapeHtml(w)}</span>
+      <button class="btn btn-sm btn-danger" onclick="removeEmp('${escapeAttr(w).replace(/'/g,"\\'")}')">🗑 Quitar</button>
     </div>`).join('');
 }
 
@@ -1080,8 +1129,8 @@ function addEmp(){
   toast(`✅ ${v} agregado`);
 }
 
-function removeEmp(w){
-  if(!confirm(`¿Quitar a ${w} del equipo?`)) return;
+async function removeEmp(w){
+  if(!(await afConfirm(`¿Quitar a ${w} del equipo?`))) return;
   employees=employees.filter(e=>e!==w); save('emp',employees);
   renderEmp(); buildTable(); renderTaskSelector(); renderTasks();
   toast(`${w} eliminado`);
@@ -1102,7 +1151,7 @@ function renderMaq(){
     </tr></thead>
     <tbody>`+machines.map((m,i)=>`
     <tr>
-      <td style="padding:10px 14px;border-bottom:2px solid var(--card-border);color:var(--text-card);font-weight:700">${m.n}</td>
+      <td style="padding:10px 14px;border-bottom:2px solid var(--card-border);color:var(--text-card);font-weight:700">${escapeHtml(m.n)}</td>
       <td style="padding:8px;text-align:center;border-bottom:2px solid var(--card-border)">
         <select onchange="changeDiff(${i},this.value)" style="font-size:13px;padding:6px 10px;width:auto">
           <option value="alta" ${m.d==='alta'?'selected':''}>🔴 Alta</option>
@@ -1147,9 +1196,9 @@ function addMaq(){
   toast(`✅ ${n} agregada (${maqPts({d,x2})} pts)`);
 }
 
-function removeMaq(i){
-  if(!confirm(`¿Eliminar "${machines[i].n}"?`)) return;
+async function removeMaq(i){
   const name=machines[i].n;
+  if(!(await afConfirm(`¿Eliminar "${name}"?`))) return;
   machines.splice(i,1); save('maq',machines);
   renderMaq();
   toast(`${name} eliminada`);
@@ -1164,17 +1213,17 @@ function renderTaskSelector(){
   card.style.display='block';
   list.innerHTML=tasks.map(t=>{
     const sel=taskSel[t.n]||{active:false,person:'auto'};
-    const safeName=t.n.replace(/'/g,"\\'");
+    const safeName=escapeAttr(t.n).replace(/'/g,"\\'");
     const personField = t.mode==='rotativa'
       ? `<select onchange="updateTaskSel('${safeName}',null,this.value)" ${sel.active?'':'disabled'} style="max-width:230px">
            <option value="auto" ${sel.person==='auto'||!sel.person?'selected':''}>🔄 Automático (equitativo)</option>
-           ${employees.map(e=>`<option value="${e}" ${sel.person===e?'selected':''}>${e}</option>`).join('')}
+           ${employees.map(e=>`<option value="${escapeAttr(e)}" ${sel.person===e?'selected':''}>${escapeHtml(e)}</option>`).join('')}
          </select>`
-      : `<span style="color:var(--text-muted);font-weight:700;font-size:13px;white-space:nowrap">📌 ${t.person||'(sin asignar)'}</span>`;
+      : `<span style="color:var(--text-muted);font-weight:700;font-size:13px;white-space:nowrap">📌 ${escapeHtml(t.person||'(sin asignar)')}</span>`;
     return `<div class="list-item">
       <label style="display:flex;align-items:center;gap:10px;cursor:pointer;flex:1 1 220px">
         <input type="checkbox" class="cb-custom" ${sel.active?'checked':''} onchange="updateTaskSel('${safeName}',this.checked,null)">
-        <span style="color:var(--text-card)">${t.n} <span class="pts">(${t.pts} pts)</span></span>
+        <span style="color:var(--text-card)">${escapeHtml(t.n)} <span class="pts">(${t.pts} pts)</span></span>
       </label>
       ${personField}
     </div>`;
@@ -1205,7 +1254,7 @@ function renderTasks(){
     </tr></thead>
     <tbody>`+tasks.map((t,i)=>`
     <tr>
-      <td style="padding:10px 14px;border-bottom:2px solid var(--card-border);color:var(--text-card);font-weight:700">${t.n}</td>
+      <td style="padding:10px 14px;border-bottom:2px solid var(--card-border);color:var(--text-card);font-weight:700">${escapeHtml(t.n)}</td>
       <td style="padding:8px;text-align:center;border-bottom:2px solid var(--card-border)">
         <select onchange="changeTaskMode(${i},this.value)" style="font-size:13px;padding:6px 10px;width:auto">
           <option value="rotativa" ${t.mode==='rotativa'?'selected':''}>🔄 Rotativa</option>
@@ -1216,12 +1265,12 @@ function renderTasks(){
         ${t.mode==='fija'
           ? `<select onchange="changeTaskPerson(${i},this.value)" style="font-size:13px;padding:6px 10px;width:auto">
               <option value="">—</option>
-              ${employees.map(e=>`<option value="${e}" ${t.person===e?'selected':''}>${e}</option>`).join('')}
+              ${employees.map(e=>`<option value="${escapeAttr(e)}" ${t.person===e?'selected':''}>${escapeHtml(e)}</option>`).join('')}
              </select>`
           : `<span style="color:var(--text-muted)">—</span>`}
       </td>
       <td style="padding:8px;text-align:center;border-bottom:2px solid var(--card-border)">
-        <input type="text" value="${t.pts}" style="width:60px;text-align:center;padding:6px;border-radius:10px" onchange="changeTaskPts(${i},this.value)">
+        <input type="text" value="${escapeAttr(t.pts)}" style="width:60px;text-align:center;padding:6px;border-radius:10px" onchange="changeTaskPts(${i},this.value)">
       </td>
       <td style="padding:8px;text-align:center;border-bottom:2px solid var(--card-border)">
         <button class="btn btn-sm btn-danger" aria-label="Eliminar tarea" onclick="removeTask(${i})">🗑</button>
@@ -1234,7 +1283,7 @@ function toggleTaskPersonField(){
   const sel=document.getElementById('new-task-person');
   if(!modeEl||!sel) return;
   if(modeEl.value==='fija'){
-    sel.innerHTML=employees.map(e=>`<option value="${e}">${e}</option>`).join('');
+    sel.innerHTML=employees.map(e=>`<option value="${escapeAttr(e)}">${escapeHtml(e)}</option>`).join('');
     sel.style.display='block';
   } else {
     sel.style.display='none';
@@ -1281,9 +1330,9 @@ function addTask(){
   toast(`✅ ${n} agregada`);
 }
 
-function removeTask(i){
+async function removeTask(i){
   const name=tasks[i].n;
-  if(!confirm(`¿Eliminar la tarea "${name}"?`)) return;
+  if(!(await afConfirm(`¿Eliminar la tarea "${name}"?`))) return;
   tasks.splice(i,1); save('tasks',tasks);
   delete taskSel[name]; save('taskSel',taskSel);
   renderTasks(); renderTaskSelector();

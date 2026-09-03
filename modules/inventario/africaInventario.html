@@ -492,6 +492,17 @@
   }
   * { touch-action: manipulation !important; }
 </style>
+<style>
+  #af-confirm-backdrop{position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; z-index:9999;}
+  #af-confirm-backdrop.hidden{display:none;}
+  #af-confirm-card{background:var(--card-bg); color:var(--text-card); border-radius:var(--radius); box-shadow:var(--shadow); padding:22px; max-width:360px; width:90%;}
+  #af-confirm-card h3{margin:0 0 8px; font-family:var(--font-heading); font-size:18px;}
+  #af-confirm-card p{margin:0 0 18px; font-size:14px; color:var(--text-muted);}
+  #af-confirm-actions{display:flex; justify-content:flex-end; gap:10px;}
+  #af-confirm-actions button{border:none; border-radius:8px; padding:9px 16px; font-family:var(--font-body); font-weight:700; font-size:14px; cursor:pointer;}
+  #af-confirm-cancel{background:var(--card-bg-hover); color:var(--text-main);}
+  #af-confirm-accept{background:var(--primary); color:var(--primary-text);}
+</style>
 <script>
   // touch-action:manipulation ya bloquea el doble-tap-zoom, pero Safari en iOS
   // ignora "user-scalable=no" desde iOS 10 (decisión de Apple por accesibilidad),
@@ -503,6 +514,16 @@
 </script>
 </head>
 <body>
+<div id="af-confirm-backdrop" class="hidden">
+  <div id="af-confirm-card">
+    <h3 id="af-confirm-title">¿Confirmar acción?</h3>
+    <p id="af-confirm-body"></p>
+    <div id="af-confirm-actions">
+      <button id="af-confirm-cancel">Cancelar</button>
+      <button id="af-confirm-accept">Confirmar</button>
+    </div>
+  </div>
+</div>
 <div class="wrap">
 
   <header class="header-tools">
@@ -586,6 +607,27 @@
 </div>
 
 <script>
+// --- MODAL DE CONFIRMACIÓN PROPIO (reemplaza confirm() nativo) ---
+function afConfirm(title, body) {
+  const backdrop = document.getElementById('af-confirm-backdrop');
+  document.getElementById('af-confirm-title').textContent = title;
+  document.getElementById('af-confirm-body').textContent = body || '';
+  backdrop.classList.remove('hidden');
+  return new Promise((resolve) => {
+    const cancelBtn = document.getElementById('af-confirm-cancel');
+    const acceptBtn = document.getElementById('af-confirm-accept');
+    const cleanup = (result) => {
+      backdrop.classList.add('hidden');
+      cancelBtn.removeEventListener('click', onCancel);
+      acceptBtn.removeEventListener('click', onAccept);
+      resolve(result);
+    };
+    const onCancel = () => cleanup(false);
+    const onAccept = () => cleanup(true);
+    cancelBtn.addEventListener('click', onCancel);
+    acceptBtn.addEventListener('click', onAccept);
+  });
+}
 // --- SCRIPT PARA EL TOGGLE DE TEMA (Solo UI) ---
 const themeToggle = document.getElementById('themeToggle');
 const themeIconMoon = document.getElementById('themeIconMoon');
@@ -859,8 +901,8 @@ function buildRow(rowData){
   del.innerHTML = ICON_TRASH;
   del.title = 'Eliminar fila';
   del.setAttribute('aria-label', 'Eliminar fila');
-  del.onclick = () => {
-    if (!confirm('¿Eliminar esta fila? Esta acción no se puede deshacer.')) return;
+  del.onclick = async () => {
+    if (!(await afConfirm('¿Eliminar esta fila?', 'Esta acción no se puede deshacer.'))) return;
     tr.remove();
   };
   delTd.appendChild(del);
