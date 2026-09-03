@@ -675,6 +675,20 @@
     display:none; margin-top:6px; font-weight:600; color:var(--af-green); font-size:0.85rem;
   }
   .qbank-item.show-respuesta .qbank-respuesta{ display:block; }
+  /* Lista de empleados (equipo) editable, para el semáforo EPP */
+  .emp-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:8px 6px;
+    border-bottom:2px solid var(--card-border);
+  }
+  .emp-item:last-child{border-bottom:none;}
+  .emp-item input.emp-nombre-input{
+    flex:1; min-width:0; font-size:0.9rem;
+  }
+  .emp-item button.emp-del{all:unset; cursor:pointer; color:var(--danger); font-weight:700; font-size:0.85rem; flex-shrink:0; padding:6px 12px; border-radius:var(--radius-md); border:2px solid var(--card-border); background:var(--card-bg); transition: background 0.1s ease, transform 0.1s ease;}
+  .emp-item button.emp-del:hover{background:var(--card-bg-hover); transform: translateY(-1px);}
   .qbank-drawn{
     background:var(--card-bg);
     border:3px dashed var(--af-green);
@@ -757,6 +771,7 @@
   .res-item .res-actions button.btn-confirming,
   .tema-item .tema-del.btn-confirming,
   .qbank-item button.btn-confirming,
+  .emp-item button.btn-confirming,
   .del-row.btn-confirming{
     background: var(--danger-text-safe);
     color: #fff;
@@ -804,6 +819,20 @@
   .confirm-cancel:hover{background:var(--card-border);}
   .confirm-ok{background:var(--danger); color:#fff;}
   .confirm-ok:hover{filter:brightness(1.08);}
+
+  /* El Reporte Semanal reutiliza el modal genérico, pero su contenido
+     (tabla matriz + detalle) puede ser mucho más alto que la pantalla —
+     sin esto, el modal no tenía scroll propio y en celular quedaba
+     "trabado" (no se podía bajar para ver el resto). */
+  #reporte-backdrop{align-items:flex-start; overflow-y:auto; padding:20px 20px 40px;}
+  #reporte-backdrop .confirm-card{
+    max-height:none;
+  }
+  @media (max-width: 760px){
+    #reporte-backdrop{padding:10px 10px 30px;}
+    #reporte-backdrop .confirm-card{padding:18px 14px;}
+    #reporte-semana-label{min-width:0 !important; font-size:0.85rem;}
+  }
 </style>
 
 <style>
@@ -915,8 +944,10 @@
             <div class="field-row">
               <div class="field-wrap">
                 <label class="field-label" for="f-nombre">Nombre del trabajador</label>
-                <input type="text" id="f-nombre" placeholder="Nombre del trabajador">
-                <p class="field-error" id="f-nombre-error">Escribe un nombre para continuar</p>
+                <select id="f-nombre">
+                  <option value="">Selecciona un trabajador…</option>
+                </select>
+                <p class="field-error" id="f-nombre-error">Selecciona un trabajador para continuar</p>
               </div>
               <div class="field-wrap">
                 <label class="field-label" for="f-fecha">Fecha</label>
@@ -940,6 +971,18 @@
             </div>
           </div>
         </div>
+      </div>
+
+      <div class="card">
+        <h2>Equipo (trabajadores)</h2>
+        <p class="page-sub" style="margin:-4px 0 14px;">Administra aquí la lista de trabajadores que aparece al registrar un abordaje. Agregar, renombrar o eliminar a alguien de esta lista <strong>no afecta los abordajes ya registrados</strong> — esos quedan guardados con el nombre tal como estaba en el momento del registro.</p>
+        <div class="field-row">
+          <div class="field-wrap" style="flex:1;">
+            <input type="text" id="emp-epp-new" placeholder="Nombre del nuevo trabajador">
+          </div>
+          <button class="btn-secondary" id="emp-epp-add" type="button" style="align-self:flex-end;">+ Agregar</button>
+        </div>
+        <div id="emp-epp-list" style="margin-top:10px;"></div>
       </div>
 
       <div class="card">
@@ -1454,8 +1497,10 @@
       inputEl.classList.remove('input-invalid');
       errorEl.classList.remove('show');
       inputEl.removeEventListener('input', clear);
+      inputEl.removeEventListener('change', clear);
     };
     inputEl.addEventListener('input', clear);
+    inputEl.addEventListener('change', clear);
     inputEl.focus();
   }
 
@@ -2283,6 +2328,87 @@
     if(!tituloInput.value.trim()){ showFieldError(tituloInput, document.getElementById('tema-titulo-nuevo-error')); return; }
     await temasManager.add(mesInput.value, tituloInput.value.trim());
     tituloInput.value = '';
+  });
+
+  // ---------- Equipo (trabajadores) para el semáforo EPP ----------
+  // Lista compartida e independiente de los abordajes ya registrados:
+  // lider_abordajes solo guarda el texto trabajador_nombre tal cual estaba
+  // al momento del registro, así que editar/renombrar/eliminar aquí nunca
+  // toca ni reescribe filas ya guardadas.
+  function createEmpleadosManager(){
+    const listEl = document.getElementById('emp-epp-list');
+    const selectEl = document.getElementById('f-nombre');
+    let empleados = [];
+
+    function renderSelect(){
+      const prev = selectEl.value;
+      const ordenados = [...empleados].sort((a,b)=>a.nombre.localeCompare(b.nombre));
+      selectEl.innerHTML = '<option value="">Selecciona un trabajador…</option>'
+        + ordenados.map(e=>`<option value="${escapeAttr(e.nombre)}">${escapeHtml(e.nombre)}</option>`).join('');
+      if(ordenados.some(e=>e.nombre===prev)) selectEl.value = prev;
+    }
+
+    function renderList(){
+      listEl.innerHTML = '';
+      if(empleados.length === 0){
+        listEl.innerHTML = '<div class="empty">Sin trabajadores todavía — agrega el primero arriba.</div>';
+        return;
+      }
+      const ordenados = [...empleados].sort((a,b)=>a.nombre.localeCompare(b.nombre));
+      ordenados.forEach(emp=>{
+        const div = document.createElement('div');
+        div.className = 'emp-item';
+        div.innerHTML = `
+          <input type="text" class="emp-nombre-input" value="${escapeAttr(emp.nombre)}">
+          <button class="emp-del" type="button">eliminar</button>
+        `;
+        div.querySelector('.emp-nombre-input').addEventListener('change', async (e)=>{
+          const nuevo = e.target.value.trim();
+          if(!nuevo){ e.target.value = emp.nombre; return; }
+          emp.nombre = nuevo;
+          await persist();
+          render();
+        });
+        attachConfirmDelete(div.querySelector('.emp-del'), async ()=>{
+          const idx = empleados.indexOf(emp);
+          empleados = empleados.filter(x=>x.id !== emp.id);
+          await persist(); render();
+          showToast('Trabajador eliminado de la lista', async ()=>{
+            empleados.splice(idx, 0, emp);
+            await persist(); render();
+          });
+        });
+        listEl.appendChild(div);
+      });
+    }
+
+    function render(){ renderList(); renderSelect(); }
+
+    async function persist(){ await storeSet('empleados-epp', JSON.stringify(empleados)); }
+    async function load(){
+      listEl.innerHTML = '<div class="empty">Cargando...</div>';
+      const raw = await storeGet('empleados-epp');
+      empleados = raw ? JSON.parse(raw) : [];
+      render();
+    }
+    async function add(nombre){
+      empleados.push({ id: Date.now()+Math.random(), nombre });
+      await persist(); render();
+    }
+    load();
+    return { add };
+  }
+
+  const empleadosEppManager = createEmpleadosManager();
+  document.getElementById('emp-epp-add').addEventListener('click', async ()=>{
+    const input = document.getElementById('emp-epp-new');
+    const v = input.value.trim();
+    if(!v) return;
+    await empleadosEppManager.add(v);
+    input.value = '';
+  });
+  document.getElementById('emp-epp-new').addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter'){ e.preventDefault(); document.getElementById('emp-epp-add').click(); }
   });
 
   // ---------- Init ----------
