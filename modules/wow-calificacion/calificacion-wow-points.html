@@ -140,7 +140,7 @@ button{
 }
 
 /* ---------- WORKSPACE ---------- */
-.workspace{ padding:24px 32px 60px; overflow-x:hidden; }
+.workspace{ padding:24px 32px 60px; overflow-x:auto; -webkit-overflow-scrolling:touch; }
 .workspace-head{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:18px; flex-wrap:wrap; }
 .workspace-head h2{margin:0 0 4px; font-size:22px; font-family:var(--font-heading); font-weight:600; text-transform:uppercase; color:var(--text-main);}
 .workspace-head p{margin:0; color:var(--text-main); opacity:.7; font-size:13px;}
@@ -547,12 +547,25 @@ function generate(){
 document.getElementById('generateBtn').addEventListener('click', generate);
 document.getElementById('printBtn').addEventListener('click', ()=>{ generate(); window.print(); });
 
-zoomRange.addEventListener('input', ()=>{
-  const v = zoomRange.value;
-  zoomVal.textContent = v + '%';
+function applyZoom(v){
+  zoomRange.value = v;
+  zoomVal.textContent = Math.round(v) + '%';
   pagesWrap.style.transform = `scale(${v/100})`;
   pagesWrap.style.marginBottom = (v < 100 ? (-(100-v)/100 * 11 * 96) + 'px' : '0');
+}
+let userAdjustedZoom = false;
+zoomRange.addEventListener('input', ()=>{
+  userAdjustedZoom = true;
+  applyZoom(zoomRange.value);
 });
+function fitZoomToScreen(){
+  if(userAdjustedZoom) return;
+  const workspaceEl = document.querySelector('.workspace');
+  const avail = workspaceEl.clientWidth - 64; // menos el padding horizontal del workspace
+  const ideal = Math.round(Math.min(55, Math.max(30, (avail / 816) * 100)));
+  applyZoom(ideal);
+}
+window.addEventListener('resize', fitZoomToScreen);
 
 const themeToggle = document.getElementById('themeToggle');
 function applyTheme(theme){
@@ -575,7 +588,7 @@ themeToggle.addEventListener('click', ()=>{
   await loadEntries();
   renderEntryList();
   applyTheme(document.documentElement.getAttribute('data-theme') || localStorage.getItem('africa_tools_theme') || 'light');
-  pagesWrap.style.transform = 'scale(0.55)';
+  fitZoomToScreen();
 })();
 </script>
 

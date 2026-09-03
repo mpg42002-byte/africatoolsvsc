@@ -226,6 +226,9 @@ button{font-family:inherit;}
   border:2px solid var(--card-border); border-radius:12px;
   padding:10px 12px; font-family: var(--font-body); font-size:14px;
 }
+.field input[type=date], .field input[type=time]{
+  -webkit-appearance:none; appearance:none; max-width:100%;
+}
 .field textarea{resize:vertical; min-height:60px;}
 .field input:focus, .field select:focus, .field textarea:focus{outline:2px solid var(--primary); outline-offset:1px;}
 .field-row{display:flex; gap:10px;}

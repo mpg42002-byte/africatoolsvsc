@@ -84,6 +84,7 @@ button{font-family:inherit;}
 .date-nav input[type=date]{
   background:var(--input-bg); color:var(--text-card); border:2px solid var(--card-border);
   border-radius:12px; padding:9px 12px; font-family:var(--font-heading); font-weight:600; font-size:13px;
+  -webkit-appearance:none; appearance:none; max-width:100%;
 }
 .icon-btn{
   width:34px; height:34px; border-radius:10px; border:2px solid var(--card-border);
@@ -181,6 +182,9 @@ button{font-family:inherit;}
   width:100%; background:var(--input-bg); color:var(--text-card);
   border:2px solid var(--card-border); border-radius:12px;
   padding:10px 12px; font-family: var(--font-body); font-size:14px;
+}
+.field input[type=date], .field input[type=time]{
+  -webkit-appearance:none; appearance:none; max-width:100%;
 }
 .field textarea{resize:vertical; min-height:56px;}
 .field input:focus, .field select:focus, .field textarea:focus{outline:2px solid var(--primary); outline-offset:1px;}

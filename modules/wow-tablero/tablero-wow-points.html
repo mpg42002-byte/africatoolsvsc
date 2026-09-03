@@ -201,8 +201,8 @@ input[type=text]:focus{outline:2px solid var(--af-orange); outline-offset:1px;}
   line-height:1.5;
 }
 .crop-viewport{
-  width:260px;
-  height:375.8px; /* 260 / (0.98/1.4167) — matches the card photo frame aspect ratio */
+  width:min(260px, 100%);
+  aspect-ratio: 260 / 375.8; /* matches the card photo frame aspect ratio */
   margin:0 auto 14px;
   border-radius:14px;
   overflow:hidden;

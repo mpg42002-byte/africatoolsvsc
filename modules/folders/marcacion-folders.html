@@ -253,7 +253,8 @@ button{
 /* ---------- WORKSPACE ---------- */
 .workspace{
   padding:24px 32px 60px;
-  overflow-x:hidden;
+  overflow-x:auto;
+  -webkit-overflow-scrolling:touch;
 }
 .workspace-head{
   display:flex; align-items:flex-end; justify-content:space-between; gap:16px;
@@ -1033,12 +1034,25 @@ document.getElementById('clearBtn').addEventListener('click', async ()=>{
   pagesScroll.appendChild(emptyState);
 });
 
-zoomRange.addEventListener('input', ()=>{
-  const v = zoomRange.value;
-  zoomVal.textContent = v + '%';
+function applyZoom(v){
+  zoomRange.value = v;
+  zoomVal.textContent = Math.round(v) + '%';
   pagesWrap.style.transform = `scale(${v/100})`;
   pagesWrap.style.marginBottom = (v < 100 ? (-(100-v)/100 * 11 * 96) + 'px' : '0');
+}
+let userAdjustedZoom = false;
+zoomRange.addEventListener('input', ()=>{
+  userAdjustedZoom = true;
+  applyZoom(zoomRange.value);
 });
+function fitZoomToScreen(){
+  if(userAdjustedZoom) return;
+  const workspaceEl = document.querySelector('.workspace');
+  const avail = workspaceEl.clientWidth - 64; // menos el padding horizontal del workspace
+  const ideal = Math.round(Math.min(55, Math.max(30, (avail / 816) * 100)));
+  applyZoom(ideal);
+}
+window.addEventListener('resize', fitZoomToScreen);
 
 // ---- Theme toggle (visual only, does not affect app logic/state) ----
 const themeToggle = document.getElementById('themeToggle');
@@ -1062,7 +1076,7 @@ themeToggle.addEventListener('click', ()=>{
 (async function init(){
   const lastFmt = await mdGet('africa_labels_last_format', 'folders');
   await setFormat(lastFmt);
-  pagesWrap.style.transform = 'scale(0.55)';
+  fitZoomToScreen();
   applyTheme(document.documentElement.getAttribute('data-theme') || localStorage.getItem('africa_tools_theme') || 'light');
 })();
 </script>
