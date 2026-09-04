@@ -332,7 +332,7 @@ button{font-family:inherit;}
     </div>
     <div class="field-row">
       <div class="field">
-        <label for="tf-fecha-inicio">Fecha de inicio *</label>
+        <label for="tf-fecha-inicio" id="tf-fecha-inicio-label">Fecha de inicio *</label>
         <input type="date" id="tf-fecha-inicio">
       </div>
       <div class="field">
@@ -344,6 +344,7 @@ button{font-family:inherit;}
       <div class="field">
         <label for="tf-periodicidad">Periodicidad *</label>
         <select id="tf-periodicidad">
+          <option value="una_vez">Una vez (fecha específica)</option>
           <option value="diaria">Diaria</option>
           <option value="semanal">Semanal</option>
           <option value="mensual">Mensual</option>
@@ -489,6 +490,7 @@ function ocurreEnFecha(task, dateStr){
   const d = strToDate(dateStr);
   const diffDays = Math.round((d - start) / 86400000);
   switch(task.periodicidad){
+    case 'una_vez': return dateStr === task.fechaInicio;
     case 'diaria': return true;
     case 'semanal': return diffDays % 7 === 0;
     case 'personalizada': return task.personalizadaDias > 0 && diffDays % task.personalizadaDias === 0;
@@ -592,7 +594,7 @@ function escapeHtml(s){
 }
 function prioridadLabel(p){ return { alta:'Alta', media:'Media', baja:'Baja' }[p] || p; }
 function periodicidadLabel(task){
-  const map = { diaria:'Diaria', semanal:'Semanal', mensual:'Mensual', trimestral:'Trimestral', semestral:'Semestral', anual:'Anual' };
+  const map = { una_vez:'Una vez', diaria:'Diaria', semanal:'Semanal', mensual:'Mensual', trimestral:'Trimestral', semestral:'Semestral', anual:'Anual' };
   if (task.periodicidad === 'personalizada') return `Cada ${task.personalizadaDias} día(s)`;
   return map[task.periodicidad] || task.periodicidad;
 }
@@ -1012,6 +1014,7 @@ function openTaskModal(taskId){
 function togglepersonalizadaField(){
   const per = document.getElementById('tf-periodicidad').value;
   document.getElementById('tf-personalizada-wrap').style.display = per === 'personalizada' ? '' : 'none';
+  document.getElementById('tf-fecha-inicio-label').textContent = per === 'una_vez' ? 'Fecha *' : 'Fecha de inicio *';
 }
 document.getElementById('tf-periodicidad').addEventListener('change', togglepersonalizadaField);
 document.getElementById('btnNewTask').addEventListener('click', () => openTaskModal(null));
