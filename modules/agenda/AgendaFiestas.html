@@ -284,6 +284,72 @@ button{font-family:inherit;}
 .mc-dot.cancelado{ background:var(--text-muted); }
 .month-day-detail h4{ font-family:var(--font-heading); font-size:14px; text-transform:capitalize; margin:0 0 10px; color:var(--text-card); }
 
+/* ---------- Vista Agenda (libreta, dos páginas) ---------- */
+.libro-nav{ display:flex; align-items:stretch; gap:8px; }
+.libro-flip-btn{ align-self:center; width:40px; height:40px; font-size:20px; flex-shrink:0; }
+.libro-spread{
+  flex:1; min-width:0; display:flex; gap:0;
+  background:var(--card-bg); border-radius:14px; box-shadow:var(--shadow, 0 2px 10px rgba(0,0,0,.08));
+  overflow:hidden; position:relative;
+  transition: opacity .18s ease, transform .18s ease;
+}
+.libro-spread.flipping{ opacity:0; transform:scale(.98); }
+.libro-page{
+  flex:1 1 0; min-width:0; padding:14px 16px 18px; position:relative;
+  background-image: linear-gradient(var(--card-border) 1px, transparent 1px), linear-gradient(90deg, var(--card-border) 1px, transparent 1px);
+  background-size: 22px 22px; background-position: -1px -1px;
+  opacity:.97;
+}
+.libro-page + .libro-page{ border-left:3px dashed var(--card-border); }
+.libro-page-header{
+  display:flex; align-items:baseline; gap:8px; margin-bottom:10px; padding-bottom:8px;
+  border-bottom:2px solid var(--card-border);
+  font-family:var(--font-heading); color:var(--text-card);
+}
+.libro-page-header .lp-fecha{ font-size:16px; font-weight:800; }
+.libro-page-header .lp-dia{ font-size:13px; text-transform:capitalize; color:var(--text-muted); }
+.libro-room-heads{ display:grid; gap:4px; overflow-x:auto; }
+.libro-room-head{
+  font-family:var(--font-heading); font-weight:700; font-size:11.5px; text-align:center;
+  color:var(--text-muted); text-transform:uppercase; letter-spacing:.03em;
+  padding:4px 4px 6px; border-bottom:2px solid var(--card-border);
+}
+.libro-room-head.inactivo{ opacity:.5; font-style:italic; }
+.libro-half-grid{ display:grid; gap:4px; padding:6px 0; min-height:110px; align-items:start; overflow-x:auto; }
+.libro-half-grid + .libro-half-grid{ border-top:2px solid var(--card-border); margin-top:2px; }
+.libro-half-empty{ font-size:10px; color:var(--text-muted); opacity:.5; text-align:center; padding:10px 0; }
+
+.libro-mini-card{
+  background:var(--input-bg); border:1px solid var(--card-border); border-radius:8px;
+  padding:6px 7px; font-size:10.5px; line-height:1.35; color:var(--text-card); cursor:default;
+}
+.libro-mini-card.clickable{ cursor:pointer; }
+.libro-mini-card.clickable:hover{ border-color:var(--primary); }
+.libro-mini-card.estado-cancelado{ opacity:.55; }
+.libro-mini-card.estado-finalizado{ border-color:var(--success); }
+.libro-mini-card .lmc-top{ display:flex; flex-wrap:wrap; gap:3px; margin-bottom:4px; }
+.libro-mini-card .lmc-chip{
+  display:inline-block; font-family:var(--font-heading); font-weight:800; font-size:10px;
+  padding:2px 6px; border-radius:6px; line-height:1.5;
+}
+.libro-mini-card .lmc-chip.hora{ background:var(--af-yellow); color:var(--af-coffee); }
+.libro-mini-card .lmc-chip.tipo{ background:var(--af-purple); color:#fff; }
+.libro-mini-card .lmc-cliente{ font-weight:700; display:block; }
+.libro-mini-card .lmc-line{ display:block; color:var(--text-muted); }
+.libro-mini-card .lmc-desc{ display:block; margin-top:3px; font-style:italic; color:var(--text-muted); }
+
+/* ---------- Modal: Ver detalle del evento ---------- */
+.event-view-top{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+.event-view-top .lmc-chip{ font-size:13px; padding:4px 10px; }
+.event-view-cliente{ margin:2px 0 8px; font-family:var(--font-heading); font-size:16px; font-weight:800; color:var(--text-card); }
+.event-view-line{ margin:5px 0; color:var(--text-muted); font-size:13.5px; }
+.event-view-desc{ margin:12px 0 0; padding-top:10px; border-top:2px solid var(--card-border); font-style:italic; color:var(--text-muted); font-size:13px; }
+
+@media (max-width:760px){
+  .libro-spread{ overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; }
+  .libro-page{ flex:0 0 100%; scroll-snap-align:start; }
+}
+
 @media (max-width:700px){
   .week-grid{ grid-template-columns:1fr; }
   .week-day-col{ min-height:auto; }
@@ -331,6 +397,7 @@ button{font-family:inherit;}
         <button type="button" class="view-switch-btn active" data-view="day">Día</button>
         <button type="button" class="view-switch-btn" data-view="week">Semana</button>
         <button type="button" class="view-switch-btn" data-view="month">Mes</button>
+        <button type="button" class="view-switch-btn" data-view="libro">📖 Agenda</button>
       </div>
       <div class="date-nav">
         <button type="button" class="icon-btn" id="datePrev" title="Anterior">◀</button>
@@ -366,6 +433,15 @@ button{font-family:inherit;}
     <div id="view-month" class="hidden">
       <div class="month-grid" id="monthGrid"></div>
       <div id="monthDayDetail" class="month-day-detail"></div>
+    </div>
+
+    <!-- ---- Vista Agenda (estilo libreta, dos páginas) ---- -->
+    <div id="view-libro" class="hidden">
+      <div class="libro-nav">
+        <button type="button" class="icon-btn libro-flip-btn" id="libroPrev" title="Hoja anterior">‹</button>
+        <div class="libro-spread" id="libroSpread"></div>
+        <button type="button" class="icon-btn libro-flip-btn" id="libroNext" title="Hoja siguiente">›</button>
+      </div>
     </div>
 
     <!-- ---- Resultados de búsqueda (todas las fechas) ---- -->
@@ -467,6 +543,21 @@ button{font-family:inherit;}
     <div class="history-list" id="historyList"></div>
     <div class="modal-actions">
       <button type="button" class="modal-cancel" data-close-modal="modal-historial">Cerrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ MODAL: Ver detalle del evento ============ -->
+<div id="modal-event-view" class="modal-backdrop" role="dialog" aria-modal="true" aria-labelledby="eventViewTitle">
+  <div class="modal-card" style="max-width:420px;">
+    <button type="button" class="modal-close-x" data-close-modal="modal-event-view">✕</button>
+    <h3 id="eventViewTitle">Detalle del evento</h3>
+    <div id="eventViewBody"></div>
+    <div class="modal-actions">
+      <button type="button" class="icon-btn" id="btnViewHistorial" title="Ver historial">🕓</button>
+      <div class="spacer"></div>
+      <button type="button" class="btn-pill" id="btnViewEdit" style="display:none; padding:10px 18px; font-size:13px;">✏️ Editar</button>
+      <button type="button" class="modal-cancel" data-close-modal="modal-event-view">Cerrar</button>
     </div>
   </div>
 </div>
@@ -761,6 +852,41 @@ function buildEventCard(ev){
 }
 
 /* ---------- Historial ---------- */
+// Modal de "solo ver" el evento — lo que ve cualquier persona con acceso al
+// módulo. El botón Editar (visible solo si canManage) abre el modal real de
+// edición; el botón Historial funciona igual para todos.
+let viewingEvent = null;
+function openEventViewModal(ev){
+  viewingEvent = ev;
+  const efectivo = estadoEfectivo(ev);
+  const roomNames = (ev.park_event_rooms || []).map(roomLabel);
+  const tipoNombre = tipoLabel(ev);
+  const body = document.getElementById('eventViewBody');
+  body.innerHTML = `
+    <div class="event-view-top">
+      <span class="lmc-chip hora">${hhmm(ev.hora_inicio)} - ${hhmm(ev.hora_fin)}</span>
+      ${tipoNombre ? `<span class="lmc-chip tipo">${escapeHtml(tipoNombre)}</span>` : ''}
+      <span class="badge estado-${efectivo}">${ESTADO_LABEL[efectivo] || efectivo}</span>
+    </div>
+    <div class="event-view-cliente">${escapeHtml(ev.cliente_nombre)}</div>
+    <div class="event-view-line">📅 ${fmtFechaLarga(ev.fecha)}</div>
+    ${roomNames.length ? `<div class="event-view-line">🏛️ ${roomNames.map(escapeHtml).join(', ')}</div>` : ''}
+    ${ev.telefono ? `<div class="event-view-line">📞 ${escapeHtml(ev.telefono)}</div>` : ''}
+    ${ev.invitados ? `<div class="event-view-line">👥 ${ev.invitados} invitados</div>` : ''}
+    ${ev.observaciones ? `<div class="event-view-desc">${escapeHtml(ev.observaciones)}</div>` : ''}
+  `;
+  document.getElementById('btnViewEdit').style.display = canManage ? '' : 'none';
+  openModal('modal-event-view');
+}
+document.getElementById('btnViewHistorial').addEventListener('click', () => {
+  closeModal('modal-event-view');
+  openHistorialModal(viewingEvent.id, viewingEvent.cliente_nombre);
+});
+document.getElementById('btnViewEdit').addEventListener('click', () => {
+  closeModal('modal-event-view');
+  openEventModal(viewingEvent.id, viewingEvent);
+});
+
 async function openHistorialModal(eventId, clienteNombre){
   document.getElementById('historialTitle').textContent = `Historial — ${clienteNombre}`;
   const listEl = document.getElementById('historyList');
@@ -1077,7 +1203,7 @@ document.querySelectorAll('.tab-sub-btn').forEach(btn => {
 });
 
 /* ---------- Selector de vista + navegación de fecha (consciente del modo) ---------- */
-let viewMode = 'day'; // 'day' | 'week' | 'month'
+let viewMode = 'day'; // 'day' | 'week' | 'month' | 'libro'
 let selectedMonthDay = null;
 
 function setDate(dateStr){
@@ -1090,6 +1216,7 @@ function renderCurrentView(){
   if (searchValue.trim().length >= 2) { runSearch(searchValue); return; }
   if (viewMode === 'day') renderAgendaDay();
   else if (viewMode === 'week') renderWeekView();
+  else if (viewMode === 'libro') renderLibroView();
   else renderMonthView();
 }
 document.querySelectorAll('.view-switch-btn').forEach(btn => {
@@ -1100,6 +1227,7 @@ document.querySelectorAll('.view-switch-btn').forEach(btn => {
     document.getElementById('view-day').classList.toggle('hidden', viewMode !== 'day');
     document.getElementById('view-week').classList.toggle('hidden', viewMode !== 'week');
     document.getElementById('view-month').classList.toggle('hidden', viewMode !== 'month');
+    document.getElementById('view-libro').classList.toggle('hidden', viewMode !== 'libro');
     document.getElementById('weekDragHint').style.display = canManage ? '' : 'none';
     selectedMonthDay = null;
     renderCurrentView();
@@ -1109,14 +1237,150 @@ document.getElementById('agendaDate').addEventListener('change', (e) => setDate(
 document.getElementById('datePrev').addEventListener('click', () => {
   if (viewMode === 'day') setDate(addDaysStr(currentDate, -1));
   else if (viewMode === 'week') setDate(addDaysStr(currentDate, -7));
+  else if (viewMode === 'libro') setDate(addDaysStr(currentDate, -1));
   else setDate(addMonthsStr(currentDate, -1));
 });
 document.getElementById('dateNext').addEventListener('click', () => {
   if (viewMode === 'day') setDate(addDaysStr(currentDate, 1));
   else if (viewMode === 'week') setDate(addDaysStr(currentDate, 7));
+  else if (viewMode === 'libro') setDate(addDaysStr(currentDate, 1));
   else setDate(addMonthsStr(currentDate, 1));
 });
 document.getElementById('dateToday').addEventListener('click', () => setDate(todayStr()));
+
+/* ---------- Vista Agenda (libreta, dos páginas por salón / AM-PM) ---------- */
+function fmtLibroHeader(dateStr){
+  const d = strToDate(dateStr);
+  const dia = String(d.getDate()).padStart(2, '0');
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const nombreDia = d.toLocaleDateString('es-CO', { weekday: 'long' });
+  return { corta: `${dia}/${mes}`, diaNombre: nombreDia.charAt(0).toUpperCase() + nombreDia.slice(1) };
+}
+function buildLibroMiniCard(ev){
+  const efectivo = estadoEfectivo(ev);
+  const card = document.createElement('div');
+  card.className = 'libro-mini-card clickable estado-' + efectivo;
+  const tipoNombre = tipoLabel(ev);
+  card.innerHTML = `
+    <div class="lmc-top">
+      <span class="lmc-chip hora">${hhmm(ev.hora_inicio)}</span>
+      ${tipoNombre ? `<span class="lmc-chip tipo">${escapeHtml(tipoNombre)}</span>` : ''}
+    </div>
+    <span class="lmc-cliente">${escapeHtml(ev.cliente_nombre)}</span>
+    ${ev.telefono ? `<span class="lmc-line">📞 ${escapeHtml(ev.telefono)}</span>` : ''}
+    ${ev.invitados ? `<span class="lmc-line">👥 ${ev.invitados} invitados</span>` : ''}
+    ${ev.observaciones ? `<span class="lmc-desc">${escapeHtml(ev.observaciones)}</span>` : ''}
+  `;
+  card.addEventListener('click', () => openEventViewModal(ev));
+  return card;
+}
+function buildLibroPage(fecha, eventosDelDia){
+  const page = document.createElement('div');
+  page.className = 'libro-page';
+  const { corta, diaNombre } = fmtLibroHeader(fecha);
+  const header = document.createElement('div');
+  header.className = 'libro-page-header';
+  header.innerHTML = `<span class="lp-fecha">${corta}</span><span class="lp-dia">${diaNombre}</span>`;
+  page.appendChild(header);
+
+  const numCols = Math.max(rooms.length, 1);
+  const colTemplate = `repeat(${numCols}, minmax(110px, 1fr))`;
+
+  const heads = document.createElement('div');
+  heads.className = 'libro-room-heads';
+  heads.style.gridTemplateColumns = colTemplate;
+  if (rooms.length === 0) {
+    heads.innerHTML = '<div class="libro-room-head">Sin salones registrados</div>';
+  } else {
+    rooms.forEach(room => {
+      const h = document.createElement('div');
+      h.className = 'libro-room-head' + (room.activo ? '' : ' inactivo');
+      h.textContent = room.nombre + (room.activo ? '' : ' (inactivo)');
+      heads.appendChild(h);
+    });
+  }
+  page.appendChild(heads);
+
+  // Construye la cuadrícula de una franja (AM o PM): un evento que abarca
+  // varios salones (siempre contiguos) ocupa un solo contenedor que hace
+  // colspan sobre ese rango de columnas, en vez de repetirse en cada una.
+  function buildHalfGrid(eventosHalf){
+    const gridEl = document.createElement('div');
+    gridEl.className = 'libro-half-grid';
+    gridEl.style.gridTemplateColumns = colTemplate;
+    if (rooms.length === 0) { gridEl.innerHTML = '<div class="libro-half-empty">—</div>'; return gridEl; }
+
+    const items = eventosHalf.map(ev => {
+      const idxs = (ev.park_event_rooms || [])
+        .map(r => rooms.findIndex(rm => rm.id === r.room_id))
+        .filter(i => i >= 0);
+      if (idxs.length === 0) return null; // salón(es) del evento ya no existen en `rooms`
+      const colStart = Math.min(...idxs);
+      const colSpan = Math.max(...idxs) - colStart + 1;
+      return { ev, colStart, colSpan };
+    }).filter(Boolean);
+
+    // Empaqueta por filas: si dos eventos comparten alguna columna (mismo
+    // salón, distinta hora dentro de la misma franja AM/PM), el segundo baja
+    // a la siguiente fila en vez de superponerse visualmente.
+    const rowCursor = new Array(numCols).fill(1);
+    items
+      .sort((a, b) => (a.ev.hora_inicio || '').localeCompare(b.ev.hora_inicio || ''))
+      .forEach(item => {
+        let row = 1;
+        for (let c = item.colStart; c < item.colStart + item.colSpan; c++) row = Math.max(row, rowCursor[c]);
+        item.row = row;
+        for (let c = item.colStart; c < item.colStart + item.colSpan; c++) rowCursor[c] = row + 1;
+      });
+
+    items.forEach(item => {
+      const card = buildLibroMiniCard(item.ev);
+      card.style.gridColumn = `${item.colStart + 1} / span ${item.colSpan}`;
+      card.style.gridRow = String(item.row);
+      gridEl.appendChild(card);
+    });
+
+    // Columnas que no tuvieron ningún evento en esta franja: un "—" propio.
+    for (let c = 0; c < numCols; c++) {
+      if (rowCursor[c] === 1) {
+        const empty = document.createElement('div');
+        empty.className = 'libro-half-empty';
+        empty.style.gridColumn = `${c + 1} / span 1`;
+        empty.style.gridRow = '1';
+        empty.textContent = '—';
+        gridEl.appendChild(empty);
+      }
+    }
+    return gridEl;
+  }
+
+  const am = eventosDelDia.filter(ev => hhmm(ev.hora_inicio) < '12:00');
+  const pm = eventosDelDia.filter(ev => hhmm(ev.hora_inicio) >= '12:00');
+  page.appendChild(buildHalfGrid(am));
+  page.appendChild(buildHalfGrid(pm));
+
+  return page;
+}
+async function renderLibroView(){
+  const fechaIzq = currentDate;
+  const fechaDer = addDaysStr(currentDate, 1);
+  const eventos = await loadEventsForRange(fechaIzq, fechaDer);
+  const spread = document.getElementById('libroSpread');
+  spread.innerHTML = '';
+  spread.appendChild(buildLibroPage(fechaIzq, eventos.filter(ev => ev.fecha === fechaIzq)));
+  spread.appendChild(buildLibroPage(fechaDer, eventos.filter(ev => ev.fecha === fechaDer)));
+}
+async function flipLibro(dias){
+  const spread = document.getElementById('libroSpread');
+  spread.classList.add('flipping');
+  await new Promise(resolve => setTimeout(resolve, 160));
+  currentDate = addDaysStr(currentDate, dias);
+  document.getElementById('agendaDate').value = currentDate;
+  await renderLibroView();
+  spread.classList.remove('flipping');
+}
+document.getElementById('libroPrev').addEventListener('click', () => flipLibro(-2));
+document.getElementById('libroNext').addEventListener('click', () => flipLibro(2));
 
 /* ---------- Búsqueda de eventos (todas las fechas, no solo el día actual) ---------- */
 let searchDebounceTimer = null;
@@ -1137,6 +1401,7 @@ function setSearchViewVisible(visible){
   document.getElementById('view-day').classList.toggle('hidden', visible || viewMode !== 'day');
   document.getElementById('view-week').classList.toggle('hidden', visible || viewMode !== 'week');
   document.getElementById('view-month').classList.toggle('hidden', visible || viewMode !== 'month');
+  document.getElementById('view-libro').classList.toggle('hidden', visible || viewMode !== 'libro');
   document.getElementById('view-search').classList.toggle('hidden', !visible);
   document.getElementById('agendaSearchClear').style.display = visible ? '' : 'none';
 }
@@ -1232,7 +1497,7 @@ function buildWeekChip(ev){
   const roomNames = (ev.park_event_rooms || []).map(roomLabel).join(', ');
   chip.innerHTML = `<b>${hhmm(ev.hora_inicio)}-${hhmm(ev.hora_fin)}</b>${escapeHtml(ev.cliente_nombre)}${roomNames ? '<br>🏛️ ' + escapeHtml(roomNames) : ''}`;
   chip.title = 'Ver detalle';
-  chip.addEventListener('click', () => { canManage ? openEventModal(ev.id, ev) : openHistorialModal(ev.id, ev.cliente_nombre); });
+  chip.addEventListener('click', () => openEventViewModal(ev));
 
   // Solo se puede arrastrar mientras sigue vigente (no vencido ni cancelado/finalizado).
   if (canManage && efectivo === 'reservado') {
