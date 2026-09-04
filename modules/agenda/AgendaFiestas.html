@@ -291,9 +291,7 @@ button{font-family:inherit;}
   flex:1; min-width:0; display:flex; gap:0;
   background:var(--card-bg); border-radius:14px; box-shadow:var(--shadow, 0 2px 10px rgba(0,0,0,.08));
   overflow:hidden; position:relative;
-  transition: opacity .18s ease, transform .18s ease;
 }
-.libro-spread.flipping{ opacity:0; transform:scale(.98); }
 .libro-page{
   flex:1 1 0; min-width:0; padding:14px 16px 18px; position:relative;
   background-image: linear-gradient(var(--card-border) 1px, transparent 1px), linear-gradient(90deg, var(--card-border) 1px, transparent 1px);
@@ -346,8 +344,8 @@ button{font-family:inherit;}
 .event-view-desc{ margin:12px 0 0; padding-top:10px; border-top:2px solid var(--card-border); font-style:italic; color:var(--text-muted); font-size:13px; }
 
 @media (max-width:760px){
-  .libro-spread{ overflow-x:auto; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch; }
-  .libro-page{ flex:0 0 100%; scroll-snap-align:start; }
+  .libro-nav{ gap:4px; }
+  .libro-flip-btn{ width:34px; height:34px; font-size:18px; }
 }
 
 @media (max-width:700px){
@@ -1361,26 +1359,34 @@ function buildLibroPage(fecha, eventosDelDia){
 
   return page;
 }
+function isLibroMobile(){ return window.matchMedia('(max-width:760px)').matches; }
 async function renderLibroView(){
-  const fechaIzq = currentDate;
-  const fechaDer = addDaysStr(currentDate, 1);
-  const eventos = await loadEventsForRange(fechaIzq, fechaDer);
   const spread = document.getElementById('libroSpread');
   spread.innerHTML = '';
-  spread.appendChild(buildLibroPage(fechaIzq, eventos.filter(ev => ev.fecha === fechaIzq)));
-  spread.appendChild(buildLibroPage(fechaDer, eventos.filter(ev => ev.fecha === fechaDer)));
+  if (isLibroMobile()) {
+    const eventos = await loadEventsForRange(currentDate, currentDate);
+    spread.appendChild(buildLibroPage(currentDate, eventos.filter(ev => ev.fecha === currentDate)));
+  } else {
+    const fechaIzq = currentDate;
+    const fechaDer = addDaysStr(currentDate, 1);
+    const eventos = await loadEventsForRange(fechaIzq, fechaDer);
+    spread.appendChild(buildLibroPage(fechaIzq, eventos.filter(ev => ev.fecha === fechaIzq)));
+    spread.appendChild(buildLibroPage(fechaDer, eventos.filter(ev => ev.fecha === fechaDer)));
+  }
 }
 async function flipLibro(dias){
-  const spread = document.getElementById('libroSpread');
-  spread.classList.add('flipping');
-  await new Promise(resolve => setTimeout(resolve, 160));
   currentDate = addDaysStr(currentDate, dias);
   document.getElementById('agendaDate').value = currentDate;
   await renderLibroView();
-  spread.classList.remove('flipping');
 }
-document.getElementById('libroPrev').addEventListener('click', () => flipLibro(-2));
-document.getElementById('libroNext').addEventListener('click', () => flipLibro(2));
+document.getElementById('libroPrev').addEventListener('click', () => flipLibro(isLibroMobile() ? -1 : -2));
+document.getElementById('libroNext').addEventListener('click', () => flipLibro(isLibroMobile() ? 1 : 2));
+let libroResizeTimer = null;
+window.addEventListener('resize', () => {
+  if (viewMode !== 'libro') return;
+  clearTimeout(libroResizeTimer);
+  libroResizeTimer = setTimeout(() => renderLibroView(), 200);
+});
 
 /* ---------- Búsqueda de eventos (todas las fechas, no solo el día actual) ---------- */
 let searchDebounceTimer = null;
