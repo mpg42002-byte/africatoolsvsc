@@ -335,6 +335,10 @@ button{font-family:inherit;}
 .libro-mini-card .lmc-cliente{ font-weight:700; display:block; }
 .libro-mini-card .lmc-line{ display:block; color:var(--text-muted); }
 .libro-mini-card .lmc-desc{ display:block; margin-top:3px; font-style:italic; color:var(--text-muted); }
+.libro-mini-card.compact{ padding:4px 5px; }
+.libro-mini-card.compact .lmc-top{ margin-bottom:2px; gap:2px; }
+.libro-mini-card.compact .lmc-chip{ font-size:9px; padding:1px 4px; }
+.libro-mini-card.compact .lmc-cliente{ font-size:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
 /* ---------- Modal: Ver detalle del evento ---------- */
 .event-view-top{ display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
@@ -346,6 +350,9 @@ button{font-family:inherit;}
 @media (max-width:760px){
   .libro-nav{ gap:4px; }
   .libro-flip-btn{ width:34px; height:34px; font-size:18px; }
+  .libro-half-grid{ min-height:52px; }
+  .libro-page{ padding:10px 8px 14px; }
+  .libro-room-head{ font-size:10px; padding:3px 2px 5px; }
 }
 
 @media (max-width:700px){
@@ -1254,21 +1261,31 @@ function fmtLibroHeader(dateStr){
   const nombreDia = d.toLocaleDateString('es-CO', { weekday: 'long' });
   return { corta: `${dia}/${mes}`, diaNombre: nombreDia.charAt(0).toUpperCase() + nombreDia.slice(1) };
 }
-function buildLibroMiniCard(ev){
+function buildLibroMiniCard(ev, compact){
   const efectivo = estadoEfectivo(ev);
   const card = document.createElement('div');
-  card.className = 'libro-mini-card clickable estado-' + efectivo;
+  card.className = 'libro-mini-card clickable estado-' + efectivo + (compact ? ' compact' : '');
   const tipoNombre = tipoLabel(ev);
-  card.innerHTML = `
-    <div class="lmc-top">
-      <span class="lmc-chip hora">${hhmm(ev.hora_inicio)}</span>
-      ${tipoNombre ? `<span class="lmc-chip tipo">${escapeHtml(tipoNombre)}</span>` : ''}
-    </div>
-    <span class="lmc-cliente">${escapeHtml(ev.cliente_nombre)}</span>
-    ${ev.telefono ? `<span class="lmc-line">📞 ${escapeHtml(ev.telefono)}</span>` : ''}
-    ${ev.invitados ? `<span class="lmc-line">👥 ${ev.invitados} invitados</span>` : ''}
-    ${ev.observaciones ? `<span class="lmc-desc">${escapeHtml(ev.observaciones)}</span>` : ''}
-  `;
+  if (compact) {
+    card.innerHTML = `
+      <div class="lmc-top">
+        <span class="lmc-chip hora">${hhmm(ev.hora_inicio)}</span>
+        ${tipoNombre ? `<span class="lmc-chip tipo">${escapeHtml(tipoNombre)}</span>` : ''}
+      </div>
+      <span class="lmc-cliente">${escapeHtml(ev.cliente_nombre)}</span>
+    `;
+  } else {
+    card.innerHTML = `
+      <div class="lmc-top">
+        <span class="lmc-chip hora">${hhmm(ev.hora_inicio)}</span>
+        ${tipoNombre ? `<span class="lmc-chip tipo">${escapeHtml(tipoNombre)}</span>` : ''}
+      </div>
+      <span class="lmc-cliente">${escapeHtml(ev.cliente_nombre)}</span>
+      ${ev.telefono ? `<span class="lmc-line">📞 ${escapeHtml(ev.telefono)}</span>` : ''}
+      ${ev.invitados ? `<span class="lmc-line">👥 ${ev.invitados} invitados</span>` : ''}
+      ${ev.observaciones ? `<span class="lmc-desc">${escapeHtml(ev.observaciones)}</span>` : ''}
+    `;
+  }
   card.addEventListener('click', () => openEventViewModal(ev));
   return card;
 }
@@ -1281,8 +1298,12 @@ function buildLibroPage(fecha, eventosDelDia){
   header.innerHTML = `<span class="lp-fecha">${corta}</span><span class="lp-dia">${diaNombre}</span>`;
   page.appendChild(header);
 
+  const compact = isLibroMobile();
   const numCols = Math.max(rooms.length, 1);
-  const colTemplate = `repeat(${numCols}, minmax(110px, 1fr))`;
+  // En celular no se pone un piso mínimo de columna: se reparte el ancho
+  // disponible entre todos los salones, para que se vean todos sin scroll
+  // horizontal. En pantallas grandes sí se respeta un mínimo legible.
+  const colTemplate = compact ? `repeat(${numCols}, minmax(0, 1fr))` : `repeat(${numCols}, minmax(110px, 1fr))`;
 
   const heads = document.createElement('div');
   heads.className = 'libro-room-heads';
@@ -1332,7 +1353,7 @@ function buildLibroPage(fecha, eventosDelDia){
       });
 
     items.forEach(item => {
-      const card = buildLibroMiniCard(item.ev);
+      const card = buildLibroMiniCard(item.ev, compact);
       card.style.gridColumn = `${item.colStart + 1} / span ${item.colSpan}`;
       card.style.gridRow = String(item.row);
       gridEl.appendChild(card);
