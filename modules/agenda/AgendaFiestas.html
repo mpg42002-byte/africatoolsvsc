@@ -6,6 +6,7 @@
 <script>(function(){try{var t=new URLSearchParams(location.search).get('theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../../assets/supabase-config.js"></script>
+<script src="../../assets/ui-helpers.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Agenda de Fiestas · Africa Parque de Diversiones</title>
@@ -587,6 +588,10 @@ let currentUserRoles = [];
 let canManage = false;   // administrador | lider_parque | supervisor
 let canCreate = false;   // canManage || cajero || anfitrion_fiesta
 let currentDate = '';
+// Mes que se muestra en la grilla de la vista Mes — separado de `currentDate`
+// para que tocar un día de otro mes (celdas grises de los bordes) actualice
+// la fecha seleccionada sin hacer saltar la grilla a ese otro mes.
+let monthGridAnchor = '';
 let rooms = [];
 let partyTypes = [];
 let events = [];
@@ -601,7 +606,7 @@ function addDaysStr(dateStr, n){ const d=strToDate(dateStr); d.setDate(d.getDate
 function fmtFechaLarga(dateStr){ const d=strToDate(dateStr); return d.toLocaleDateString('es-CO', { weekday:'long', day:'numeric', month:'long', year:'numeric' }); }
 function fmtFechaCorta(dateStr){ const d=strToDate(dateStr); return d.toLocaleDateString('es-CO', { day:'2-digit', month:'short' }); }
 function hhmm(t){ return (t||'').slice(0,5); }
-function escapeHtml(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+// escapeHtml() ahora vive en assets/ui-helpers.js (compartido entre módulos)
 
 /* ---------- Rol del usuario ---------- */
 const ROLE_LABELS = { administrador:'Administrador', lider_parque:'Líder de Parque', supervisor:'Supervisor', cajero:'Cajero', anfitrion_fiesta:'Anfitrión de Fiesta', lider_seguridad:'Líder de Seguridad' };
@@ -1213,6 +1218,7 @@ let selectedMonthDay = null;
 
 function setDate(dateStr){
   currentDate = dateStr;
+  monthGridAnchor = dateStr;
   document.getElementById('agendaDate').value = dateStr;
   renderCurrentView();
 }
@@ -1235,6 +1241,7 @@ document.querySelectorAll('.view-switch-btn').forEach(btn => {
     document.getElementById('view-libro').classList.toggle('hidden', viewMode !== 'libro');
     document.getElementById('weekDragHint').style.display = canManage ? '' : 'none';
     selectedMonthDay = null;
+    if (viewMode === 'month') monthGridAnchor = currentDate;
     renderCurrentView();
   });
 });
@@ -1243,13 +1250,13 @@ document.getElementById('datePrev').addEventListener('click', () => {
   if (viewMode === 'day') setDate(addDaysStr(currentDate, -1));
   else if (viewMode === 'week') setDate(addDaysStr(currentDate, -7));
   else if (viewMode === 'libro') setDate(addDaysStr(currentDate, -1));
-  else setDate(addMonthsStr(currentDate, -1));
+  else setDate(addMonthsStr(monthGridAnchor || currentDate, -1));
 });
 document.getElementById('dateNext').addEventListener('click', () => {
   if (viewMode === 'day') setDate(addDaysStr(currentDate, 1));
   else if (viewMode === 'week') setDate(addDaysStr(currentDate, 7));
   else if (viewMode === 'libro') setDate(addDaysStr(currentDate, 1));
-  else setDate(addMonthsStr(currentDate, 1));
+  else setDate(addMonthsStr(monthGridAnchor || currentDate, 1));
 });
 document.getElementById('dateToday').addEventListener('click', () => setDate(todayStr()));
 
@@ -1558,7 +1565,7 @@ async function moveEventToDate(eventId, newFecha, sourceEvents){
 /* ---------- Vista Mes ---------- */
 async function renderMonthView(){
   const hoy = todayStr();
-  const base = strToDate(currentDate);
+  const base = strToDate(monthGridAnchor || currentDate);
   const firstOfMonth = new Date(base.getFullYear(), base.getMonth(), 1);
   const lastOfMonth = new Date(base.getFullYear(), base.getMonth() + 1, 0);
   const firstOfMonthStr = dateToStr(firstOfMonth);
@@ -1590,6 +1597,7 @@ async function renderMonthView(){
     const fechaCursor = cursor;
     cell.addEventListener('click', () => {
       selectedMonthDay = fechaCursor;
+      currentDate = fechaCursor;
       document.getElementById('agendaDate').value = fechaCursor;
       renderMonthView();
     });

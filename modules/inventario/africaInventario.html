@@ -4,6 +4,7 @@
 <script src="https://browser.sentry-cdn.com/10.71.0/bundle.min.js" integrity="sha384-Z0GeEnLeg0yvo3LU6sdGDESgTZCwpVvZBIgcnddmSR+ovRPe8Esn+19CrZdcxC4Z" crossorigin="anonymous"></script>
 <script src="../../assets/sentry-init.js"></script>
 <script>(function(){try{var t=new URLSearchParams(location.search).get('theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
+<script src="../../assets/ui-helpers.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Convertidor de Inventario · Africa Parque de Diversiones</title>
@@ -607,27 +608,7 @@
 </div>
 
 <script>
-// --- MODAL DE CONFIRMACIÓN PROPIO (reemplaza confirm() nativo) ---
-function afConfirm(title, body) {
-  const backdrop = document.getElementById('af-confirm-backdrop');
-  document.getElementById('af-confirm-title').textContent = title;
-  document.getElementById('af-confirm-body').textContent = body || '';
-  backdrop.classList.remove('hidden');
-  return new Promise((resolve) => {
-    const cancelBtn = document.getElementById('af-confirm-cancel');
-    const acceptBtn = document.getElementById('af-confirm-accept');
-    const cleanup = (result) => {
-      backdrop.classList.add('hidden');
-      cancelBtn.removeEventListener('click', onCancel);
-      acceptBtn.removeEventListener('click', onAccept);
-      resolve(result);
-    };
-    const onCancel = () => cleanup(false);
-    const onAccept = () => cleanup(true);
-    cancelBtn.addEventListener('click', onCancel);
-    acceptBtn.addEventListener('click', onAccept);
-  });
-}
+// afConfirm() ahora vive en assets/ui-helpers.js (compartido entre módulos)
 // --- SCRIPT PARA EL TOGGLE DE TEMA (Solo UI) ---
 const themeToggle = document.getElementById('themeToggle');
 const themeIconMoon = document.getElementById('themeIconMoon');
@@ -1062,9 +1043,7 @@ function updatePreview(){
   });
 }
 
-function escapeHtml(s){
-  return (s+'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
+// escapeHtml() ahora vive en assets/ui-helpers.js (compartido entre módulos)
 
 // ---------- Export ----------
 const THIN = {style:'thin', color:{argb:'FF8C8C8C'}};

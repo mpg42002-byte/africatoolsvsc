@@ -7,6 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../../assets/supabase-config.js"></script>
 <script src="../../assets/offline-storage.js"></script>
+<script src="../../assets/ui-helpers.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Marcación Folders · A-Z · Lockers · Africa Parque de Diversiones</title>
@@ -613,26 +614,7 @@ const state = {
 
 const FOLDER_PRESETS = ["CAJA MENOR","CHECKLIST MANTENIMIENTO","CHECKLIST OPERACIÓN","INVENTARIO WINNER"];
 
-function afConfirm(title, body) {
-  const backdrop = document.getElementById('af-confirm-backdrop');
-  document.getElementById('af-confirm-title').textContent = title;
-  document.getElementById('af-confirm-body').textContent = body || '';
-  backdrop.classList.remove('hidden');
-  return new Promise((resolve) => {
-    const cancelBtn = document.getElementById('af-confirm-cancel');
-    const acceptBtn = document.getElementById('af-confirm-accept');
-    const cleanup = (result) => {
-      backdrop.classList.add('hidden');
-      cancelBtn.removeEventListener('click', onCancel);
-      acceptBtn.removeEventListener('click', onAccept);
-      resolve(result);
-    };
-    const onCancel = () => cleanup(false);
-    const onAccept = () => cleanup(true);
-    cancelBtn.addEventListener('click', onCancel);
-    acceptBtn.addEventListener('click', onAccept);
-  });
-}
+// afConfirm() ahora vive en assets/ui-helpers.js (compartido entre módulos)
 
 const fmtEls = document.querySelectorAll('.fmt');
 const namesInput = document.getElementById('namesInput');
@@ -834,11 +816,7 @@ function buildLockersPage(names){
   return page;
 }
 
-function escapeHtml(str){
-  const d = document.createElement('div');
-  d.textContent = str;
-  return d.innerHTML;
-}
+// escapeHtml() ahora vive en assets/ui-helpers.js (compartido entre módulos)
 
 function generate(){
   if(state.format === 'combo'){ generateCombo(); return; }

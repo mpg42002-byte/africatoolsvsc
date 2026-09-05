@@ -7,6 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../../assets/supabase-config.js"></script>
 <script src="../../assets/offline-storage.js"></script>
+<script src="../../assets/ui-helpers.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Día a Día · Africa Parque de Diversiones</title>
@@ -589,9 +590,7 @@ async function loadCurrentUserNombre(){
 }
 
 /* ---------- Render ---------- */
-function escapeHtml(s){
-  return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-}
+// escapeHtml() ahora vive en assets/ui-helpers.js (compartido entre módulos)
 function prioridadLabel(p){ return { alta:'Alta', media:'Media', baja:'Baja' }[p] || p; }
 function periodicidadLabel(task){
   const map = { una_vez:'Una vez', diaria:'Diaria', semanal:'Semanal', mensual:'Mensual', trimestral:'Trimestral', semestral:'Semestral', anual:'Anual' };

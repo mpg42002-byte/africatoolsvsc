@@ -7,6 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../../assets/supabase-config.js"></script>
 <script src="../../assets/offline-storage.js"></script>
+<script src="../../assets/ui-helpers.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Calificación Wow Points · Africa Parque de Diversiones</title>
@@ -358,27 +359,7 @@ button{
 </div>
 
 <script>
-// --- MODAL DE CONFIRMACIÓN PROPIO (reemplaza confirm() nativo) ---
-function afConfirm(title, body) {
-  const backdrop = document.getElementById('af-confirm-backdrop');
-  document.getElementById('af-confirm-title').textContent = title;
-  document.getElementById('af-confirm-body').textContent = body || '';
-  backdrop.classList.remove('hidden');
-  return new Promise((resolve) => {
-    const cancelBtn = document.getElementById('af-confirm-cancel');
-    const acceptBtn = document.getElementById('af-confirm-accept');
-    const cleanup = (result) => {
-      backdrop.classList.add('hidden');
-      cancelBtn.removeEventListener('click', onCancel);
-      acceptBtn.removeEventListener('click', onAccept);
-      resolve(result);
-    };
-    const onCancel = () => cleanup(false);
-    const onAccept = () => cleanup(true);
-    cancelBtn.addEventListener('click', onCancel);
-    acceptBtn.addEventListener('click', onAccept);
-  });
-}
+// afConfirm() ahora vive en assets/ui-helpers.js (compartido entre módulos)
 let entries = [];   // {id, name, score}
 
 const entryNameInput = document.getElementById('entryNameInput');
@@ -408,11 +389,7 @@ function getMaxScore(){
   return Math.max(...entries.map(e => parseFloat(e.score)).filter(n=>!isNaN(n)));
 }
 
-function escapeHtml(str){
-  const d = document.createElement('div');
-  d.textContent = str;
-  return d.innerHTML;
-}
+// escapeHtml() ahora vive en assets/ui-helpers.js (compartido entre módulos)
 function chunk(arr, size){
   const out = [];
   for(let i=0;i<arr.length;i+=size) out.push(arr.slice(i, i+size));

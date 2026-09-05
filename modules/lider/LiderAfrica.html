@@ -6,6 +6,7 @@
 <script>(function(){try{var t=new URLSearchParams(location.search).get('theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../../assets/supabase-config.js"></script>
+<script src="../../assets/ui-helpers.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <meta charset="UTF-8">
@@ -965,6 +966,7 @@
                 <button data-c="amarillo" type="button">Amarillo — advertencia</button>
                 <button data-c="rojo" type="button">Rojo — falta grave</button>
               </div>
+              <p class="field-error" id="color-pick-error">Selecciona una tarjeta: verde, amarilla o roja.</p>
             </div>
             <div class="field-row">
               <textarea id="f-nota" placeholder="Nota breve (ej: casco mal ajustado, protectores colgando del cuello...)"></textarea>
@@ -1389,15 +1391,33 @@
   // un archivo, todos los demás lo ven al recargar. Mantienen la misma
   // firma (string JSON de entrada/salida) que antes para no tener que
   // tocar cada punto donde se llaman.
+  function updateStorageStatusUI(){
+    const el = document.getElementById('storage-status');
+    if(!el) return;
+    const ICONS = {
+      cloud: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 18a4 4 0 0 1-.5-7.97A5.5 5.5 0 0 1 16.4 8.05 4.5 4.5 0 0 1 17.5 18h-11z"></path></svg>',
+      warn: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 21 19H3z"></path><path d="M12 9.5v4M12 16.2v.3"></path></svg>'
+    };
+    if(backend === 'shared'){
+      el.innerHTML = '<span class="icon-inline" aria-hidden="true">'+ICONS.cloud+'</span> Compartido con todo el equipo';
+    }else if(backend === 'error'){
+      el.innerHTML = '<span class="icon-inline" aria-hidden="true">'+ICONS.warn+'</span> Sin conexión — revisa tu internet';
+    }else{
+      el.textContent = 'Cargando...';
+    }
+  }
   async function storeGet(key){
     try{
       const { data, error } = await supabaseClient.from('lider_shared_data').select('value').eq('key', key).maybeSingle();
       if (error) throw error;
       backend = 'shared';
+      updateStorageStatusUI();
       return data ? JSON.stringify(data.value) : null;
     }catch(e){
       console.error('storeGet (compartido) falló para', key, e);
       backend = 'error';
+      updateStorageStatusUI();
+      showToast('No se pudo cargar — revisa tu conexión. Lo que ves puede estar desactualizado.');
       return null;
     }
   }
@@ -1408,9 +1428,11 @@
         .upsert({ key, value: parsed, updated_by: currentUserId, updated_at: new Date().toISOString() }, { onConflict: 'key' });
       if (error) throw error;
       backend = 'shared';
+      updateStorageStatusUI();
     }catch(e){
       console.error('storeSet (compartido) falló para', key, e);
       backend = 'error';
+      updateStorageStatusUI();
       showToast('No se pudo guardar — revisa tu conexión e intenta de nuevo');
     }
   }
@@ -1525,6 +1547,7 @@
       colorPick.querySelectorAll('button').forEach(x=>x.classList.remove('sel'));
       b.classList.add('sel');
       selectedColor = b.dataset.c;
+      document.getElementById('color-pick-error').classList.remove('show');
       semaforoVisual.querySelectorAll('.luz').forEach(l=>l.classList.remove('on'));
       semaforoVisual.querySelector('.luz.'+selectedColor).classList.add('on');
       msgPreview.style.display = 'block';
@@ -1576,7 +1599,11 @@
     const fecha = fFecha.value;
     const nota = document.getElementById('f-nota').value.trim();
     if(!nombre){ showFieldError(nombreInput, document.getElementById('f-nombre-error')); return; }
-    if(!selectedColor){ alert('Selecciona una tarjeta: verde, amarilla o roja.'); return; }
+    if(!selectedColor){
+      document.getElementById('color-pick-error').classList.add('show');
+      colorPick.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
     const saveBtn = document.getElementById('btn-guardar-epp');
     saveBtn.disabled = true;
     try{
@@ -1889,11 +1916,7 @@
     });
   }
 
-  function escapeHtml(str){
-    const d = document.createElement('div');
-    d.textContent = str;
-    return d.innerHTML;
-  }
+  // escapeHtml() ahora vive en assets/ui-helpers.js (compartido entre módulos)
 
   // ---------- Checklist mensual ----------
   const taskIds = [
@@ -2050,7 +2073,7 @@
   });
 
   // ---------- Recursos editables ----------
-  function escapeAttr(str){ return String(str).replace(/"/g,'&quot;'); }
+  // escapeAttr() ahora vive en assets/ui-helpers.js (compartido entre módulos)
 
   function createResourceManager(containerId, storageKey, seedItems){
     const container = document.getElementById(containerId);
@@ -2421,20 +2444,7 @@
   loadEppLog();
   loadChecklist();
   loadQbank();
-
-  setTimeout(()=>{
-    const el = document.getElementById('storage-status');
-    if(!el) return;
-    const ICONS = {
-      cloud: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 18a4 4 0 0 1-.5-7.97A5.5 5.5 0 0 1 16.4 8.05 4.5 4.5 0 0 1 17.5 18h-11z"></path></svg>',
-      warn: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5 21 19H3z"></path><path d="M12 9.5v4M12 16.2v.3"></path></svg>'
-    };
-    if(backend === 'shared'){
-      el.innerHTML = '<span class="icon-inline" aria-hidden="true">'+ICONS.cloud+'</span> Compartido con todo el equipo';
-    }else{
-      el.innerHTML = '<span class="icon-inline" aria-hidden="true">'+ICONS.warn+'</span> Sin conexión — revisa tu internet';
-    }
-  }, 600);
+  updateStorageStatusUI();
 })();
 </script>
 

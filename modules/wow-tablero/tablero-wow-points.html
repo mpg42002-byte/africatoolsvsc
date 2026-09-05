@@ -7,6 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../../assets/supabase-config.js"></script>
 <script src="../../assets/offline-storage.js"></script>
+<script src="../../assets/ui-helpers.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Tablero Wow Points · Africa Parque de Diversiones</title>
@@ -837,11 +838,7 @@ document.getElementById('selectNoneBtn').addEventListener('click', ()=>{
   renderRoster();
 });
 
-function escapeHtml(str){
-  const d = document.createElement('div');
-  d.textContent = str;
-  return d.innerHTML;
-}
+// escapeHtml() ahora vive en assets/ui-helpers.js (compartido entre módulos)
 
 function chunk(arr, size){
   const out = [];

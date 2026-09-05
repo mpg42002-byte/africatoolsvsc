@@ -6,6 +6,70 @@ CSS, propuesta de mejoras, checklists de deploy previos), consolidados aquí.
 Para el estado actual del modelo de datos, ver `ESTRUCTURA-DATOS.md` — ese
 es el documento de referencia vigente, no este changelog.
 
+## 2026-09-05 — Líder de Seguridad, Agenda de Fiestas, Día a Día, y limpieza general
+
+**Líder de Seguridad**
+- Corregido el bug por el que un abordaje de EPP registrado de noche (desde
+  las 7pm hora Colombia) quedaba guardado con la fecha del día siguiente
+  (`valueAsDate` interpretaba en UTC, no en hora local).
+- Corregido el resumen del Dashboard: leía el checklist mensual de la tabla
+  equivocada (`module_data` en vez de `lider_shared_data`), por lo que
+  siempre mostraba "sin iniciar" sin importar el avance real.
+- "Nombre del trabajador" en el registro de abordajes pasó de texto libre a
+  una lista de equipo administrable (agregar/renombrar/eliminar, con
+  orden alfabético) — no afecta los abordajes ya registrados, que guardan
+  el nombre tal cual estaba en el momento.
+- Reporte Semanal: corregido que no se pudiera desplazar en celular (el
+  modal reutilizado no tenía scroll propio ni límite de alto).
+- El indicador "Compartido con todo el equipo / Sin conexión" ahora se
+  actualiza en vivo con cada guardado o lectura, no solo una vez 600ms
+  después de cargar la página.
+- Aviso agregado cuando falla una lectura (antes solo quedaba en consola,
+  sin que el usuario supiera que lo que ve puede estar desactualizado).
+
+**Agenda de Fiestas**
+- Buscador por cliente, teléfono o tipo de fiesta, en todas las fechas.
+- Orden manual (flechas ↑/↓) para Salones y Tipos de fiesta, en vez de
+  alfabético fijo — requiere la columna `orden` (migración SQL aparte).
+- Corregido: tocar un día en la vista Mes no actualizaba el input de fecha.
+- Formulario de evento reordenado: "Tipo de fiesta" ahora va arriba de
+  Hora inicio/fin.
+- Nueva vista **Agenda** (estilo libreta física, dos páginas por
+  salón × mañana/tarde), con vista compacta y sin scroll horizontal en
+  celular. Eventos que comparten 2+ salones contiguos se combinan en un
+  solo contenedor en vez de duplicarse por columna.
+- Nuevo modal "Ver detalle" del evento (lo que ve cualquiera con acceso al
+  módulo) antes de poder editar — antes, en la vista Semana y en Agenda,
+  el clic saltaba directo a edición (o a historial, según el rol).
+
+**Día a Día**
+- Nueva periodicidad "Una vez" para tareas puntuales de una sola fecha,
+  además de las periódicas (diaria, semanal, mensual, etc.).
+
+**General / deuda técnica**
+- `escapeHtml`, `escapeAttr` y `afConfirm` (el modal de confirmación
+  propio) centralizados en `assets/ui-helpers.js`, compartido por los 9
+  módulos — antes cada uno tenía su propia copia pegada.
+- `confirm()` nativo del navegador reemplazado por el modal propio en los
+  4 módulos que aún lo usaban: Limpieza, Inventario, Habladores Winner y
+  Calificación Wow Points.
+- Corregido un hueco de XSS en Limpieza (único módulo sin `escapeHtml`):
+  nombres de empleados/tareas/máquinas se insertaban sin escapar.
+- Últimos `alert()` nativos reemplazados: en Habladores Winner (mensaje
+  junto al botón de subir PDF) y en Líder (mensaje junto al semáforo de
+  colores del registro de abordajes).
+- Corregido desborde de `<input type="date"/"month">` en iOS (Líder,
+  Agenda, Día a Día) por falta de reset de `-webkit-appearance`.
+- Corregida la vista previa de impresión en Folders, Habladores Winner y
+  Calificación Wow Points: contenido fuera de pantalla quedaba invisible
+  (`overflow-x:hidden`) en vez de con scroll, y el zoom inicial fijo no se
+  ajustaba a pantallas angostas.
+- Wow Tablero: el recuadro de recorte de foto (ancho fijo) se salía del
+  modal en pantallas muy angostas (~320px) — ahora es responsive.
+- `ESTRUCTURA-DATOS.md` y `CHECKLIST-REGRESION.md` actualizados para
+  reflejar todo lo anterior (tablas `lider_shared_data`, `lider_abordajes`,
+  `park_*` de Agenda, soporte offline real por módulo, roles vigentes).
+
 ## 2026-08-21 — Deuda técnica y limpieza (Sección 0/2 de la orden en curso)
 - Persistencia unificada en `OfflineStorage` para Folders, Habladores y
   Calificación Wow (con cola offline).
