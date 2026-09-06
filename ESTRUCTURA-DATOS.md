@@ -66,7 +66,7 @@ Es **100% privado por persona** — nadie más, ni siquiera un administrador, pu
 | `wow-calificacion` | `africa_wow_scores` |
 | `diaadia` | `tasks` |
 
-Inventario es el único módulo sin datos persistentes — su flujo es solo subir un PDF y descargar el Excel resultante, no hay nada que guardar entre sesiones. **Líder de Seguridad y Agenda de Fiestas no usan esta tabla** — Líder ver sección 5; Agenda ver sección 6, cada uno tiene sus propias tablas dedicadas.
+Inventario es el único módulo sin datos persistentes — su flujo es solo subir un PDF y descargar el Excel resultante, no hay nada que guardar entre sesiones. **Líder de Seguridad, Agenda de Fiestas y Bitácora no usan esta tabla** — Líder ver sección 5; Agenda ver sección 6; Bitácora ver sección 7 — cada uno tiene sus propias tablas dedicadas.
 
 ## 5. Supabase — `lider_shared_data` y `lider_abordajes` (datos compartidos de Líder de Seguridad)
 
@@ -159,17 +159,39 @@ create table park_event_history (      -- bitácora de cambios por evento
 
 `park_rooms` y `party_types` son catálogos administrables (salas del parque y tipos de fiesta); `park_events` es la reserva en sí; `park_event_rooms` resuelve la relación muchos-a-muchos evento↔sala; `park_event_history` guarda quién hizo qué cambio a cada evento. Todo compartido entre todo el equipo con acceso al módulo, no privado por persona.
 
-## 7. Navegador — `localStorage` (lo poco que queda ahí)
+## 7. Supabase — tabla `bitacora_entries` (módulo Bitácora)
 
-Solo preferencias de interfaz, nunca datos de negocio:
+Canal de novedades compartido entre líderes de parque, día a día — no usa `module_data`, tiene su propia tabla:
+
+```sql
+create table bitacora_entries (
+  id uuid primary key default gen_random_uuid(),
+  fecha date not null default current_date,
+  autor_id uuid references auth.users(id),
+  autor_nombre text not null default 'Usuario',
+  texto text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+```
+
+**Acceso restringido a solo `administrador` y `lider_parque`** — a diferencia del resto de tablas compartidas de este documento, aquí ni siquiera Supervisor tiene acceso (ni de lectura). En `assets/permissions.js`, el módulo `bitacora` está marcado `restricted: true`, así que `'ALL'` no lo incluye automáticamente — Administrador y Líder de Parque lo agregan explícitamente en su lista de módulos. Reglas, aplicadas tanto en la RLS como en la UI (la UI además bloquea toda la página con una pantalla de "sin acceso" si el rol no califica, no solo el botón de escribir):
+- **Leer**: solo `lider_parque` o `administrador`.
+- **Crear**: misma regla.
+- **Editar/eliminar**: misma regla, y solo si `fecha = current_date` — en cuanto pasa el día, la nota queda fija como registro histórico (nadie, ni siquiera quien la escribió, puede tocarla).
+
+## 8. Navegador — `localStorage`
+
+Sobre todo preferencias de interfaz, más una excepción reciente:
 
 - `africa_tools_theme` — tema del shell (claro/oscuro)
 - `africa_labels_theme`, `africa_habladores_theme`, `africa_wow_theme`, `africa_wow_scores_theme`, `af_theme`, `africa-theme` — cada módulo guarda su propio tema por separado (así puede recordarlo incluso si se abre suelto, fuera del shell)
 - `africa_tools_login_attempts` (en `sessionStorage`, no `localStorage`) — límite de intentos de login, se borra solo al cerrar la pestaña
+- **`africa_tools_last_profile`** — la excepción: sí es un dato de negocio (nombre, usuario y roles de la última sesión confirmada con éxito). Lo usa `gateModuleAccess()` en `assets/ui-helpers.js` como respaldo cuando no hay internet para confirmar el rol al abrir un módulo — así los módulos con cola de sincronización (ver sección 9) no quedan bloqueados solo por no poder hacer esa consulta. Se limpia al cerrar sesión (`clearSession()` en `assets/shell.js`), para que no quede disponible para la siguiente persona en un dispositivo compartido.
 
-## 8. Navegador — IndexedDB (`africa-tools-offline`), modo sin conexión
+## 9. Navegador — IndexedDB (`africa-tools-offline`), modo sin conexión
 
-Usada por `assets/offline-storage.js`, la capa compartida que permite seguir trabajando sin señal en Limpieza, Wow Tablero, Folders, Habladores, Wow Calificación y Día a Día. **Ni Líder de Seguridad ni Agenda de Fiestas la usan** — ninguno de los dos carga `offline-storage.js`, ambos hablan directo con sus tablas de Supabase; sin conexión, cada guardado o carga simplemente falla con un aviso en pantalla, sin cola de reintento.
+Usada por `assets/offline-storage.js`, la capa compartida que permite seguir trabajando sin señal en Limpieza, Wow Tablero, Folders, Habladores, Wow Calificación y Día a Día. **Ni Líder de Seguridad, ni Agenda de Fiestas, ni Bitácora la usan** — ninguno de los tres carga `offline-storage.js`, los tres hablan directo con sus tablas de Supabase; sin conexión, cada guardado o carga simplemente falla con un aviso en pantalla, sin cola de reintento.
 
 - **Store `cache`**: última copia conocida de cada dato (`{id: "modulo::clave", module, key, value, updatedAt}`) — lo que se muestra en pantalla cuando no hay conexión.
 - **Store `queue`**: cambios guardados localmente que todavía no se subieron a Supabase (`{id, module, key, value, updatedAt}`) — se reintenta solo al reconectar y cada 30 segundos.

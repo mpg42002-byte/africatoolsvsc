@@ -8,6 +8,7 @@
 <script src="../../assets/supabase-config.js"></script>
 <script src="../../assets/offline-storage.js"></script>
 <script src="../../assets/ui-helpers.js"></script>
+<script src="../../assets/permissions.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Tablero Wow Points · Africa Parque de Diversiones</title>
@@ -16,6 +17,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
+body{visibility:hidden;} /* revelado por gateModuleAccess() en assets/ui-helpers.js */
 /* Paleta, tipografía y radios base ahora vienen de design-tokens.css
    (linkeado arriba). Aquí solo queda lo que se aparta intencionalmente
    del token compartido. [data-theme="dark"] es idéntico al de
@@ -940,6 +942,8 @@ themeToggle.addEventListener('click', ()=>{
 
 // ---- init ----
 (async function init(){
+  const gate = await gateModuleAccess('wow-tablero');
+  if (!gate.allowed) return;
   await loadEmployees();
   await loadSelection();
   renderRoster();

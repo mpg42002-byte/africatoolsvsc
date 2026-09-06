@@ -6,6 +6,47 @@ CSS, propuesta de mejoras, checklists de deploy previos), consolidados aquí.
 Para el estado actual del modelo de datos, ver `ESTRUCTURA-DATOS.md` — ese
 es el documento de referencia vigente, no este changelog.
 
+## 2026-09-07 — Segunda capa de protección por módulo, y arreglo de offline
+
+- Cada módulo ahora revisa el rol real del usuario contra `permissions.js`
+  al abrirse (`gateModuleAccess()` en `assets/ui-helpers.js`), y bloquea
+  todo el contenido con una pantalla de "🔒 No tienes acceso" si no
+  corresponde. Antes, cualquier módulo confiaba en que el shell no lo
+  mostrara en el menú — quien llegara directo a la URL igual veía y usaba
+  el contenido completo. Aplicado a los 9 módulos con acceso restringido
+  (todos menos Día a Día, que ya es de acceso libre para todos los roles).
+- Efecto secundario que este mismo cambio introdujo y ya quedó resuelto:
+  esa revisión de rol necesita internet, así que sin conexión bloqueaba
+  módulos que antes sí funcionaban offline (Limpieza, Folders, Habladores,
+  Wow Tablero, Wow Calificación, vía su cola de sincronización). Ahora,
+  si hay sesión pero no se puede confirmar el rol por falta de red, se usa
+  el último permiso confirmado con éxito (guardado en `localStorage`,
+  `africa_tools_last_profile`) — solo para la misma persona, y se borra
+  al cerrar sesión. Si nunca hubo sesión, sigue bloqueando sin excepción.
+- Service worker: agregados `assets/ui-helpers.js` y
+  `modules/bitacora/Bitacora.html` a la lista de precaché (se habían
+  quedado fuera al crearlos) — versión de caché subida a v19.
+
+## 2026-09-06 — Nuevo módulo: Bitácora
+
+- Módulo nuevo para reemplazar el cuaderno físico de novedades entre
+  líderes de parque: vista tipo cuaderno, navegable día por día (flechas +
+  selector de fecha), con buscador por texto o autor en todas las fechas.
+- Cada nota queda con quién la escribió y a qué hora — varias notas sueltas
+  por día, no un solo bloque de texto.
+- **Acceso exclusivo**: solo Líder de Parque y Administrador — a diferencia
+  del resto de módulos compartidos de la app, ni Supervisor lo ve. Marcado
+  como `restricted` en `assets/permissions.js` (así `'ALL'` ya no lo incluye
+  automáticamente) y reforzado con una pantalla de "sin acceso" dentro del
+  propio módulo, además de la restricción de lectura en la base de datos.
+- Una nota se puede editar o borrar **solo el mismo día** que se escribió;
+  en cuanto cambia el día queda fija como registro histórico — ni siquiera
+  quien la escribió puede tocarla después. Regla aplicada tanto en la app
+  como en la política de la base de datos (RLS), no solo de cara al usuario.
+- Nueva tabla `bitacora_entries` (migración SQL aparte) — no usa
+  `module_data` ni `OfflineStorage`, sigue el mismo patrón de tabla propia
+  que ya usan Líder de Seguridad y Agenda de Fiestas.
+
 ## 2026-09-05 — Líder de Seguridad, Agenda de Fiestas, Día a Día, y limpieza general
 
 **Líder de Seguridad**

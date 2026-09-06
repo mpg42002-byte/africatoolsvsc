@@ -7,6 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../../assets/supabase-config.js"></script>
 <script src="../../assets/ui-helpers.js"></script>
+<script src="../../assets/permissions.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <meta charset="UTF-8">
@@ -18,6 +19,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
+  body{visibility:hidden;} /* revelado por gateModuleAccess() en assets/ui-helpers.js */
   /* Paleta, tipografía y radios base ahora vienen de design-tokens.css
      (linkeado arriba). Aquí solo quedan los tokens propios de este
      módulo o los que se apartan intencionalmente del token compartido.
@@ -1373,13 +1375,10 @@
   let currentUserNombre = 'Usuario';
 
   async function loadCurrentUser(){
-    try{
-      const { data } = await supabaseClient.auth.getSession();
-      currentUserId = data && data.session ? data.session.user.id : null;
-      if (!currentUserId) return;
-      const { data: profile } = await supabaseClient.from('profiles').select('nombre, usuario').eq('id', currentUserId).maybeSingle();
-      if (profile) currentUserNombre = profile.nombre || profile.usuario || 'Usuario';
-    }catch(e){ /* sin sesión: los abordajes que se registren quedarán a nombre de "Usuario" */ }
+    const gate = await gateModuleAccess('lider');
+    currentUserId = gate.userId;
+    currentUserNombre = gate.nombre || gate.usuario || 'Usuario';
+    return gate.allowed;
   }
 
   // storeGet/storeSet — a partir de esta versión, TODO lo que pasa por acá
@@ -2440,11 +2439,14 @@
   });
 
   // ---------- Init ----------
-  loadCurrentUser();
-  loadEppLog();
-  loadChecklist();
-  loadQbank();
-  updateStorageStatusUI();
+  (async function(){
+    const allowed = await loadCurrentUser();
+    if (!allowed) return;
+    loadEppLog();
+    loadChecklist();
+    loadQbank();
+    updateStorageStatusUI();
+  })();
 })();
 </script>
 

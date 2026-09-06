@@ -4,7 +4,10 @@
 <script src="https://browser.sentry-cdn.com/10.71.0/bundle.min.js" integrity="sha384-Z0GeEnLeg0yvo3LU6sdGDESgTZCwpVvZBIgcnddmSR+ovRPe8Esn+19CrZdcxC4Z" crossorigin="anonymous"></script>
 <script src="../../assets/sentry-init.js"></script>
 <script>(function(){try{var t=new URLSearchParams(location.search).get('theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../assets/supabase-config.js"></script>
 <script src="../../assets/ui-helpers.js"></script>
+<script src="../../assets/permissions.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Convertidor de Inventario · Africa Parque de Diversiones</title>
@@ -19,6 +22,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 
 <style>
+  body{visibility:hidden;} /* revelado por gateModuleAccess() en assets/ui-helpers.js */
   /* Paleta, tipografía y radios base ahora vienen de design-tokens.css
      (linkeado arriba). Este módulo tiene una escala extendida propia
      (espaciados, warning/info, radius-pill) y algunos valores que se
@@ -1132,6 +1136,11 @@ document.getElementById('exportBtn').onclick = async () => {
     btn.disabled = false;
   }
 };
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+(async function initGate(){
+  await gateModuleAccess('inventario');
+})();
 </script>
 
 <script>

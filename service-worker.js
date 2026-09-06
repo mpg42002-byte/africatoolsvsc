@@ -1,6 +1,6 @@
 /* AFRICA TOOLS · SERVICE WORKER */
 
-const CACHE_NAME = 'africa-tools-v18';
+const CACHE_NAME = 'africa-tools-v19';
 
 const CORE_ASSETS = [
   './',
@@ -13,6 +13,7 @@ const CORE_ASSETS = [
   './assets/permissions.js',
   './assets/supabase-config.js',
   './assets/offline-storage.js',
+  './assets/ui-helpers.js',
   './assets/icons/icon.svg',
   './assets/icons/icon-192.png',
   './assets/icons/icon-512.png',
@@ -30,6 +31,7 @@ const CORE_ASSETS = [
   './modules/habladores/habladores-winner.html',
   './modules/diaadia/africaDiaADia.html',
   './modules/agenda/AgendaFiestas.html',
+  './modules/bitacora/Bitacora.html',
 ];
 
 self.addEventListener('install', (event) => {

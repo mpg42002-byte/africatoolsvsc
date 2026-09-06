@@ -8,6 +8,7 @@
 <script src="../../assets/supabase-config.js"></script>
 <script src="../../assets/offline-storage.js"></script>
 <script src="../../assets/ui-helpers.js"></script>
+<script src="../../assets/permissions.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Habladores Winner · Africa Parque de Diversiones</title>
@@ -17,6 +18,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
+body{visibility:hidden;} /* revelado por gateModuleAccess() en assets/ui-helpers.js */
 /* Century Gothic Bold, empaquetada con el módulo — así se ve igual sin
    importar si el equipo que imprime la tiene instalada o no. Uso interno,
    ver nota de licencia en la conversación con Miguel.
@@ -862,6 +864,8 @@ themeToggle.addEventListener('click', ()=>{
 });
 
 (async function init(){
+  const gate = await gateModuleAccess('habladores');
+  if (!gate.allowed) return;
   await loadEntries();
   renderEntryList();
   applyTheme(document.documentElement.getAttribute('data-theme') || localStorage.getItem('africa_tools_theme') || 'light');

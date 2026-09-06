@@ -10,6 +10,7 @@ const MODULE_SOURCES = {
   'limpieza': 'modules/limpieza/africaLimpieza.html',
   'inventario': 'modules/inventario/africaInventario.html',
   'lider': 'modules/lider/LiderAfrica.html',
+  'bitacora': 'modules/bitacora/Bitacora.html',
   'folders': 'modules/folders/marcacion-folders.html',
   'wow-tablero': 'modules/wow-tablero/tablero-wow-points.html',
   'wow-calificacion': 'modules/wow-calificacion/calificacion-wow-points.html',
@@ -186,6 +187,7 @@ async function getSession() {
 
 async function clearSession() {
   await supabaseClient.auth.signOut();
+  try { localStorage.removeItem('africa_tools_last_profile'); } catch (e) {}
 }
 
 function getTheme() {

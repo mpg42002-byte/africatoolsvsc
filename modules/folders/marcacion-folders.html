@@ -8,6 +8,7 @@
 <script src="../../assets/supabase-config.js"></script>
 <script src="../../assets/offline-storage.js"></script>
 <script src="../../assets/ui-helpers.js"></script>
+<script src="../../assets/permissions.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Marcación Folders · A-Z · Lockers · Africa Parque de Diversiones</title>
@@ -15,6 +16,7 @@
 <link rel="stylesheet" href="../../assets/design-tokens.css">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
+body{visibility:hidden;} /* revelado por gateModuleAccess() en assets/ui-helpers.js */
 /* Paleta, tipografía y radios base ahora vienen de design-tokens.css
    (linkeado arriba). Aquí solo quedan los tokens propios de este
    módulo o los que se apartan intencionalmente del token compartido. */
@@ -1052,6 +1054,8 @@ themeToggle.addEventListener('click', ()=>{
 
 // init
 (async function init(){
+  const gate = await gateModuleAccess('folders');
+  if (!gate.allowed) return;
   const lastFmt = await mdGet('africa_labels_last_format', 'folders');
   await setFormat(lastFmt);
   fitZoomToScreen();

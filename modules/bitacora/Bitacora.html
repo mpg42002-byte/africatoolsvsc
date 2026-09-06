@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<script src="https://browser.sentry-cdn.com/10.71.0/bundle.min.js" integrity="sha384-Z0GeEnLeg0yvo3LU6sdGDESgTZCwpVvZBIgcnddmSR+ovRPe8Esn+19CrZdcxC4Z" crossorigin="anonymous"></script>
+<script src="../../assets/sentry-init.js"></script>
+<script>(function(){try{var t=new URLSearchParams(location.search).get('theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../assets/supabase-config.js"></script>
+<script src="../../assets/ui-helpers.js"></script>
+<script src="../../assets/permissions.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Bitácora · Africa Parque de Diversiones</title>
+<link rel="icon" type="image/svg+xml" href="../../assets/icons/icon.svg">
+<link rel="stylesheet" href="../../assets/design-tokens.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* Paleta, tipografía y radios base vienen de design-tokens.css (linkeado
+   arriba). Aquí solo lo propio de este módulo. */
+*{box-sizing:border-box;}
+body{visibility:hidden;} /* revelado por gateModuleAccess() en assets/ui-helpers.js */
+html,body{margin:0;padding:0;}
+.hidden{display:none !important;}
+body{
+  font-family: var(--font-body);
+  background: var(--bg-body);
+  background-image: var(--bg-pattern);
+  background-size: 30px 30px;
+  color: var(--text-main);
+  min-height:100vh;
+  transition: background .2s ease, color .2s ease;
+}
+button{font-family:inherit;}
+
+/* ---------- HEADER ---------- */
+.topbar{
+  background: var(--af-coffee);
+  background-image: radial-gradient(rgba(0,0,0,.15) 2px, transparent 2px);
+  background-size: 26px 26px;
+  color: var(--af-cream);
+  border-bottom: 3px solid #26170E;
+  padding: 18px 24px;
+  display:flex; align-items:center; gap:14px; flex-wrap:wrap;
+}
+.brand{display:flex; align-items:center; gap:12px; flex:1; min-width:220px;}
+.brand img{width:42px;height:42px;border-radius:13px;background:#fff;padding:3px;border:3px solid var(--af-cream);}
+.brand-text h1{font-family: var(--font-heading); font-size:16px; line-height:1.25; margin:0; font-weight:600; text-transform:uppercase;}
+.brand-text span{display:block; font-size:11px; font-weight:700; color:var(--af-amber); text-transform:uppercase; letter-spacing:.08em; margin-top:2px;}
+.role-badge{
+  font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.03em;
+  padding:3px 10px; border-radius:12px; background:rgba(245,224,200,.15); color:var(--af-cream);
+  border:1px solid rgba(245,224,200,.3);
+}
+.theme-toggle{
+  flex-shrink:0; width:38px;height:38px; border-radius:12px;
+  border:2px solid rgba(245,224,200,.35); background:rgba(255,255,255,.08);
+  color:var(--af-cream); font-size:17px; cursor:pointer;
+  display:flex;align-items:center;justify-content:center; transition:.15s;
+}
+.theme-toggle:hover{background:rgba(255,255,255,.18); transform:translateY(-1px);}
+.btn-pill{
+  font-family: var(--font-heading); cursor:pointer; border:none; border-radius:24px;
+  font-weight:600; font-size:13px; padding:11px 18px; text-transform:uppercase; letter-spacing:.02em;
+  background: var(--primary); color: var(--primary-text); box-shadow: 0 5px 0 var(--primary-shadow);
+  transition: transform .12s ease, box-shadow .12s ease; white-space:nowrap;
+}
+.btn-pill:hover{transform:translateY(-2px);}
+.btn-pill:active{transform:translateY(5px); box-shadow:none;}
+.btn-pill.secondary{background:var(--card-bg); color:var(--text-card); box-shadow:0 5px 0 var(--card-border); border:2px solid var(--card-border);}
+.btn-pill:disabled{opacity:.5; cursor:not-allowed; transform:none;}
+
+/* ---------- MAIN ---------- */
+.main-wrap{ max-width:760px; margin:0 auto; padding:20px 20px 70px; }
+.toolbar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+.date-nav{ display:flex; align-items:center; gap:8px; }
+.date-nav input[type=date]{
+  background:var(--input-bg); color:var(--text-card); border:2px solid var(--card-border);
+  border-radius:12px; padding:9px 12px; font-family:var(--font-heading); font-weight:600; font-size:13px;
+  -webkit-appearance:none; appearance:none; max-width:100%;
+}
+.icon-btn{
+  width:34px; height:34px; border-radius:10px; border:2px solid var(--card-border);
+  background:var(--card-bg); color:var(--text-card); cursor:pointer; font-size:14px;
+  display:flex; align-items:center; justify-content:center; transition:.15s; flex-shrink:0;
+}
+.icon-btn:hover{transform:translateY(-1px); border-color:var(--primary);}
+.icon-btn[disabled]{opacity:.3; cursor:not-allowed; pointer-events:none;}
+.spacer{flex:1;}
+.search-row{ display:flex; align-items:center; gap:8px; margin-bottom:18px; }
+.search-row input[type=text]{
+  flex:1; background:var(--input-bg); color:var(--text-card); border:2px solid var(--card-border);
+  border-radius:12px; padding:10px 14px; font-family:var(--font-body); font-size:14px;
+}
+.search-row input[type=text]:focus{ outline:2px solid var(--primary); outline-offset:1px; }
+
+/* ---------- Página estilo cuaderno ---------- */
+.notebook-page{
+  background:var(--card-bg); border-radius:14px; box-shadow:0 2px 10px rgba(0,0,0,.08);
+  padding:18px 20px 22px; position:relative;
+  background-image: linear-gradient(var(--card-border) 1px, transparent 1px), linear-gradient(90deg, var(--card-border) 1px, transparent 1px);
+  background-size: 22px 22px; background-position: -1px -1px;
+}
+.notebook-header{
+  display:flex; align-items:baseline; gap:8px; margin-bottom:14px; padding-bottom:10px;
+  border-bottom:2px solid var(--card-border); font-family:var(--font-heading); color:var(--text-card);
+}
+.notebook-header .nh-fecha{ font-size:18px; font-weight:800; }
+.notebook-header .nh-dia{ font-size:14px; text-transform:capitalize; color:var(--text-muted); }
+
+.empty-day{ font-size:13px; color:var(--text-muted); text-align:center; padding:30px 0; opacity:.75; }
+
+.bitacora-entry{
+  background:var(--input-bg); border:1px solid var(--card-border); border-radius:10px;
+  padding:12px 40px 12px 14px; margin-bottom:10px; position:relative;
+}
+.bitacora-entry .be-head{ display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap; }
+.bitacora-entry .be-autor{ font-family:var(--font-heading); font-weight:800; font-size:13px; color:var(--primary); }
+.bitacora-entry .be-hora{ font-size:11.5px; color:var(--text-muted); }
+.bitacora-entry .be-editado{ font-size:10.5px; color:var(--text-muted); font-style:italic; }
+.bitacora-entry .be-texto{ font-size:14px; line-height:1.5; color:var(--text-card); white-space:pre-wrap; }
+.bitacora-entry .be-actions{ position:absolute; top:8px; right:8px; display:flex; gap:2px; }
+.bitacora-entry .be-actions button{
+  all:unset; cursor:pointer; font-size:13px; color:var(--text-muted); padding:5px 7px; border-radius:6px;
+}
+.bitacora-entry .be-actions button:hover{ background:var(--card-bg-hover); color:var(--text-card); }
+.edit-textarea{
+  width:100%; min-height:70px; background:var(--card-bg); color:var(--text-card);
+  border:2px solid var(--primary); border-radius:8px; padding:8px 10px;
+  font-family:var(--font-body); font-size:14px; resize:vertical;
+}
+
+.compose-wrap{ margin-top:14px; padding-top:14px; border-top:2px dashed var(--card-border); }
+.compose-wrap textarea{
+  width:100%; min-height:80px; background:var(--input-bg); color:var(--text-card);
+  border:2px solid var(--card-border); border-radius:12px; padding:10px 12px;
+  font-family:var(--font-body); font-size:14px; resize:vertical; margin-bottom:10px;
+}
+.readonly-note{ margin-top:14px; font-size:12.5px; color:var(--text-muted); font-style:italic; text-align:center; }
+
+.search-result-item{
+  background:var(--card-bg); border:2px solid var(--card-border); border-radius:12px;
+  padding:12px 14px; margin-bottom:10px; cursor:pointer; transition:.15s;
+}
+.search-result-item:hover{ border-color:var(--primary); }
+.search-result-item .sr-meta{ font-family:var(--font-heading); font-weight:800; font-size:12px; color:var(--primary); margin-bottom:4px; }
+.search-result-item .be-texto{ font-size:13.5px; color:var(--text-card); white-space:pre-wrap; }
+.empty-msg{ text-align:center; padding:40px 20px; color:var(--text-muted); }
+.empty-msg .emoji{ font-size:32px; display:block; margin-bottom:10px; }
+.empty-msg h3{ font-family:var(--font-heading); color:var(--text-card); margin:0 0 6px; }
+.empty-msg p{ margin:0; font-size:13.5px; }
+
+/* ---------- Modal de confirmación propio ---------- */
+#af-confirm-backdrop{position:fixed; inset:0; background:rgba(0,0,0,.45); display:flex; align-items:center; justify-content:center; z-index:9999;}
+#af-confirm-backdrop.hidden{display:none;}
+#af-confirm-card{background:var(--card-bg); color:var(--text-card); border-radius:var(--radius); box-shadow:var(--shadow); padding:22px; max-width:360px; width:90%;}
+#af-confirm-card h3{margin:0 0 8px; font-family:var(--font-heading); font-size:18px;}
+#af-confirm-card p{margin:0 0 18px; font-size:14px; color:var(--text-muted);}
+#af-confirm-actions{display:flex; justify-content:flex-end; gap:10px;}
+#af-confirm-actions button{border:none; border-radius:8px; padding:9px 16px; font-family:var(--font-body); font-weight:700; font-size:14px; cursor:pointer;}
+#af-confirm-cancel{background:var(--card-bg-hover); color:var(--text-main);}
+#af-confirm-accept{background:var(--primary); color:var(--primary-text);}
+
+/* ---------- Toast ---------- */
+.toast{
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(20px);
+  background:var(--af-coffee); color:var(--af-cream); padding:12px 20px; border-radius:12px;
+  font-family:var(--font-body); font-weight:700; font-size:13px; box-shadow:0 6px 20px rgba(0,0,0,.25);
+  opacity:0; transition:opacity .2s ease, transform .2s ease; z-index:9998; max-width:90vw; text-align:center;
+}
+.toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* Prevenir Auto-Zoom en iOS al enfocar inputs y el molesto doble-tap zoom */
+@media (max-width: 768px) {
+  input, select, textarea { font-size: 16px !important; }
+}
+* { touch-action: manipulation !important; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="brand">
+    <img src="../../assets/icons/icon.svg" alt="Africa">
+    <div class="brand-text">
+      <h1>Bitácora</h1>
+      <span>Novedades del día entre líderes</span>
+    </div>
+  </div>
+  <span class="role-badge" id="roleBadge" style="display:none;"></span>
+  <button class="theme-toggle" id="themeToggle" type="button" title="Cambiar tema" aria-label="Cambiar tema claro/oscuro">🌙</button>
+</div>
+
+<div id="af-confirm-backdrop" class="hidden">
+  <div id="af-confirm-card">
+    <h3 id="af-confirm-title">¿Confirmar acción?</h3>
+    <p id="af-confirm-body"></p>
+    <div id="af-confirm-actions">
+      <button id="af-confirm-cancel">Cancelar</button>
+      <button id="af-confirm-accept">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div class="main-wrap">
+
+  <div id="bitacora-content">
+  <div class="toolbar">
+    <div class="date-nav">
+      <button type="button" class="icon-btn" id="datePrev" title="Día anterior">◀</button>
+      <input type="date" id="bitacoraDate">
+      <button type="button" class="icon-btn" id="dateNext" title="Día siguiente">▶</button>
+    </div>
+    <button type="button" class="btn-pill secondary" id="dateToday" style="padding:9px 16px; font-size:12px;">Hoy</button>
+    <div class="spacer"></div>
+  </div>
+
+  <div class="search-row">
+    <input type="text" id="bitacoraSearch" placeholder="🔍 Buscar en las notas…">
+    <button type="button" class="icon-btn" id="bitacoraSearchClear" title="Cerrar búsqueda" style="display:none;">✕</button>
+  </div>
+
+  <div id="view-day">
+    <div class="notebook-page">
+      <div class="notebook-header" id="notebookHeader"></div>
+      <div id="entriesList"></div>
+      <div id="composeWrap" class="compose-wrap hidden">
+        <textarea id="composeText" placeholder="Escribe una novedad para hoy…"></textarea>
+        <button type="button" class="btn-pill" id="composeSave" style="padding:10px 18px; font-size:13px;">Agregar nota</button>
+      </div>
+      <p class="readonly-note hidden" id="readonlyNote">Este día ya pasó — el registro queda fijo.</p>
+    </div>
+  </div>
+
+  <div id="view-search" class="hidden">
+    <div id="searchResultsList"></div>
+    <div class="empty-msg hidden" id="emptySearchMsg">
+      <span class="emoji">🔍</span>
+      <h3>Sin resultados</h3>
+      <p>No hay notas que coincidan con la búsqueda.</p>
+    </div>
+  </div>
+
+  </div>
+
+</div>
+
+<div id="toast" class="toast hidden"></div>
+
+<script>
+let currentDate = '';
+let currentUserId = null;
+let currentUserNombre = '';
+let currentUserRoles = [];
+let canWrite = false;
+
+/* ---------- Fechas ---------- */
+function todayStr(){ const d=new Date(); return dateToStr(d); }
+function dateToStr(d){ const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`; }
+function strToDate(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y, m-1, d); }
+function addDaysStr(dateStr, n){ const d=strToDate(dateStr); d.setDate(d.getDate()+n); return dateToStr(d); }
+function fmtFecha(dateStr){
+  const d = strToDate(dateStr);
+  const dia = String(d.getDate()).padStart(2, '0');
+  const mes = String(d.getMonth() + 1).padStart(2, '0');
+  const nombreDia = d.toLocaleDateString('es-CO', { weekday: 'long' });
+  return { corta: `${dia}/${mes}/${d.getFullYear()}`, diaNombre: nombreDia.charAt(0).toUpperCase() + nombreDia.slice(1) };
+}
+function hhmm(iso){
+  if(!iso) return '';
+  return new Date(iso).toLocaleTimeString('es-CO', { hour:'2-digit', minute:'2-digit' });
+}
+
+/* ---------- Toast ---------- */
+function toast(message){
+  const el = document.getElementById('toast');
+  el.textContent = message;
+  el.classList.remove('hidden');
+  requestAnimationFrame(()=> el.classList.add('show'));
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=>{
+    el.classList.remove('show');
+    setTimeout(()=> el.classList.add('hidden'), 200);
+  }, 2600);
+}
+
+/* ---------- Rol del usuario ---------- */
+const ROLE_LABELS = { administrador:'Administrador', lider_parque:'Líder de Parque', supervisor:'Supervisor', lider_seguridad:'Líder de Seguridad' };
+async function loadUserRole(){
+  const gate = await gateModuleAccess('bitacora');
+  currentUserId = gate.userId;
+  currentUserNombre = gate.nombre;
+  currentUserRoles = gate.roles;
+  // Regla acordada: solo Líder de Parque y Administrador pueden escribir
+  // (aquí coincide exactamente con quién tiene acceso, porque a diferencia
+  // de otros módulos, Supervisor no puede ni ver la Bitácora).
+  canWrite = currentUserRoles.includes('lider_parque') || currentUserRoles.includes('administrador');
+  const badge = document.getElementById('roleBadge');
+  const principal = ['administrador','lider_parque','supervisor','lider_seguridad'].find(r => currentUserRoles.includes(r));
+  if (principal) { badge.textContent = ROLE_LABELS[principal] || principal; badge.style.display = ''; }
+  return gate.allowed;
+}
+
+/* ---------- Carga y render del día ---------- */
+async function loadEntriesForDate(fecha){
+  const { data, error } = await supabaseClient.from('bitacora_entries').select('*').eq('fecha', fecha).order('created_at', { ascending: true });
+  if (error) { toast('No se pudieron cargar las notas de este día'); return []; }
+  return data || [];
+}
+
+function buildEntryEl(entry){
+  const isToday = entry.fecha === todayStr();
+  const editada = entry.updated_at && entry.created_at && (new Date(entry.updated_at) - new Date(entry.created_at) > 5000);
+  const div = document.createElement('div');
+  div.className = 'bitacora-entry';
+  div.innerHTML = `
+    <div class="be-head">
+      <span class="be-autor">${escapeHtml(entry.autor_nombre)}</span>
+      <span class="be-hora">${hhmm(entry.created_at)}</span>
+      ${editada ? '<span class="be-editado">(editado)</span>' : ''}
+    </div>
+    <div class="be-texto"></div>
+  `;
+  div.querySelector('.be-texto').textContent = entry.texto; // texto plano — nunca innerHTML directo
+  if (canWrite && isToday) {
+    const actions = document.createElement('div');
+    actions.className = 'be-actions';
+    actions.innerHTML = `<button type="button" title="Editar">✏️</button><button type="button" title="Eliminar">🗑️</button>`;
+    const [editBtn, delBtn] = actions.querySelectorAll('button');
+    editBtn.addEventListener('click', () => startEditEntry(div, entry));
+    delBtn.addEventListener('click', async () => {
+      if (!(await afConfirm('¿Eliminar esta nota?', 'Esta acción no se puede deshacer.'))) return;
+      const { error } = await supabaseClient.from('bitacora_entries').delete().eq('id', entry.id);
+      if (error) { toast('No se pudo eliminar'); return; }
+      await renderDayView();
+      toast('Nota eliminada');
+    });
+    div.appendChild(actions);
+  }
+  return div;
+}
+
+function startEditEntry(div, entry){
+  const textoDiv = div.querySelector('.be-texto');
+  const textarea = document.createElement('textarea');
+  textarea.className = 'edit-textarea';
+  textarea.value = entry.texto;
+  textoDiv.replaceWith(textarea);
+  textarea.focus();
+  const actions = div.querySelector('.be-actions');
+  actions.innerHTML = `<button type="button" title="Guardar">✅</button><button type="button" title="Cancelar">✕</button>`;
+  const [saveBtn, cancelBtn] = actions.querySelectorAll('button');
+  saveBtn.addEventListener('click', async () => {
+    const nuevo = textarea.value.trim();
+    if (!nuevo) { toast('La nota no puede quedar vacía'); return; }
+    const { error } = await supabaseClient.from('bitacora_entries').update({ texto: nuevo, updated_at: new Date().toISOString() }).eq('id', entry.id);
+    if (error) { toast('No se pudo guardar'); return; }
+    await renderDayView();
+    toast('Nota actualizada');
+  });
+  cancelBtn.addEventListener('click', () => renderDayView());
+}
+
+async function renderDayView(){
+  const { corta, diaNombre } = fmtFecha(currentDate);
+  document.getElementById('notebookHeader').innerHTML = `<span class="nh-fecha">${corta}</span><span class="nh-dia">${diaNombre}</span>`;
+  const entries = await loadEntriesForDate(currentDate);
+  const listEl = document.getElementById('entriesList');
+  listEl.innerHTML = '';
+  if (entries.length === 0) {
+    listEl.innerHTML = '<div class="empty-day">Sin novedades este día.</div>';
+  } else {
+    entries.forEach(e => listEl.appendChild(buildEntryEl(e)));
+  }
+  const hoy = todayStr();
+  const isToday = currentDate === hoy;
+  const isPast = currentDate < hoy;
+  document.getElementById('composeWrap').classList.toggle('hidden', !(canWrite && isToday));
+  const readonlyNote = document.getElementById('readonlyNote');
+  if (isPast) {
+    readonlyNote.textContent = 'Este día ya pasó — el registro queda fijo.';
+    readonlyNote.classList.remove('hidden');
+  } else if (!isToday) {
+    readonlyNote.textContent = 'Este día todavía no llega — solo se puede escribir en el día de hoy.';
+    readonlyNote.classList.remove('hidden');
+  } else {
+    readonlyNote.classList.add('hidden');
+  }
+}
+
+/* ---------- Navegación de fecha ---------- */
+function setDate(dateStr){
+  currentDate = dateStr;
+  document.getElementById('bitacoraDate').value = dateStr;
+  renderCurrentView();
+}
+function renderCurrentView(){
+  const q = document.getElementById('bitacoraSearch').value;
+  if (q.trim().length >= 2) { runSearch(q); return; }
+  renderDayView();
+}
+document.getElementById('bitacoraDate').addEventListener('change', (e) => setDate(e.target.value));
+document.getElementById('datePrev').addEventListener('click', () => setDate(addDaysStr(currentDate, -1)));
+document.getElementById('dateNext').addEventListener('click', () => setDate(addDaysStr(currentDate, 1)));
+document.getElementById('dateToday').addEventListener('click', () => setDate(todayStr()));
+
+document.getElementById('composeSave').addEventListener('click', async () => {
+  const textarea = document.getElementById('composeText');
+  const texto = textarea.value.trim();
+  if (!texto) { toast('Escribe algo antes de guardar'); return; }
+  const btn = document.getElementById('composeSave');
+  btn.disabled = true;
+  const { error } = await supabaseClient.from('bitacora_entries').insert({
+    fecha: todayStr(),
+    autor_id: currentUserId,
+    autor_nombre: currentUserNombre || 'Usuario',
+    texto
+  });
+  btn.disabled = false;
+  if (error) { toast('No se pudo guardar la nota'); return; }
+  textarea.value = '';
+  await renderDayView();
+  toast('Nota agregada');
+});
+
+/* ---------- Búsqueda (todas las fechas) ---------- */
+let searchDebounceTimer = null;
+async function searchEntries(query){
+  // Paréntesis y comas rompen la sintaxis del filtro .or() de PostgREST.
+  const safeQ = query.trim().replace(/[,()]/g, '');
+  const { data, error } = await supabaseClient
+    .from('bitacora_entries')
+    .select('*')
+    .or(`texto.ilike.%${safeQ}%,autor_nombre.ilike.%${safeQ}%`)
+    .order('fecha', { ascending: false })
+    .order('created_at', { ascending: false })
+    .limit(60);
+  if (error) { toast('No se pudo buscar'); return []; }
+  return data || [];
+}
+function setSearchViewVisible(visible){
+  document.getElementById('view-day').classList.toggle('hidden', visible);
+  document.getElementById('view-search').classList.toggle('hidden', !visible);
+  document.getElementById('bitacoraSearchClear').style.display = visible ? '' : 'none';
+}
+async function runSearch(query){
+  const q = query.trim();
+  if (q.length < 2) { setSearchViewVisible(false); return; }
+  setSearchViewVisible(true);
+  const results = await searchEntries(q);
+  const listEl = document.getElementById('searchResultsList');
+  const emptyEl = document.getElementById('emptySearchMsg');
+  listEl.innerHTML = '';
+  if (results.length === 0) {
+    emptyEl.classList.remove('hidden');
+  } else {
+    emptyEl.classList.add('hidden');
+    results.forEach(entry => {
+      const { corta } = fmtFecha(entry.fecha);
+      const div = document.createElement('div');
+      div.className = 'search-result-item';
+      div.innerHTML = `
+        <div class="sr-meta">${corta} · ${escapeHtml(entry.autor_nombre)} · ${hhmm(entry.created_at)}</div>
+        <div class="be-texto"></div>
+      `;
+      div.querySelector('.be-texto').textContent = entry.texto;
+      div.addEventListener('click', () => {
+        document.getElementById('bitacoraSearch').value = '';
+        setDate(entry.fecha);
+      });
+      listEl.appendChild(div);
+    });
+  }
+}
+document.getElementById('bitacoraSearch').addEventListener('input', (e) => {
+  clearTimeout(searchDebounceTimer);
+  const value = e.target.value;
+  searchDebounceTimer = setTimeout(() => runSearch(value), 300);
+});
+document.getElementById('bitacoraSearchClear').addEventListener('click', () => {
+  const input = document.getElementById('bitacoraSearch');
+  input.value = '';
+  runSearch('');
+  input.focus();
+});
+
+/* ---------- Tema ---------- */
+function applyTheme(theme){
+  document.documentElement.setAttribute('data-theme', theme);
+  document.getElementById('themeToggle').textContent = theme === 'dark' ? '☀️' : '🌙';
+}
+document.getElementById('themeToggle').addEventListener('click', () => {
+  const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  const next = current === 'dark' ? 'light' : 'dark';
+  applyTheme(next);
+  try { localStorage.setItem('africa_tools_theme', next); } catch(e){}
+});
+
+/* ---------- Init ---------- */
+(async function init(){
+  const allowed = await loadUserRole();
+  if (!allowed) return;
+  setDate(todayStr());
+})();
+</script>
+
+<script>
+window.addEventListener('message', function(e){
+  if(!e.data || e.data.type !== 'africa-tools-set-theme') return;
+  var theme = e.data.theme === 'dark' ? 'dark' : 'light';
+  if(typeof applyTheme === 'function') applyTheme(theme);
+  try { localStorage.setItem('africa_tools_theme', theme); } catch(err){}
+});
+if (window.parent !== window) { var localToggle = document.getElementById('themeToggle'); if (localToggle) localToggle.style.display = 'none'; }
+</script>
+</body>
+</html>

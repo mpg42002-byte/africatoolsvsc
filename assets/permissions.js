@@ -2,6 +2,10 @@
 const MODULES = [
   { key: 'limpieza', label: 'Limpieza', icon: '🧹', description: 'Organiza parejas y horarios de limpieza.', category: 'operacion' },
   { key: 'lider', label: 'Líder de Seguridad', icon: '🛡️', description: 'Gestiona recursos y seguridad del equipo.', category: 'operacion' },
+  // restricted: true → 'ALL' NO lo incluye automáticamente. Solo lo ven los
+  // roles que lo agreguen explícitamente en su lista de módulos (ver ROLES
+  // más abajo) — así Supervisor, que sí tiene 'ALL', se queda sin verlo.
+  { key: 'bitacora', label: 'Bitácora', icon: '📓', description: 'Novedades del día para el equipo de líderes.', category: 'operacion', restricted: true },
   // alwaysAvailable: se agrega a TODOS los roles sin importar su lista de
   // módulos — es personal de cada usuario, no depende de su rol/cargo.
   { key: 'diaadia', label: 'Día a Día', icon: '✅', description: 'Tus tareas periódicas: qué te toca hoy.', alwaysAvailable: true, category: 'operacion' },
@@ -27,7 +31,7 @@ const MODULE_CATEGORIES = [
 const ROLES = {
   administrador: {
     label: 'Administrador',
-    modules: 'ALL',
+    modules: ['ALL', 'bitacora'],
     isAdmin: true,
   },
   supervisor: {
@@ -37,7 +41,7 @@ const ROLES = {
   },
   lider_parque: {
     label: 'Líder de Parque',
-    modules: 'ALL',
+    modules: ['ALL', 'bitacora'],
     isAdmin: false,
   },
   lider_seguridad: {
@@ -58,17 +62,17 @@ const ROLES = {
 };
 
 function resolvePermittedModules(userRoles) {
-  const allKeys = MODULES.map(m => m.key);
+  const allKeys = MODULES.filter(m => !m.restricted).map(m => m.key);
   const alwaysKeys = MODULES.filter(m => m.alwaysAvailable).map(m => m.key);
   const set = new Set(alwaysKeys);
   (userRoles || []).forEach(roleKey => {
     const role = ROLES[roleKey];
     if (!role) return;
-    if (role.modules === 'ALL') {
-      allKeys.forEach(k => set.add(k));
-    } else {
-      role.modules.forEach(k => set.add(k));
-    }
+    const moduleList = Array.isArray(role.modules) ? role.modules : [role.modules];
+    moduleList.forEach(m => {
+      if (m === 'ALL') allKeys.forEach(k => set.add(k));
+      else set.add(m);
+    });
   });
   return Array.from(set);
 }

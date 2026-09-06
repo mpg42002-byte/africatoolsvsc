@@ -52,6 +52,14 @@ Derivado del análisis real de cada archivo (no inventado). Marca cada punto la 
 - [ ] Buscar/ordenar productos
 - [ ] Generar habladores e imprimir — **revisar en este momento si la fuente se ve como esperas** (con el arreglo del `@import`, ya no debería depender de si tu PC tiene Century Gothic instalada)
 
+## 8. Bitácora
+- [ ] Como Líder de Parque o Administrador: escribir una nota hoy y confirmar que aparece con tu nombre y la hora
+- [ ] Editar y luego eliminar una nota escrita hoy — confirmar que ambas acciones funcionan
+- [ ] Cambiar la fecha a un día anterior (con notas de antes) y confirmar que NO aparecen los botones de editar/eliminar, ni el cuadro para agregar una nota nueva
+- [ ] Como Supervisor (o cualquier otro rol que no sea Líder de Parque/Administrador): confirmar que **Bitácora ni siquiera aparece en el menú** — y si se entra directo a su URL, debe mostrar la pantalla de "sin acceso", no las notas
+- [ ] Buscar una palabra que sepas que está en una nota de hace varios días y confirmar que el resultado te lleva a esa fecha al tocarlo
+- [ ] Verificar en el celular que la página se ve completa sin scroll horizontal
+
 ## Shell de Africa Tools (todo lo demás)
 - [ ] Login con credenciales de administrador, luego cambiar la contraseña
 - [ ] Crear un usuario Supervisor y uno Líder de Seguridad desde Administración, verificar que cada uno solo ve sus módulos permitidos

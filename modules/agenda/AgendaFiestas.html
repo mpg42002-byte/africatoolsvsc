@@ -7,6 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../../assets/supabase-config.js"></script>
 <script src="../../assets/ui-helpers.js"></script>
+<script src="../../assets/permissions.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Agenda de Fiestas · Africa Parque de Diversiones</title>
@@ -15,6 +16,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
+body{visibility:hidden;} /* revelado por gateModuleAccess() en assets/ui-helpers.js */
 /* Paleta, tipografía y radios base ahora vienen de design-tokens.css
    (linkeado arriba). Aquí solo quedan los tokens propios de este
    módulo o los que se apartan intencionalmente del token compartido. */
@@ -611,19 +613,13 @@ function hhmm(t){ return (t||'').slice(0,5); }
 /* ---------- Rol del usuario ---------- */
 const ROLE_LABELS = { administrador:'Administrador', lider_parque:'Líder de Parque', supervisor:'Supervisor', cajero:'Cajero', anfitrion_fiesta:'Anfitrión de Fiesta', lider_seguridad:'Líder de Seguridad' };
 async function loadUserRole(){
-  try{
-    const { data } = await supabaseClient.auth.getSession();
-    const authUid = data && data.session ? data.session.user.id : null;
-    if (!authUid) return;
-    const { data: profile } = await supabaseClient.from('profiles').select('nombre, roles').eq('id', authUid).maybeSingle();
-    if (profile) {
-      currentUserNombre = profile.nombre || '';
-      currentUserRoles = profile.roles || [];
-    }
-  }catch(e){ /* sin sesión: se queda sin permisos, modo solo-lectura */ }
+  const gate = await gateModuleAccess('agenda');
+  currentUserNombre = gate.nombre;
+  currentUserRoles = gate.roles;
   canManage = currentUserRoles.some(r => ['administrador','lider_parque','supervisor'].includes(r));
   canCreate = canManage || currentUserRoles.includes('cajero') || currentUserRoles.includes('anfitrion_fiesta');
   applyRoleGating();
+  return gate.allowed;
 }
 function applyRoleGating(){
   const badge = document.getElementById('roleBadge');
@@ -1639,7 +1635,8 @@ document.getElementById('themeToggle').addEventListener('click', () => {
 /* ---------- Init ---------- */
 (async function init(){
   applyTheme(document.documentElement.getAttribute('data-theme') || localStorage.getItem('africa_tools_theme') || 'light');
-  await loadUserRole();
+  const allowed = await loadUserRole();
+  if (!allowed) return;
   // Auto-corrección: cualquier evento reservado cuya fecha ya pasó (y nadie
   // canceló) se marca finalizado de verdad en la base — no depende de un
   // cron/pg_cron, se dispara con el uso normal del módulo. Es best-effort:
