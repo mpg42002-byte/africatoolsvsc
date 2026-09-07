@@ -513,10 +513,10 @@ function chunk(arr, size){
 const MODULE_KEY = 'habladores';
 
 async function loadEntries(){
-  entries = await OfflineStorage.get(MODULE_KEY, 'africa_habladores', []);
+  entries = await OfflineStorage.get(MODULE_KEY, 'africa_habladores', [], true);
 }
 async function saveEntries(){
-  await OfflineStorage.set(MODULE_KEY, 'africa_habladores', entries);
+  await OfflineStorage.set(MODULE_KEY, 'africa_habladores', entries, true);
 }
 
 // =====================================================================

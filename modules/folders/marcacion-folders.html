@@ -651,11 +651,11 @@ function storageKey(fmt){ return 'africa_labels_' + fmt; }
 const MODULE_KEY = 'folders';
 
 async function mdGet(key, def){
-  return OfflineStorage.get(MODULE_KEY, key, def);
+  return OfflineStorage.get(MODULE_KEY, key, def, true);
 }
 
 async function mdSet(key, value){
-  await OfflineStorage.set(MODULE_KEY, key, value);
+  await OfflineStorage.set(MODULE_KEY, key, value, true);
 }
 
 async function loadNamesForFormat(fmt){

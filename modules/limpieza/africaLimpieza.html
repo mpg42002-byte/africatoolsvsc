@@ -560,11 +560,11 @@ const DEF_HIST = {
 const MODULE_KEY = 'limpieza';
 
 async function load(k, def) {
-  return OfflineStorage.get(MODULE_KEY, k, def);
+  return OfflineStorage.get(MODULE_KEY, k, def, true);
 }
 
 async function save(k, v) {
-  await OfflineStorage.set(MODULE_KEY, k, v);
+  await OfflineStorage.set(MODULE_KEY, k, v, true);
 }
 
 let employees = DEF_EMP;

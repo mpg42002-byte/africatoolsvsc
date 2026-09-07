@@ -44,7 +44,7 @@ Solo administradores pueden leerlo completo; cualquier persona autenticada puede
 
 ## 4. Supabase — tabla `module_data` (datos privados por persona)
 
-Una sola tabla genérica reutilizada por los módulos que necesitan guardar algo — cada fila es "esta persona, en este módulo, guardó este dato bajo esta clave":
+Una sola tabla genérica reutilizada por los módulos que necesitan guardar algo privado — cada fila es "esta persona, en este módulo, guardó este dato bajo esta clave":
 
 ```sql
 user_id uuid not null references auth.users(id)
@@ -55,7 +55,24 @@ updated_at timestamptz not null default now()
 primary key (user_id, module, key)
 ```
 
-Es **100% privado por persona** — nadie más, ni siquiera un administrador, puede leer los datos de otra persona en esta tabla (RLS: `auth.uid() = user_id`, sin excepción). Módulos que la usan y sus claves:
+Es **100% privado por persona** — nadie más, ni siquiera un administrador, puede leer los datos de otra persona en esta tabla (RLS: `auth.uid() = user_id`, sin excepción). **Día a Día es el único módulo que la sigue usando hoy** (clave `tasks`) — tiene sentido que la lista de tareas de cada quien sea suya.
+
+Inventario es el único módulo sin datos persistentes — su flujo es solo subir un PDF y descargar el Excel resultante, no hay nada que guardar entre sesiones. **Líder de Seguridad, Agenda de Fiestas y Bitácora no usan esta tabla** — Líder ver sección 6; Agenda ver sección 7; Bitácora ver sección 8 — cada uno tiene sus propias tablas dedicadas.
+
+## 5. Supabase — tabla `module_data_shared` (compartida entre el equipo)
+
+Mismo patrón genérico que `module_data`, pero **sin `user_id`** — todos los que tengan acceso al módulo leen y escriben el mismo dato, no cada quien el suyo:
+
+```sql
+module text not null
+key text not null
+value jsonb not null
+updated_by uuid references auth.users(id)
+updated_at timestamptz not null default now()
+primary key (module, key)
+```
+
+Hasta el 6 de septiembre de 2026, Limpieza, Wow Tablero, Folders, Habladores Winner y Wow Calificación guardaban en `module_data` (privado, sin darse cuenta) — cada persona tenía su propia copia aislada del horario/roster/etiquetas, en vez de una sola compartida por el equipo. Se migraron a esta tabla nueva:
 
 | Módulo (`module`) | Claves (`key`) |
 |---|---|
@@ -64,11 +81,10 @@ Es **100% privado por persona** — nadie más, ni siquiera un administrador, pu
 | `folders` | `africa_labels_folders`/`az`/`lockers`, `africa_labels_last_format`, `africa_combo_folders`/`az`/`lockers` |
 | `habladores` | `africa_habladores` |
 | `wow-calificacion` | `africa_wow_scores` |
-| `diaadia` | `tasks` |
 
-Inventario es el único módulo sin datos persistentes — su flujo es solo subir un PDF y descargar el Excel resultante, no hay nada que guardar entre sesiones. **Líder de Seguridad, Agenda de Fiestas y Bitácora no usan esta tabla** — Líder ver sección 5; Agenda ver sección 6; Bitácora ver sección 7 — cada uno tiene sus propias tablas dedicadas.
+Estos 5 módulos siguen usando `assets/offline-storage.js` para su cola de sincronización sin conexión — el cambio fue solo la tabla de destino (`get(...)`/`set(...)` con un cuarto parámetro `shared: true`), la mecánica de caché local y reintento no cambió.
 
-## 5. Supabase — `lider_shared_data` y `lider_abordajes` (datos compartidos de Líder de Seguridad)
+## 6. Supabase — `lider_shared_data` y `lider_abordajes` (datos compartidos de Líder de Seguridad)
 
 A diferencia de todos los demás módulos, Líder de Seguridad **no** guarda en `module_data` — sus datos son compartidos entre todo el equipo con acceso al módulo (administrador, supervisor, líder de parque, líder de seguridad), no privados por persona.
 
@@ -98,7 +114,7 @@ created_at timestamptz not null default now()
 
 También compartida y sin filtro por usuario — cualquier líder ve la bitácora completa, el resumen por trabajador y el reporte semanal con los abordajes de todo el equipo.
 
-## 6. Supabase — tablas de Agenda de Fiestas (`park_*`)
+## 7. Supabase — tablas de Agenda de Fiestas (`park_*`)
 
 Agenda de Fiestas tampoco usa `module_data` — tiene su propio esquema relacional, con relaciones reales entre tablas (a diferencia del resto de módulos, que solo guardan blobs jsonb sueltos):
 
@@ -159,7 +175,7 @@ create table park_event_history (      -- bitácora de cambios por evento
 
 `park_rooms` y `party_types` son catálogos administrables (salas del parque y tipos de fiesta); `park_events` es la reserva en sí; `park_event_rooms` resuelve la relación muchos-a-muchos evento↔sala; `park_event_history` guarda quién hizo qué cambio a cada evento. Todo compartido entre todo el equipo con acceso al módulo, no privado por persona.
 
-## 7. Supabase — tabla `bitacora_entries` (módulo Bitácora)
+## 8. Supabase — tabla `bitacora_entries` (módulo Bitácora)
 
 Canal de novedades compartido entre líderes de parque, día a día — no usa `module_data`, tiene su propia tabla:
 
@@ -180,16 +196,16 @@ create table bitacora_entries (
 - **Crear**: misma regla.
 - **Editar/eliminar**: misma regla, y solo si `fecha = current_date` — en cuanto pasa el día, la nota queda fija como registro histórico (nadie, ni siquiera quien la escribió, puede tocarla).
 
-## 8. Navegador — `localStorage`
+## 9. Navegador — `localStorage`
 
 Sobre todo preferencias de interfaz, más una excepción reciente:
 
 - `africa_tools_theme` — tema del shell (claro/oscuro)
 - `africa_labels_theme`, `africa_habladores_theme`, `africa_wow_theme`, `africa_wow_scores_theme`, `af_theme`, `africa-theme` — cada módulo guarda su propio tema por separado (así puede recordarlo incluso si se abre suelto, fuera del shell)
 - `africa_tools_login_attempts` (en `sessionStorage`, no `localStorage`) — límite de intentos de login, se borra solo al cerrar la pestaña
-- **`africa_tools_last_profile`** — la excepción: sí es un dato de negocio (nombre, usuario y roles de la última sesión confirmada con éxito). Lo usa `gateModuleAccess()` en `assets/ui-helpers.js` como respaldo cuando no hay internet para confirmar el rol al abrir un módulo — así los módulos con cola de sincronización (ver sección 9) no quedan bloqueados solo por no poder hacer esa consulta. Se limpia al cerrar sesión (`clearSession()` en `assets/shell.js`), para que no quede disponible para la siguiente persona en un dispositivo compartido.
+- **`africa_tools_last_profile`** — la excepción: sí es un dato de negocio (nombre, usuario y roles de la última sesión confirmada con éxito). Lo usa `gateModuleAccess()` en `assets/ui-helpers.js` como respaldo cuando no hay internet para confirmar el rol al abrir un módulo — así los módulos con cola de sincronización (ver sección 10) no quedan bloqueados solo por no poder hacer esa consulta. Se limpia al cerrar sesión (`clearSession()` en `assets/shell.js`), para que no quede disponible para la siguiente persona en un dispositivo compartido.
 
-## 9. Navegador — IndexedDB (`africa-tools-offline`), modo sin conexión
+## 10. Navegador — IndexedDB (`africa-tools-offline`), modo sin conexión
 
 Usada por `assets/offline-storage.js`, la capa compartida que permite seguir trabajando sin señal en Limpieza, Wow Tablero, Folders, Habladores, Wow Calificación y Día a Día. **Ni Líder de Seguridad, ni Agenda de Fiestas, ni Bitácora la usan** — ninguno de los tres carga `offline-storage.js`, los tres hablan directo con sus tablas de Supabase; sin conexión, cada guardado o carga simplemente falla con un aviso en pantalla, sin cola de reintento.
 

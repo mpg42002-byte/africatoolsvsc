@@ -1,6 +1,6 @@
 /* AFRICA TOOLS · OFFLINE-STORAGE.JS ·
    Capa compartida de guardado offline-first para los módulos con datos en
-   Supabase (Limpieza, Líder de Seguridad, Wow Tablero). Cada guardado:
+   Supabase. Cada guardado:
    1. Se escribe primero en este dispositivo (IndexedDB) — instantáneo,
       la pantalla nunca espera a internet.
    2. Se intenta subir a Supabase de inmediato si hay conexión.
@@ -10,6 +10,13 @@
    Se carga con <script src="../../assets/offline-storage.js"></script>
    DESPUÉS de supabase-config.js en cada módulo que lo use. Expone un
    único objeto global: OfflineStorage.
+
+   get/set aceptan un último parámetro `shared` (por defecto false):
+   - false (o sin pasarlo) → dato PRIVADO por persona, en `module_data`
+     (llave user_id+module+key). Así funciona Día a Día.
+   - true → dato COMPARTIDO entre todo el equipo con acceso al módulo, en
+     `module_data_shared` (llave module+key, sin user_id). Así funciona
+     Limpieza, Folders, Habladores Winner, Wow Tablero y Wow Calificación.
 */
 const OfflineStorage = (function () {
   const DB_NAME = 'africa-tools-offline';
@@ -53,11 +60,11 @@ const OfflineStorage = (function () {
     });
   }
 
-  async function queueAdd(module, key, value) {
+  async function queueAdd(module, key, value, shared) {
     const db = await openDB();
     return new Promise((resolve) => {
       const tx = db.transaction('queue', 'readwrite');
-      tx.objectStore('queue').add({ module, key, value, updatedAt: Date.now() });
+      tx.objectStore('queue').add({ module, key, value, shared: !!shared, updatedAt: Date.now() });
       tx.oncomplete = () => resolve();
       tx.onerror = () => resolve();
     });
@@ -103,16 +110,14 @@ const OfflineStorage = (function () {
   // Lee un dato. Si hay conexión, trae la versión más reciente de Supabase
   // y de paso refresca la copia local. Si no hay conexión (o Supabase
   // falla), usa la última copia guardada en este dispositivo.
-  async function get(module, key, def) {
+  async function get(module, key, def, shared) {
     const uid = await getCurrentUserId();
     if (!uid) return def;
     if (navigator.onLine) {
       try {
-        const { data, error } = await supabaseClient
-          .from('module_data')
-          .select('value')
-          .eq('user_id', uid).eq('module', module).eq('key', key)
-          .maybeSingle();
+        let query = supabaseClient.from(shared ? 'module_data_shared' : 'module_data').select('value').eq('module', module).eq('key', key);
+        if (!shared) query = query.eq('user_id', uid);
+        const { data, error } = await query.maybeSingle();
         if (!error) {
           const value = data ? data.value : def;
           await cachePut(module, key, value);
@@ -127,19 +132,20 @@ const OfflineStorage = (function () {
   // Guarda un dato. Se escribe local de inmediato (nunca espera a la red);
   // si hay conexión intenta subirlo ya mismo, y si no puede, lo deja en la
   // cola para reintentar después.
-  async function set(module, key, value) {
+  async function set(module, key, value, shared) {
     await cachePut(module, key, value);
     const uid = await getCurrentUserId();
     if (!uid) return;
     if (navigator.onLine) {
       try {
-        const { error } = await supabaseClient.from('module_data').upsert({
-          user_id: uid, module, key, value, updated_at: new Date().toISOString(),
-        });
+        const row = shared
+          ? { module, key, value, updated_by: uid, updated_at: new Date().toISOString() }
+          : { user_id: uid, module, key, value, updated_at: new Date().toISOString() };
+        const { error } = await supabaseClient.from(shared ? 'module_data_shared' : 'module_data').upsert(row);
         if (!error) { notifyQueueChange(); return; }
       } catch (e) { /* cae a la cola pendiente */ }
     }
-    await queueAdd(module, key, value);
+    await queueAdd(module, key, value, shared);
     notifyQueueChange();
   }
 
@@ -152,10 +158,10 @@ const OfflineStorage = (function () {
     const items = await queueAll();
     for (const item of items) {
       try {
-        const { error } = await supabaseClient.from('module_data').upsert({
-          user_id: uid, module: item.module, key: item.key, value: item.value,
-          updated_at: new Date(item.updatedAt).toISOString(),
-        });
+        const row = item.shared
+          ? { module: item.module, key: item.key, value: item.value, updated_by: uid, updated_at: new Date(item.updatedAt).toISOString() }
+          : { user_id: uid, module: item.module, key: item.key, value: item.value, updated_at: new Date(item.updatedAt).toISOString() };
+        const { error } = await supabaseClient.from(item.shared ? 'module_data_shared' : 'module_data').upsert(row);
         if (!error) await queueRemove(item.id);
       } catch (e) { /* se reintenta en el próximo ciclo */ }
     }

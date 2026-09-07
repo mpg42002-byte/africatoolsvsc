@@ -380,10 +380,10 @@ const zoomVal = document.getElementById('zoomVal');
 const MODULE_KEY = 'wow-calificacion';
 
 async function loadEntries(){
-  entries = await OfflineStorage.get(MODULE_KEY, 'africa_wow_scores', []);
+  entries = await OfflineStorage.get(MODULE_KEY, 'africa_wow_scores', [], true);
 }
 async function saveEntries(){
-  await OfflineStorage.set(MODULE_KEY, 'africa_wow_scores', entries);
+  await OfflineStorage.set(MODULE_KEY, 'africa_wow_scores', entries, true);
 }
 
 function getMaxScore(){

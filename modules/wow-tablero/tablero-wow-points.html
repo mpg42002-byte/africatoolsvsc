@@ -639,11 +639,11 @@ let pendingPhoto = null;
 const MODULE_KEY = 'wow-tablero';
 
 async function mdGet(key, def){
-  return OfflineStorage.get(MODULE_KEY, key, def);
+  return OfflineStorage.get(MODULE_KEY, key, def, true);
 }
 
 async function mdSet(key, value){
-  await OfflineStorage.set(MODULE_KEY, key, value);
+  await OfflineStorage.set(MODULE_KEY, key, value, true);
 }
 
 async function loadEmployees(){

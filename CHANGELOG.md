@@ -6,7 +6,26 @@ CSS, propuesta de mejoras, checklists de deploy previos), consolidados aquí.
 Para el estado actual del modelo de datos, ver `ESTRUCTURA-DATOS.md` — ese
 es el documento de referencia vigente, no este changelog.
 
-## 2026-09-07 — Segunda capa de protección por módulo, y arreglo de offline
+## 2026-09-06 — Limpieza, Folders, Habladores, Wow Tablero y Wow Calificación pasan a compartidos
+
+- Se descubrió que estos 5 módulos guardaban en `module_data` (privado por
+  persona, sin que nadie lo hubiera notado) — cada quien tenía su propia
+  copia aislada del horario/roster/etiquetas, en vez de una compartida
+  por el equipo, a diferencia de Agenda, Líder y Bitácora.
+- Migrados a la tabla nueva `module_data_shared` (mismo patrón, sin
+  `user_id`) — ahora todo el que tenga acceso al módulo lee y escribe lo
+  mismo. Requiere correr la migración SQL aparte.
+- `assets/offline-storage.js`: `get()`/`set()` ahora aceptan un cuarto
+  parámetro `shared` (por defecto `false`, sin cambios de comportamiento
+  para quien no lo use) — la cola de sincronización sin conexión sigue
+  funcionando igual para los 5, solo cambió a qué tabla apunta.
+- **Día a Día no se tocó** — su lista de tareas sigue privada por persona,
+  como debe ser.
+- **Importante**: la migración no traslada los datos que ya existan en
+  `module_data` de estos 5 módulos — cada uno arranca "vacío" compartido
+  la primera vez que alguien lo abra después de correr la migración.
+
+## 2026-09-06 — Segunda capa de protección por módulo, y arreglo de offline
 
 - Cada módulo ahora revisa el rol real del usuario contra `permissions.js`
   al abrirse (`gateModuleAccess()` en `assets/ui-helpers.js`), y bloquea
