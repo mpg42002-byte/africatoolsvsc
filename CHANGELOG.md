@@ -6,6 +6,26 @@ CSS, propuesta de mejoras, checklists de deploy previos), consolidados aquí.
 Para el estado actual del modelo de datos, ver `ESTRUCTURA-DATOS.md` — ese
 es el documento de referencia vigente, no este changelog.
 
+## 2026-09-06 — Correcciones de pruebas: fotos HEIC, nombres largos en A-Z, paginación
+
+- **Wow Tablero**: las fotos HEIC (formato por defecto de la cámara de
+  iPhone) no se mostraban — ningún navegador aparte de Safari puede
+  decodificar ese formato. Ahora se detectan (por tipo MIME o extensión,
+  ya que el MIME a veces viene vacío) y se convierten a JPEG en el
+  navegador antes de abrir el recorte, usando `heic2any` (cargado solo la
+  primera vez que hace falta, desde jsdelivr — ya permitido en el CSP).
+  De paso, se agregó un aviso propio si cualquier foto falla al cargar
+  (antes quedaba en silencio).
+- **Folders (formato A-Z)**: nombres largos se cortaban a la mitad de una
+  palabra al imprimir. La función que reduce el tamaño de la fuente solo
+  revisaba que la altura total cupiera — ahora también revisa que la
+  palabra más larga quepa en el ancho del recuadro (medido con canvas), y
+  el piso mínimo bajó de 12pt a 6pt para casos extremos.
+- **Líder de Seguridad**: la bitácora de abordajes cargaba y mostraba
+  *todo* el historial de una sola vez, creciendo indefinidamente. Ahora
+  pagina de a 20 registros, con controles de anterior/siguiente; el
+  filtro por trabajador también respeta la paginación.
+
 ## 2026-09-06 — Limpieza, Folders, Habladores, Wow Tablero y Wow Calificación pasan a compartidos
 
 - Se descubrió que estos 5 módulos guardaban en `module_data` (privado por

@@ -685,6 +685,10 @@ function openCropModal(imgSrc){
     cropState.offY = (cropState.vh - cropState.natH*cropState.scale) / 2;
     applyCropTransform();
   };
+  cropImg.onerror = ()=>{
+    closeCropModal();
+    photoHint.textContent = '⚠️ No se pudo mostrar esta foto. Intenta con otra.';
+  };
   cropImg.src = imgSrc;
   cropOverlay.classList.add('open');
 }
@@ -760,13 +764,50 @@ document.getElementById('cropConfirmBtn').addEventListener('click', ()=>{
   closeCropModal();
 });
 
-// ---- photo capture: read file, then open the crop modal ----
-photoInput.addEventListener('change', ()=>{
+// ---- photo capture: read file, convert HEIC/HEIF si hace falta, luego abre el recorte ----
+let heic2anyLoadPromise = null;
+function loadHeic2any(){
+  if (typeof heic2any !== 'undefined') return Promise.resolve();
+  if (!heic2anyLoadPromise) {
+    heic2anyLoadPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+      script.onload = () => resolve();
+      script.onerror = () => { heic2anyLoadPromise = null; reject(new Error('No se pudo cargar el conversor de HEIC')); };
+      document.head.appendChild(script);
+    });
+  }
+  return heic2anyLoadPromise;
+}
+photoInput.addEventListener('change', async ()=>{
   const file = photoInput.files[0];
   if(!file) return;
+  // El iPhone guarda las fotos de cámara en HEIC/HEIF por defecto — ningún
+  // navegador aparte de Safari puede mostrar ese formato directamente, así
+  // que hay que convertirlo a JPEG primero. El tipo MIME a veces viene
+  // vacío para HEIC, por eso también se revisa la extensión del archivo.
+  const isHeic = /image\/hei[cf]/i.test(file.type || '') || /\.hei[cf]$/i.test(file.name || '');
+  let sourceBlob = file;
+  if (isHeic) {
+    photoHint.textContent = '⏳ Convirtiendo foto…';
+    try {
+      await loadHeic2any();
+      const converted = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 });
+      sourceBlob = Array.isArray(converted) ? converted[0] : converted;
+    } catch (err) {
+      console.error('No se pudo convertir la foto HEIC', err);
+      photoHint.textContent = '⚠️ No se pudo convertir esta foto (HEIC). Revisa tu conexión, o intenta con una foto en JPG.';
+      photoInput.value = '';
+      return;
+    }
+  }
   const reader = new FileReader();
   reader.onload = (e)=> openCropModal(e.target.result);
-  reader.readAsDataURL(file);
+  reader.onerror = () => {
+    photoHint.textContent = '⚠️ No se pudo leer esta foto. Intenta con otra.';
+    photoInput.value = '';
+  };
+  reader.readAsDataURL(sourceBlob);
 });
 
 document.getElementById('addEmpBtn').addEventListener('click', ()=>{

@@ -735,6 +735,7 @@
   }
   .btn-secondary:hover{transform: translateY(-2px);}
   .btn-secondary:active{transform: translateY(2px);}
+  .btn-secondary[disabled]{opacity:.4; cursor:not-allowed; pointer-events:none; transform:none;}
   .icon-inline{display:inline-flex; align-items:center; vertical-align:middle; text-transform:none; margin-right:2px;}
 
   /* Toast (undo de borrado) */
@@ -1014,6 +1015,11 @@
         </table>
         <div class="empty" id="epp-empty" style="display:none;">Aún no hay abordajes registrados.</div>
         <div class="empty" id="epp-filter-empty" style="display:none;">Ningún trabajador coincide con ese filtro.</div>
+        <div id="epp-log-pagination" style="display:none; align-items:center; justify-content:center; gap:14px; margin-top:14px;">
+          <button class="btn-secondary" id="epp-log-prev" type="button" style="padding:8px 14px; font-size:12px;">◀ Anterior</button>
+          <span id="epp-log-page-label" style="font-family:var(--font-heading); font-size:0.85rem; color:var(--text-muted);"></span>
+          <button class="btn-secondary" id="epp-log-next" type="button" style="padding:8px 14px; font-size:12px;">Siguiente ▶</button>
+        </div>
       </div>
     </section>
 
@@ -1632,13 +1638,41 @@
     setTimeout(()=>{ eppNote.textContent=''; }, 2000);
   });
 
+  const EPP_LOG_PAGE_SIZE = 20;
+  let eppLogPage = 1;
+
   function renderEppLog(){
     const body = document.getElementById('epp-log-body');
     const empty = document.getElementById('epp-empty');
+    const filterEmpty = document.getElementById('epp-filter-empty');
+    const pagination = document.getElementById('epp-log-pagination');
     body.innerHTML = '';
-    if(eppLog.length===0){ empty.style.display='block'; applyEppLogFilter(); return; }
-    empty.style.display='none';
-    eppLog.forEach(entry=>{
+
+    if (eppLog.length === 0) {
+      empty.style.display = 'block';
+      filterEmpty.style.display = 'none';
+      pagination.style.display = 'none';
+      return;
+    }
+    empty.style.display = 'none';
+
+    const q = (document.getElementById('epp-log-filter').value || '').trim().toLowerCase();
+    const filtered = q ? eppLog.filter(e => (e.nombre || '').toLowerCase().includes(q)) : eppLog;
+
+    if (filtered.length === 0) {
+      filterEmpty.style.display = 'block';
+      pagination.style.display = 'none';
+      return;
+    }
+    filterEmpty.style.display = 'none';
+
+    const totalPages = Math.max(1, Math.ceil(filtered.length / EPP_LOG_PAGE_SIZE));
+    if (eppLogPage > totalPages) eppLogPage = totalPages;
+    if (eppLogPage < 1) eppLogPage = 1;
+    const start = (eppLogPage - 1) * EPP_LOG_PAGE_SIZE;
+    const pageItems = filtered.slice(start, start + EPP_LOG_PAGE_SIZE);
+
+    pageItems.forEach(entry=>{
       const tr = document.createElement('tr');
       tr.dataset.nombre = entry.nombre || '';
       tr.innerHTML = `
@@ -1687,25 +1721,26 @@
         });
       });
     });
-    applyEppLogFilter();
+
+    const pageLabel = document.getElementById('epp-log-page-label');
+    const prevBtn = document.getElementById('epp-log-prev');
+    const nextBtn = document.getElementById('epp-log-next');
+    if (totalPages > 1) {
+      pagination.style.display = 'flex';
+      pageLabel.textContent = `Página ${eppLogPage} de ${totalPages}`;
+      prevBtn.disabled = eppLogPage <= 1;
+      nextBtn.disabled = eppLogPage >= totalPages;
+    } else {
+      pagination.style.display = 'none';
+    }
   }
 
+  document.getElementById('epp-log-prev').addEventListener('click', ()=>{ eppLogPage--; renderEppLog(); });
+  document.getElementById('epp-log-next').addEventListener('click', ()=>{ eppLogPage++; renderEppLog(); });
+
   function applyEppLogFilter(){
-    const filterEl = document.getElementById('epp-log-filter');
-    if(!filterEl) return;
-    const q = filterEl.value.trim().toLowerCase();
-    const body = document.getElementById('epp-log-body');
-    let anyVisible = false;
-    body.querySelectorAll('tr').forEach(tr=>{
-      const nombre = (tr.dataset.nombre || '').toLowerCase();
-      const match = !q || nombre.includes(q);
-      tr.style.display = match ? '' : 'none';
-      if(match) anyVisible = true;
-    });
-    const filterEmpty = document.getElementById('epp-filter-empty');
-    if(filterEmpty){
-      filterEmpty.style.display = (q && !anyVisible && eppLog.length > 0) ? 'block' : 'none';
-    }
+    eppLogPage = 1;
+    renderEppLog();
   }
 
   // ---------- Reporte semanal de abordajes ----------

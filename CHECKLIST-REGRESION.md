@@ -26,6 +26,7 @@ Derivado del análisis real de cada archivo (no inventado). Marca cada punto la 
 - [ ] Checklist mensual: marcar ítems y que persistan
 - [ ] Banco de preguntas (Juegos ARL SURA): navegar y usar
 - [ ] Recursos y formularios: subir un archivo (imagen o PDF) y confirmar que se guarda (va directo a Supabase — `lider_shared_data`, compartido con todo el equipo, sin cola offline — probar que sobrevive a un refresh y que otro líder lo ve al recargar)
+- [ ] Bitácora de abordajes: con más de 20 registros, confirmar que aparece paginada (no toda la lista de golpe) y que el filtro por trabajador también pagina correctamente
 - [ ] Resumen del rol carga sin errores
 
 ## 4. Marcación Folders/Lockers/A-Z
@@ -33,9 +34,11 @@ Derivado del análisis real de cada archivo (no inventado). Marca cada punto la 
 - [ ] Pegar una lista de nombres y generar vista previa
 - [ ] Guardar/cargar un combo guardado (Caja menor, Checklist mantenimiento, etc.)
 - [ ] Imprimir y confirmar que las medidas físicas salen correctas (esto es sensible — revisar con una hoja impresa real, no solo en pantalla)
+- [ ] En A-Z, probar un nombre largo (dos o tres palabras) y confirmar que la fuente se reduce hasta caber, sin cortar ninguna palabra a la mitad
 
 ## 5. Tablero Wow Points
 - [ ] Agregar empleado con foto (tomar/subir + recortar en el modal)
+- [ ] Subir una foto HEIC (formato por defecto de la cámara de iPhone) y confirmar que se convierte y carga bien
 - [ ] Seleccionar/deseleccionar empleados para el tablero
 - [ ] Generar tablero y confirmar que muestra 6 tarjetas por hoja
 - [ ] Imprimir
