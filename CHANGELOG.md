@@ -6,25 +6,35 @@ CSS, propuesta de mejoras, checklists de deploy previos), consolidados aquí.
 Para el estado actual del modelo de datos, ver `ESTRUCTURA-DATOS.md` — ese
 es el documento de referencia vigente, no este changelog.
 
-## 2026-09-06 — Correcciones de pruebas: fotos HEIC, nombres largos en A-Z, paginación
+## 2026-09-06 — Correcciones de pruebas: fotos HEIC, nombres largos en A-Z/Lockers, paginación
 
-- **Wow Tablero**: las fotos HEIC (formato por defecto de la cámara de
-  iPhone) no se mostraban — ningún navegador aparte de Safari puede
-  decodificar ese formato. Ahora se detectan (por tipo MIME o extensión,
-  ya que el MIME a veces viene vacío) y se convierten a JPEG en el
-  navegador antes de abrir el recorte, usando `heic2any` (cargado solo la
-  primera vez que hace falta, desde jsdelivr — ya permitido en el CSP).
-  De paso, se agregó un aviso propio si cualquier foto falla al cargar
-  (antes quedaba en silencio).
-- **Folders (formato A-Z)**: nombres largos se cortaban a la mitad de una
-  palabra al imprimir. La función que reduce el tamaño de la fuente solo
-  revisaba que la altura total cupiera — ahora también revisa que la
-  palabra más larga quepa en el ancho del recuadro (medido con canvas), y
-  el piso mínimo bajó de 12pt a 6pt para casos extremos.
+- **Wow Tablero — fotos HEIC**: el primer intento de arreglo se quedaba
+  pegado en "Convirtiendo foto…" para siempre. Causa real: `heic2any`
+  convierte usando un *Web Worker* interno creado desde una URL `blob:`,
+  y el `Content-Security-Policy` del sitio no declaraba `worker-src` — el
+  navegador caía a `default-src 'self'`, que no permite `blob:`, y
+  bloqueaba el worker en silencio (sin ningún error capturable). Se
+  agregó `worker-src 'self' blob:` al CSP en `netlify.toml` — **esto
+  requiere un nuevo deploy para tomar efecto**, no basta con subir el
+  módulo solo. De paso se corrigió también el nombre del archivo de la
+  librería (`heic2any.js`, no `heic2any.min.js`, que no existe) y se
+  agregó un límite de tiempo de seguridad (15-20s) para que nunca vuelva
+  a quedar pegado en silencio pase lo que pase.
+- **Folders — A-Z y Lockers, nombres largos**: el primer intento seguía
+  cortando palabras. Causa real: la función medía el ancho de la palabra
+  en su capitalización original (ej. "Contabilidad"), pero el CSS la
+  muestra en mayúsculas (`text-transform:uppercase` → "CONTABILIDAD"),
+  que es más ancha — medía una palabra más angosta de la que en realidad
+  se imprime. Corregido con `.toUpperCase()` antes de medir, reutilizando
+  el helper `measureTextWidthPx` que ya existía (en vez de un canvas
+  propio). **Lockers tenía el mismo hueco sin que nadie lo hubiera
+  reportado** — se corrigió ahí también de una vez, con la fuente real
+  del formato (Raspberry Sherbet) para que la medición sea exacta.
 - **Líder de Seguridad**: la bitácora de abordajes cargaba y mostraba
   *todo* el historial de una sola vez, creciendo indefinidamente. Ahora
   pagina de a 20 registros, con controles de anterior/siguiente; el
-  filtro por trabajador también respeta la paginación.
+  filtro por trabajador también respeta la paginación. Esta sí quedó
+  bien desde el primer intento.
 
 ## 2026-09-06 — Limpieza, Folders, Habladores, Wow Tablero y Wow Calificación pasan a compartidos
 

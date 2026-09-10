@@ -34,7 +34,7 @@ Derivado del análisis real de cada archivo (no inventado). Marca cada punto la 
 - [ ] Pegar una lista de nombres y generar vista previa
 - [ ] Guardar/cargar un combo guardado (Caja menor, Checklist mantenimiento, etc.)
 - [ ] Imprimir y confirmar que las medidas físicas salen correctas (esto es sensible — revisar con una hoja impresa real, no solo en pantalla)
-- [ ] En A-Z, probar un nombre largo (dos o tres palabras) y confirmar que la fuente se reduce hasta caber, sin cortar ninguna palabra a la mitad
+- [ ] En A-Z y en Lockers, probar un nombre largo (dos o tres palabras) y confirmar que la fuente se reduce hasta caber, sin cortar ninguna palabra a la mitad
 
 ## 5. Tablero Wow Points
 - [ ] Agregar empleado con foto (tomar/subir + recortar en el modal)

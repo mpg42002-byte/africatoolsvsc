@@ -973,20 +973,14 @@ function fitAllFolderNames(){
 function fitAllAzLabels(){
   const maxHeightPx = 1.05 * 96; // available vertical room below the logo inside the box
   const maxWidthPx = 2.359 * 96; // ancho útil del recuadro (2.559in de caja, menos 0.1in de padding a cada lado)
-  const measureCanvas = document.createElement('canvas');
-  const measureCtx = measureCanvas.getContext('2d');
   document.querySelectorAll('.az-box .lbl').forEach(el=>{
     let fontSize = 24; // pt, matches the box example
-    const longestWord = (el.textContent || '').split(/\s+/).reduce((a, b) => b.length > a.length ? b : a, '');
-    function longestWordFits(sizePt){
-      measureCtx.font = `700 ${sizePt}pt Arial, sans-serif`;
-      return measureCtx.measureText(longestWord).width <= maxWidthPx;
-    }
+    const longestWord = (el.textContent || '').toUpperCase().split(/\s+/).reduce((a, b) => b.length > a.length ? b : a, '');
     el.style.fontSize = fontSize + 'pt';
     // Baja el tamaño mientras no quepa en alto, O mientras la palabra más
     // larga por sí sola no quepa en el ancho del recuadro — así nunca se
     // corta una palabra a la mitad al imprimir, aunque el nombre sea largo.
-    while(fontSize > 6 && (el.scrollHeight > maxHeightPx || !longestWordFits(fontSize))){
+    while(fontSize > 6 && (el.scrollHeight > maxHeightPx || measureTextWidthPx(longestWord, 700, fontSize * 96/72, 'Arial, sans-serif') > maxWidthPx)){
       fontSize -= 1;
       el.style.fontSize = fontSize + 'pt';
     }
@@ -995,10 +989,12 @@ function fitAllAzLabels(){
 
 function fitAllLockerNames(){
   const maxHeightPx = 0.98 * 96; // available vertical room inside the locker box
+  const maxWidthPx = 1.7677 * 96; // ancho útil del recuadro (1.9677in de caja, menos 0.1in de padding a cada lado)
   document.querySelectorAll('.locker-cell span').forEach(el=>{
     let fontSize = 30; // pt, matches the reference file
+    const longestWord = (el.textContent || '').toUpperCase().split(/\s+/).reduce((a, b) => b.length > a.length ? b : a, '');
     el.style.fontSize = fontSize + 'pt';
-    while(el.scrollHeight > maxHeightPx && fontSize > 14){
+    while(fontSize > 8 && (el.scrollHeight > maxHeightPx || measureTextWidthPx(longestWord, 400, fontSize * 96/72, '"Raspberry Sherbet", Arial, sans-serif') > maxWidthPx)){
       fontSize -= 1;
       el.style.fontSize = fontSize + 'pt';
     }

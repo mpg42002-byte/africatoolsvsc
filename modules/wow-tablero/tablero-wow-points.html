@@ -771,13 +771,19 @@ function loadHeic2any(){
   if (!heic2anyLoadPromise) {
     heic2anyLoadPromise = new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js';
+      script.src = 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.js';
       script.onload = () => resolve();
       script.onerror = () => { heic2anyLoadPromise = null; reject(new Error('No se pudo cargar el conversor de HEIC')); };
       document.head.appendChild(script);
     });
   }
   return heic2anyLoadPromise;
+}
+function withTimeout(promise, ms){
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('tiempo agotado')), ms)),
+  ]);
 }
 photoInput.addEventListener('change', async ()=>{
   const file = photoInput.files[0];
@@ -791,8 +797,14 @@ photoInput.addEventListener('change', async ()=>{
   if (isHeic) {
     photoHint.textContent = '⏳ Convirtiendo foto…';
     try {
-      await loadHeic2any();
-      const converted = await heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 });
+      // Nunca debe quedar pegado en "Convirtiendo..." para siempre — si algo
+      // falla en silencio (ej. un bloqueo de seguridad del navegador), a los
+      // 20s se cae al mensaje de error en vez de dejar la pantalla colgada.
+      await withTimeout(loadHeic2any(), 15000);
+      const converted = await withTimeout(
+        heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 }),
+        20000
+      );
       sourceBlob = Array.isArray(converted) ? converted[0] : converted;
     } catch (err) {
       console.error('No se pudo convertir la foto HEIC', err);
