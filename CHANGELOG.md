@@ -6,6 +6,64 @@ CSS, propuesta de mejoras, checklists de deploy previos), consolidados aquí.
 Para el estado actual del modelo de datos, ver `ESTRUCTURA-DATOS.md` — ese
 es el documento de referencia vigente, no este changelog.
 
+## 2026-09-10 — Limpieza: rediseño del formato de impresión (letra muy pequeña)
+
+- La tabla de "Asignación de máquinas" se imprimía en 2 columnas fijas con
+  letra de 7.5-8px — con equipos grandes quedaba casi ilegible en papel.
+  Además el código que ajusta la imagen a la hoja tenía dos bugs reales:
+  1) si el contenido quedaba más alto que una página, en vez de achicarlo lo
+  recortaba (`Math.min(imgH, pageH)` sin escalar el ancho a la par); 2) el
+  `@page{margin:8mm}` del CSS no tenía ningún efecto real — ese CSS solo
+  aplica si el navegador imprime de verdad (`window.print()`), pero este
+  flujo convierte todo a una IMAGEN (`html2canvas`) y la pega en el PDF
+  (`pdf.addImage`) sin pasar por el motor de impresión en ningún momento, así
+  que el contenido quedaba pegado al borde físico de la hoja.
+- Rediseño visual completo de `printResult()` (segunda versión — la primera,
+  una tabla de hoja de cálculo simplemente más grande, no convenció): ahora
+  son tarjetas redondeadas por empleado (nombre, y sus máquinas/tareas con un
+  punto de color por dificultad y una casilla para marcar), agrupadas en
+  columnas dinámicas — con pocas personas, tarjetas anchas; con muchas, más
+  columnas, repartidas por CANTIDAD DE FILAS real de cada quien (no solo
+  cantidad de personas) para que ninguna columna quede mucho más larga que
+  las demás. Arriba, un "ribbon" compacto de un cuadro por día con las
+  parejas (en vez de una tabla larga de 5 días), que deja mucho más espacio
+  libre para las tarjetas.
+- Se corrigió el ajuste a la hoja en `generatePdfFromHtml()`: ahora se
+  reserva un margen físico real de 10mm restándolo del área disponible
+  ANTES de calcular el escalado (no dependiendo del CSS `@page`, que no
+  aplica a este flujo), y luego se ajusta todo el contenido dentro de esa
+  área (ancho y alto a la vez, tipo "object-fit:contain", centrado) — nunca
+  se corta ni se deforma. Probado con un equipo de ejemplo de 12 personas:
+  usa ~57% del alto disponible dentro del margen.
+- Todas las tablas internas llevan `table-layout:fixed` + anchos explícitos
+  por columna — sin esto, con letra más grande el contenido de una columna
+  se monta visualmente sobre la columna vecina en vez de ajustarse a su
+  ancho asignado (bug real que apareció durante las pruebas de este cambio).
+- Solo cambia `modules/limpieza/africaLimpieza.html`. **Pendiente de probar
+  con el equipo real completo** (ver `CHECKLIST-REGRESION.md`, sección
+  Limpieza) — la vista previa se armó con datos de ejemplo generados en el
+  sandbox, no con datos reales de Supabase.
+
+## 2026-09-10 — Wow Tablero: fotos HEIC seguían fallando (bug distinto al del 6 de sept)
+
+- El arreglo de `worker-src 'self' blob:'` del 6 de septiembre resolvió que el
+  Web Worker de `heic2any` pudiera crearse, pero quedó otro bloqueo: dentro de
+  ese worker, `heic2any` llama a `new Function(...)` para instanciar su WASM —
+  eso es un `eval` en la práctica, y el CSP no tiene `'unsafe-eval'` en
+  `script-src`. El navegador lo bloqueaba en silencio y la conversión caía
+  siempre en el timeout de 20s ("No se pudo convertir esta foto").
+- En vez de aflojar el CSP (`'unsafe-eval'` habría aplicado a todo el sitio,
+  no solo a este módulo), se reemplazó `heic2any` por `heic-to` en su build
+  `csp` (`dist/csp/heic-to.js`, sin `eval`/`new Function` — confirmado
+  revisando el bundle), cargado como módulo ES con `import()` dinámico en vez
+  de `<script src="...">` clásico. No requirió cambios en `netlify.toml`: el
+  dominio `cdn.jsdelivr.net` ya estaba permitido en `script-src`, y ese mismo
+  directive cubre módulos cargados con `import()`.
+- Solo afecta `modules/wow-tablero/tablero-wow-points.html` — es el único
+  módulo que usaba `heic2any`.
+- **Pendiente de probar con una foto HEIC real de iPhone** antes de dar esto
+  por cerrado (ver `CHECKLIST-REGRESION.md`, sección Tablero Wow Points).
+
 ## 2026-09-06 — Correcciones de pruebas: fotos HEIC, nombres largos en A-Z/Lockers, paginación
 
 - **Wow Tablero — fotos HEIC**: el primer intento de arreglo se quedaba

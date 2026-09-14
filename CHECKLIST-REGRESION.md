@@ -9,7 +9,7 @@ Derivado del análisis real de cada archivo (no inventado). Marca cada punto la 
 - [ ] Agregar/quitar empleados desde la pestaña Empleados
 - [ ] Agregar/quitar máquinas, marcar dificultad (Alta/Media/Baja) y "doble" desde Máquinas
 - [ ] Tareas periódicas: asignación automática y asignación fija a una persona
-- [ ] "🖨️ Imprimir / Guardar PDF" abre ventana de impresión con el formato correcto (usa la función que acabamos de corregir — probar especialmente esta)
+- [ ] "🖨️ Imprimir / Guardar PDF" — rediseñado el 2026-09-10 (columnas dinámicas de parejas/máquinas, letra más grande, ya no recorta). Probar con el equipo real completo (no solo con pocos empleados) y confirmar que cabe en una sola hoja A4 horizontal, sin texto cortado ni montado
 - [ ] "🧹 Limpiar tabla" reinicia el horario sin borrar empleados/máquinas
 - [ ] Cambiar tema claro/oscuro se ve bien en las 5 pestañas
 

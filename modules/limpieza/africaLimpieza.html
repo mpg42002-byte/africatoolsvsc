@@ -898,112 +898,87 @@ function printResult(){
   if(!lastResult){toast('Genera primero');return;}
   const {weekFrom,weekTo,pairsByDay,assigned,taskAssignments=[]}=lastResult;
   const DAY_COLORS_P=['#E85D25','#F5A623','#7CB342','#7B6FE0','#D9481F'];
-  const DAY_ROW_P=['#FFF0E6','#FFFBEA','#E8FAF3','#F0EFFE','#FFF0F5'];
-  const DIFF_BG_P={alta:'#FFCCCC',media:'#FFF3CD',baja:'#D4EDDA'};
-  const SOLO_BG_P='#FFE0CC';
+  const DIFF_DOT={alta:'#E74C3C',media:'#F5B400',baja:'#27AE60'};
+  const DIFF_LABEL={alta:'Alta',media:'Media',baja:'Baja'};
+  const CB='display:inline-block;width:12px;height:12px;border:1.5px solid #999;border-radius:3px';
 
   const workers=[...new Set([...Object.keys(assigned), ...taskAssignments.map(t=>t.person)])];
-  const half=Math.ceil(workers.length/2);
-  const leftW=workers.slice(0,half);
-  const rightW=workers.slice(half);
 
-  function pairsHtml(){
-    let h='';
-    DAYS.forEach((day,di)=>{
-      const pairs=pairsByDay[day]||[];
-      if(!pairs.length) return;
-      const hdrCol=DAY_COLORS_P[di];
-      const rowCol=DAY_ROW_P[di];
-      pairs.forEach(([p1,p2],i)=>{
-        const bg=p2?rowCol:SOLO_BG_P;
-        h+=`<tr>
-          <td style="background:${i===0?hdrCol:bg};color:${i===0?'#fff':'#333'};font-weight:${i===0?700:400};text-align:center;padding:3px 6px;border:0.5px solid #ddd;font-size:8px">${i===0?day:''}</td>
-          <td style="background:${bg};color:#333;padding:3px 6px;border:0.5px solid #ddd;font-size:8px">${p1}</td>
-          <td style="background:${bg};color:#333;padding:3px 6px;border:0.5px solid #ddd;font-size:8px">${p2||'—'}</td>
-          <td style="background:${bg};color:#333;text-align:center;padding:3px 6px;border:0.5px solid #ddd;font-size:8px">${p2?'Pareja':'Solo/a'}</td>
-        </tr>`;
-      });
-    });
-    return h;
+  // ── Ribbon semanal: un cuadro chico por día en vez de una tabla larga —
+  // deja mucho más espacio libre para que las tarjetas de abajo sean grandes.
+  function dayCardHtml(day,di){
+    const pairs=pairsByDay[day]||[];
+    if(!pairs.length) return `<td style="width:19%"></td>`;
+    const rows=pairs.map(([p1,p2])=>
+      `<div style="padding:3px 7px;font-size:9.5px;color:#444;border-bottom:0.5px solid #f0f0f0;word-wrap:break-word;overflow-wrap:break-word">${p1}${p2?` &amp; ${p2}`:' <span style="color:#C0722E;font-weight:700">· solo/a</span>'}</div>`
+    ).join('');
+    return `<td style="width:19%;vertical-align:top;padding-right:4px">
+      <div style="border:1px solid #eee;border-radius:9px;overflow:hidden;background:#fff">
+        <div style="background:${DAY_COLORS_P[di]};color:#fff;font-weight:700;text-align:center;padding:4px;font-size:10.5px">${day}</div>
+        ${rows}
+      </div>
+    </td>`;
   }
 
-  function machBlockHtml(w){
+  // ── Tarjeta de empleado: nombre + lista de máquinas/tareas con un punto de
+  // color por dificultad y una casilla para marcar — más liviano visualmente
+  // que una tabla de hoja de cálculo, pero con la misma info.
+  function employeeCardHtml(w){
     const machs=assigned[w]||[];
     const wtasks=taskAssignments.filter(t=>t.person===w);
-    let rows='';
-    let first=true;
-    wtasks.forEach(t=>{
-      rows+=`<tr>
-        <td style="background:#FBE3B4;font-weight:${first?700:400};text-align:center;padding:2px 5px;border:0.5px solid #ddd;font-size:7.5px">${first?w:''}</td>
-        <td style="background:#FBE3B4;padding:2px 5px;border:0.5px solid #ddd;font-size:7.5px">${t.mode==='fija'?'📌':'🔄'} ${t.name}</td>
-        <td style="background:#FBE3B4;text-align:center;padding:2px 5px;border:0.5px solid #ddd;font-size:7.5px">TAREA · ${t.pts}p</td>
-        <td style="background:#FBE3B4;text-align:center;padding:2px 5px;border:0.5px solid #ddd;font-size:11px">⬜</td>
-      </tr>`;
-      first=false;
-    });
-    machs.forEach(m=>{
-      rows+=`<tr>
-        <td style="background:${DIFF_BG_P[m.d]};font-weight:${first?700:400};text-align:center;padding:2px 5px;border:0.5px solid #ddd;font-size:7.5px">${first?w:''}</td>
-        <td style="background:${DIFF_BG_P[m.d]};padding:2px 5px;border:0.5px solid #ddd;font-size:7.5px">${m.n}</td>
-        <td style="background:${DIFF_BG_P[m.d]};text-align:center;padding:2px 5px;border:0.5px solid #ddd;font-size:7.5px">${m.d.toUpperCase()}</td>
-        <td style="background:${DIFF_BG_P[m.d]};text-align:center;padding:2px 5px;border:0.5px solid #ddd;font-size:11px">⬜</td>
-      </tr>`;
-      first=false;
-    });
-    return rows;
+    const items=[
+      ...wtasks.map(t=>({label:`${t.mode==='fija'?'📌':'🔄'} ${t.name}`,tag:`Tarea·${t.pts}p`,dot:'#8E7CC3'})),
+      ...machs.map(m=>({label:m.n,tag:DIFF_LABEL[m.d],dot:DIFF_DOT[m.d]}))
+    ];
+    const rows=items.map((it,i)=>`<tr style="background:${i%2?'#FAFAFA':'#fff'}">
+        <td style="width:10%;text-align:center;padding:5px 2px;border-bottom:0.5px solid #f0f0f0"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${it.dot}"></span></td>
+        <td style="width:56%;padding:5px 4px;border-bottom:0.5px solid #f0f0f0;font-size:11px;color:#333;word-wrap:break-word;overflow-wrap:break-word">${it.label}</td>
+        <td style="width:20%;padding:5px 4px;border-bottom:0.5px solid #f0f0f0;font-size:9px;color:#888;text-align:center">${it.tag}</td>
+        <td style="width:14%;text-align:center;padding:5px 4px;border-bottom:0.5px solid #f0f0f0"><span style="${CB}"></span></td>
+      </tr>`).join('');
+    return `<div style="border:1px solid #eee;border-radius:10px;overflow:hidden;background:#fff">
+      <div style="background:#D9481F;color:#fff;font-weight:700;padding:6px 10px;font-size:12px;word-wrap:break-word;overflow-wrap:break-word">${w}</div>
+      <table style="width:100%;border-collapse:collapse;table-layout:fixed">${rows}</table>
+    </div>`;
   }
 
-  function machTableHtml(ws){
-    if(!ws.length) return '';
-    return `<table style="width:100%;border-collapse:collapse">
-      <tr>
-        <td style="background:#E85D25;color:#fff;font-weight:700;text-align:center;padding:3px 5px;border:0.5px solid #ccc;font-size:8px">EMPLEADO</td>
-        <td style="background:#E85D25;color:#fff;font-weight:700;padding:3px 5px;border:0.5px solid #ccc;font-size:8px">MÁQUINA(S)</td>
-        <td style="background:#E85D25;color:#fff;font-weight:700;text-align:center;padding:3px 5px;border:0.5px solid #ccc;font-size:8px">DIFIC.</td>
-        <td style="background:#E85D25;color:#fff;font-weight:700;text-align:center;padding:3px 5px;border:0.5px solid #ccc;font-size:8px">✓</td>
-      </tr>
-      ${ws.map(w=>machBlockHtml(w)).join('')}
-    </table>`;
-  }
+  // Cuántas columnas de tarjetas caben cómodas en la hoja: con pocas
+  // personas, tarjetas anchas; con muchas, más columnas angostas — repartido
+  // por CANTIDAD DE FILAS real (máquinas + tareas de cada quien), no solo
+  // cantidad de personas, para que ninguna columna quede mucho más larga.
+  const rowsOf=w=>(assigned[w]||[]).length + taskAssignments.filter(t=>t.person===w).length;
+  const numCols = workers.length<=4 ? 2 : workers.length<=9 ? 3 : workers.length<=15 ? 4 : 5;
+  const cols=Array.from({length:numCols},()=>({workers:[],rows:0}));
+  [...workers].sort((a,b)=>rowsOf(b)-rowsOf(a)).forEach(w=>{
+    cols.sort((a,b)=>a.rows-b.rows);
+    cols[0].workers.push(w);
+    cols[0].rows+=rowsOf(w)+1; // +1 por el encabezado de la tarjeta
+  });
+  const colPct=(100/numCols).toFixed(2);
+  const cardsHtml=cols.map(c=>`<td style="width:${colPct}%;vertical-align:top;padding:0 4px 8px 0">
+    ${c.workers.map(w=>`<div style="margin-bottom:6px">${employeeCardHtml(w)}</div>`).join('')}
+  </td>`).join('');
 
   const html=`<!DOCTYPE html><html><head><meta charset="UTF-8">
   <style>
-    @page{size:A4 landscape;margin:6mm}
     body{font-family:Arial,sans-serif;margin:0;padding:0}
     *{box-sizing:border-box}
   <\/style>
   <\/head><body>
-  <div style="background:#E85D25;color:#fff;font-weight:700;font-size:13px;padding:5px 10px;text-align:center;margin-bottom:4px">
-    🦁 AFRICA – LIMPIEZA SEMANAL &nbsp;|&nbsp; ${weekFrom} – ${weekTo}
+  <div style="background:linear-gradient(135deg,#E85D25,#D9481F);color:#fff;font-weight:700;font-size:18px;padding:10px 16px;border-radius:10px;text-align:center;margin-bottom:8px">
+    🦁 AFRICA · LIMPIEZA SEMANAL &nbsp;|&nbsp; ${weekFrom} – ${weekTo}
   </div>
-  <table style="width:100%;border-collapse:collapse;table-layout:fixed">
-    <tr>
-      <td style="width:22%;vertical-align:top;padding-right:4px">
-        <div style="background:#D9481F;color:#fff;font-weight:700;font-size:9px;padding:3px 6px;text-align:center;margin-bottom:2px">PAREJAS DE LIMPIEZA POR DÍA</div>
-        <table style="width:100%;border-collapse:collapse">
-          <tr>
-            <td style="background:#E85D25;color:#fff;font-weight:700;text-align:center;padding:3px 5px;border:0.5px solid #ccc;font-size:8px">DÍA</td>
-            <td style="background:#E85D25;color:#fff;font-weight:700;padding:3px 5px;border:0.5px solid #ccc;font-size:8px">PERSONA 1</td>
-            <td style="background:#E85D25;color:#fff;font-weight:700;padding:3px 5px;border:0.5px solid #ccc;font-size:8px">PERSONA 2</td>
-            <td style="background:#E85D25;color:#fff;font-weight:700;text-align:center;padding:3px 5px;border:0.5px solid #ccc;font-size:8px">NOTA</td>
-          </tr>
-          ${pairsHtml()}
-        </table>
-      </td>
-      <td style="width:1%"></td>
-      <td style="width:38.5%;vertical-align:top;padding-right:4px">
-        <div style="background:#D9481F;color:#fff;font-weight:700;font-size:9px;padding:3px 6px;text-align:center;margin-bottom:2px">ASIGNACIÓN DE MÁQUINAS (1)</div>
-        ${machTableHtml(leftW)}
-      </td>
-      <td style="width:1%"></td>
-      <td style="width:38.5%;vertical-align:top">
-        <div style="background:#D9481F;color:#fff;font-weight:700;font-size:9px;padding:3px 6px;text-align:center;margin-bottom:2px">ASIGNACIÓN DE MÁQUINAS (2)</div>
-        ${machTableHtml(rightW)}
-      </td>
-    </tr>
+  <table style="width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:8px">
+    <tr>${DAYS.map((day,di)=>dayCardHtml(day,di)).join('')}</tr>
   </table>
-  <div style="background:#E85D25;color:#fff;font-size:7px;padding:2px 8px;text-align:center;margin-top:4px">
-    🔴 ALTA – Limpieza exigente &nbsp;&nbsp; 🟡 MEDIA – Limpieza estándar &nbsp;&nbsp; 🟢 BAJA – Limpieza rápida &nbsp;&nbsp; 🟠 TAREA – Tarea periódica
+  <table style="width:100%;border-collapse:collapse;table-layout:fixed">
+    <tr>${cardsHtml}</tr>
+  </table>
+  <div style="display:flex;justify-content:center;gap:16px;margin-top:6px">
+    <span style="font-size:10px;color:#555"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#E74C3C;margin-right:4px"></span>Alta</span>
+    <span style="font-size:10px;color:#555"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#F5B400;margin-right:4px"></span>Media</span>
+    <span style="font-size:10px;color:#555"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#27AE60;margin-right:4px"></span>Baja</span>
+    <span style="font-size:10px;color:#555"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#8E7CC3;margin-right:4px"></span>Tarea periódica</span>
   </div>
   <\/body><\/html>`;
 
@@ -1035,10 +1010,29 @@ async function generatePdfFromHtml(html, filenameBase){
     const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4'});
     const pageW=pdf.internal.pageSize.getWidth();
     const pageH=pdf.internal.pageSize.getHeight();
-    const imgW=pageW;
-    const imgH=canvas.height*imgW/canvas.width;
-    const finalH=Math.min(imgH,pageH);
-    pdf.addImage(imgData,'JPEG',0,0,imgW,finalH);
+    // Antes esto hacía imgW=pageW fijo y luego "finalH=Math.min(imgH,pageH)"
+    // — si el contenido quedaba más alto que la hoja, jsPDF igual dibujaba
+    // esa altura recortada estirando/deformando la imagen en vez de
+    // achicarla. Ahora se calcula el factor de escala que hace caber TODO
+    // el contenido dentro de la hoja (ancho y alto a la vez, como
+    // "object-fit:contain") y se centra.
+    //
+    // El margen real: el "@page{margin:8mm}" del <style> del HTML impreso
+    // NO tiene ningún efecto acá — ese CSS solo aplica si el navegador
+    // imprime la página de verdad (window.print()), pero este flujo convierte
+    // todo a una IMAGEN (html2canvas) y la pega en el PDF (pdf.addImage) sin
+    // pasar por el motor de impresión del navegador en ningún momento. Por
+    // eso antes el contenido quedaba pegado al borde físico de la hoja. El
+    // margen hay que reservarlo acá, restándolo del área disponible antes de
+    // calcular el escalado.
+    const marginMM=10;
+    const usableW=pageW-marginMM*2;
+    const usableH=pageH-marginMM*2;
+    const scale=Math.min(usableW/canvas.width, usableH/canvas.height);
+    const imgW=canvas.width*scale;
+    const imgH=canvas.height*scale;
+    const offX=marginMM+(usableW-imgW)/2, offY=marginMM+(usableH-imgH)/2;
+    pdf.addImage(imgData,'JPEG',offX,offY,imgW,imgH);
 
     const filename=`${filenameBase}.pdf`;
     const blob=pdf.output('blob');

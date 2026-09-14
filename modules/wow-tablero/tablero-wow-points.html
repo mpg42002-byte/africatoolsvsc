@@ -743,7 +743,17 @@ cropViewport.addEventListener('pointermove', (e)=>{ dragMove(e.clientX, e.client
 cropViewport.addEventListener('pointerup', dragEnd);
 cropViewport.addEventListener('pointercancel', dragEnd);
 
-document.getElementById('cropCancelBtn').addEventListener('click', closeCropModal);
+document.getElementById('cropCancelBtn').addEventListener('click', ()=>{
+  closeCropModal();
+  // closeCropModal() no toca photoHint a propósito (el flujo de "confirmar"
+  // ya puso ahí su propio mensaje de éxito antes de cerrar el modal, y no
+  // queremos pisarlo). Pero al cancelar sí hay que restaurar el recuadro:
+  // si ya había una foto recortada antes de abrir este modal, volver a ese
+  // estado; si no, volver al mensaje inicial para subir una foto.
+  photoHint.textContent = pendingPhoto
+    ? '✅ Foto lista — puedes cambiarla tocando aquí'
+    : '📷 Toca para tomar o subir una foto';
+});
 
 document.getElementById('cropConfirmBtn').addEventListener('click', ()=>{
   // map the visible viewport rectangle back to natural image coordinates
@@ -765,19 +775,18 @@ document.getElementById('cropConfirmBtn').addEventListener('click', ()=>{
 });
 
 // ---- photo capture: read file, convert HEIC/HEIF si hace falta, luego abre el recorte ----
-let heic2anyLoadPromise = null;
-function loadHeic2any(){
-  if (typeof heic2any !== 'undefined') return Promise.resolve();
-  if (!heic2anyLoadPromise) {
-    heic2anyLoadPromise = new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.js';
-      script.onload = () => resolve();
-      script.onerror = () => { heic2anyLoadPromise = null; reject(new Error('No se pudo cargar el conversor de HEIC')); };
-      document.head.appendChild(script);
-    });
+// Usamos heic-to (build "csp") en vez de heic2any: heic2any usa new Function()
+// internamente para instanciar su WASM, lo cual viola nuestro CSP (script-src
+// sin 'unsafe-eval') y por eso la conversión quedaba pegada en "Convirtiendo…"
+// hasta el timeout. heic-to/csp está compilado sin eval/new Function — se
+// carga como módulo ES con import() dinámico, no como <script> clásico.
+let heicToModulePromise = null;
+function loadHeicTo(){
+  if (!heicToModulePromise) {
+    heicToModulePromise = import('https://cdn.jsdelivr.net/npm/heic-to@1.5.2/dist/csp/heic-to.js')
+      .catch(err => { heicToModulePromise = null; throw new Error('No se pudo cargar el conversor de HEIC'); });
   }
-  return heic2anyLoadPromise;
+  return heicToModulePromise;
 }
 function withTimeout(promise, ms){
   return Promise.race([
@@ -800,12 +809,11 @@ photoInput.addEventListener('change', async ()=>{
       // Nunca debe quedar pegado en "Convirtiendo..." para siempre — si algo
       // falla en silencio (ej. un bloqueo de seguridad del navegador), a los
       // 20s se cae al mensaje de error en vez de dejar la pantalla colgada.
-      await withTimeout(loadHeic2any(), 15000);
-      const converted = await withTimeout(
-        heic2any({ blob: file, toType: 'image/jpeg', quality: 0.85 }),
+      const { heicTo } = await withTimeout(loadHeicTo(), 15000);
+      sourceBlob = await withTimeout(
+        heicTo({ blob: file, type: 'image/jpeg', quality: 0.85 }),
         20000
       );
-      sourceBlob = Array.isArray(converted) ? converted[0] : converted;
     } catch (err) {
       console.error('No se pudo convertir la foto HEIC', err);
       photoHint.textContent = '⚠️ No se pudo convertir esta foto (HEIC). Revisa tu conexión, o intenta con una foto en JPG.';
