@@ -210,28 +210,74 @@ function setTheme(theme) {
    Pensado para equipos compartidos (tablet de recepción, PC de bodega).
    30 minutos sin ningún clic/tecla/scroll cierra la sesión automáticamente. */
 const IDLE_TIMEOUT_MS = 30 * 60 * 1000;
+const IDLE_WARN_MS = 2 * 60 * 1000;          // aviso 2 min antes del cierre
+const IDLE_CHECK_MS = 10 * 1000;
 let lastActivityAt = Date.now();
 let idleCheckInterval = null;
+let moduleDirty = false;                      // el módulo abierto avisó que hay cambios sin guardar
+let idleWarningEl = null;
 
-function markActivity() { lastActivityAt = Date.now(); }
+function markActivity() {
+  lastActivityAt = Date.now();
+  if (idleWarningEl && !idleWarningEl.hidden) hideIdleWarning();
+}
+
+/* El trabajo real ocurre dentro del <iframe> del módulo y sus eventos NO llegan al documento del
+   shell. Cada módulo (assets/ui-helpers.js) avisa con postMessage; aquí solo se aceptan mensajes
+   del mismo origen que vengan del iframe del módulo abierto. */
+window.addEventListener('message', (event) => {
+  const d = event.data;
+  if (!d || (d.type !== 'africa-tools-activity' && d.type !== 'africa-tools-dirty')) return;
+  const frame = document.getElementById('module-frame');
+  if (event.origin !== location.origin || !frame || event.source !== frame.contentWindow) return;
+  if (d.type === 'africa-tools-activity') markActivity();
+  else moduleDirty = !!d.dirty;
+});
+
+function showIdleWarning(msLeft, dirty) {
+  if (!idleWarningEl) {
+    idleWarningEl = document.createElement('div');
+    idleWarningEl.id = 'idle-warning';
+    idleWarningEl.setAttribute('role', 'alertdialog');
+    idleWarningEl.setAttribute('aria-live', 'assertive');
+    idleWarningEl.style.cssText = 'position:fixed;left:50%;transform:translateX(-50%);bottom:16px;z-index:9999;max-width:min(92vw,460px);background:#3b2a1a;color:#fff;border:2px solid #f5a623;border-radius:14px;padding:14px 16px;box-shadow:0 8px 24px rgba(0,0,0,.35);display:flex;gap:12px;align-items:center;flex-wrap:wrap;font-family:inherit';
+    idleWarningEl.innerHTML = '<span class="idle-msg" style="flex:1 1 200px"></span><button type="button" class="idle-keep" style="min-height:44px;padding:0 16px;border:0;border-radius:10px;background:#f5a623;color:#2b1a0a;font-weight:700;cursor:pointer">Seguir conectado</button>';
+    idleWarningEl.querySelector('.idle-keep').addEventListener('click', markActivity);
+    document.body.appendChild(idleWarningEl);
+  }
+  const mins = Math.max(1, Math.ceil(msLeft / 60000));
+  idleWarningEl.querySelector('.idle-msg').textContent = dirty
+    ? 'Hay cambios sin guardar. Por seguridad la sesión se cerrará cuando termines de guardar y pase el tiempo de inactividad.'
+    : `Tu sesión se cerrará en ${mins} min por inactividad.`;
+  idleWarningEl.hidden = false;
+}
+function hideIdleWarning() { if (idleWarningEl) idleWarningEl.hidden = true; }
 
 function startIdleWatcher(onIdleTimeout) {
   stopIdleWatcher();
   lastActivityAt = Date.now();
+  moduleDirty = false;
   ['click', 'keydown', 'touchstart', 'scroll', 'mousemove'].forEach(evt =>
     document.addEventListener(evt, markActivity, { passive: true })
   );
   idleCheckInterval = setInterval(() => {
-    if (Date.now() - lastActivityAt > IDLE_TIMEOUT_MS) {
+    const idle = Date.now() - lastActivityAt;
+    if (idle > IDLE_TIMEOUT_MS) {
+      // Con cambios sin guardar en el módulo NO se cierra la sesión sin avisar: se deja el aviso visible.
+      if (moduleDirty) { showIdleWarning(0, true); return; }
       stopIdleWatcher();
       onIdleTimeout();
+    } else if (idle > IDLE_TIMEOUT_MS - IDLE_WARN_MS) {
+      showIdleWarning(IDLE_TIMEOUT_MS - idle, false);
     }
-  }, 30 * 1000);
+  }, IDLE_CHECK_MS);
 }
 
 function stopIdleWatcher() {
   if (idleCheckInterval) clearInterval(idleCheckInterval);
   idleCheckInterval = null;
+  moduleDirty = false;
+  hideIdleWarning();
   ['click', 'keydown', 'touchstart', 'scroll', 'mousemove'].forEach(evt =>
     document.removeEventListener(evt, markActivity)
   );

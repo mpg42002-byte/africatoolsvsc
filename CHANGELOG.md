@@ -6,6 +6,32 @@ CSS, propuesta de mejoras, checklists de deploy previos), consolidados aquí.
 Para el estado actual del modelo de datos, ver `ESTRUCTURA-DATOS.md` — ese
 es el documento de referencia vigente, no este changelog.
 
+## 2026-10-25 — Choques de edición en datos compartidos (Fase 2b de QA · opción A)
+
+- **Problema**: si dos personas editaban a la vez el mismo dato compartido (empleados de Limpieza, roster del Tablero Wow, etc.), la última en guardar reemplazaba lo de la otra sin avisar.
+- **Ahora**: cada guardado dice sobre qué versión del servidor se editó (`save_shared`, nuevo SQL). Si alguien más guardó antes, no se pisa nada y aparece una ventana: **Combinar** (junta ambos cambios; lo que alguno borró no reaparece) · **Conservar lo mío** · **Usar lo del servidor**. Si no se decide, la pregunta vuelve al reabrir el módulo.
+- Cubre Limpieza, Wow Tablero, Wow Calificación, Folders y Habladores (los 5 módulos con datos compartidos vía `offline-storage.js`). Líder de Seguridad, Agenda y Bitácora usan tablas propias y NO cambian.
+- `offline-storage.js`: la hora de versión viene del servidor (ya no del reloj del celular); la sincronización corre de a una (antes `online`, el reloj de 30 s y `get()` podían subir lo mismo a la vez); si la función SQL no existe todavía, guarda como antes.
+- **Antes de subir la app** correr `sql/2026-10-25-F2b-save-shared.sql` en Supabase (solo crea una función, no toca datos). Pendientes viejos de versiones anteriores sin versión conocida pueden mostrar la ventana una vez.
+- Pruebas: `tests/data/conflicto.test.js` (+ `tests/sql/save-shared.test.js`, la función SQL en un Postgres de prueba).
+
+## 2026-10-25 — Sesión, sin conexión y Bitácora (Fase 2 de QA)
+
+- **F-01 Cierre por inactividad**: el shell solo veía clics/teclas de SU documento, no los del módulo abierto (iframe), así que quien trabajaba 30 min dentro de un módulo era expulsado. Ahora `ui-helpers.js` avisa al shell cada 10 s de actividad (solo mensajes del mismo origen y del iframe del módulo abierto). Aviso 2 min antes del cierre con botón "Seguir conectado"; si el módulo avisa que hay cambios sin guardar (`AfricaActivity.setDirty(true)`), no se cierra la sesión sin avisar (ningún módulo lo usa todavía).
+- **F-02 Cola sin conexión** (`offline-storage.js`): al abrir un módulo con red, `get()` primero sube lo pendiente propio y devuelve ese valor (antes mostraba el valor viejo del servidor y, a los 30 s, la cola reenviaba el cambio viejo encima de uno nuevo). La cola se coalesce por dato (solo el último valor) y un guardado directo exitoso borra lo pendiente anterior. **Pendiente (decisión D-2):** control de concurrencia entre personas distintas.
+- **F-04 Inventario**: si pdf.js/ExcelJS no cargan del CDN, el módulo ya no queda en blanco; avisa con un mensaje claro al usar el PDF o generar el Excel. (Vendorizar las librerías queda para la Fase 5.)
+- **F-06 Bitácora**: "hoy" es siempre hora de Bogotá y la fecha de la nota la pone el servidor (la app ya no envía `fecha`). **Requiere correr antes `sql/2026-10-25-bitacora-fecha-bogota.sql` en Supabase** (sin aplicar ni probar contra la base real: el paso de las políticas de editar/eliminar necesita los nombres reales).
+- Pruebas: `tests/data/idle.test.js`, `session-and-queue.test.js`, `bitacora-fecha.test.js`.
+
+## 2026-10-25 — Seguridad: XSS y fuga de datos entre cuentas (Fase 1 de QA)
+
+- **S-01 Limpieza**: el botón "Quitar" de un empleado ponía su nombre dentro de un `onclick` inline mal escapado; un nombre con `\');...` ejecutaba código. Ahora usa un listener con el índice del empleado, sin nombres dentro de código.
+- **S-02 Limpieza**: los `id` de la tabla de horarios se armaban con el nombre del empleado (un nombre con comillas podía inyectar atributos al cargar el módulo). Ahora usan el índice del empleado. Los datos guardados no cambian.
+- **S-03 Wow Tablero**: `emp.photo` iba sin escapar en `src="..."`. Ahora solo se acepta un data-URL de imagen (png/jpeg/webp/gif en base64); cualquier otro valor se reemplaza por un píxel transparente. Las fotos legítimas (siempre `data:image/jpeg;base64,...`) no cambian.
+- **S-04 Shell**: `showToast()` insertaba el mensaje con `innerHTML` (incluido el error que devuelve el servidor al crear un usuario) y el avatar insertaba las iniciales sin escapar. Ahora ambos usan texto plano / escape.
+- **S-05 Sin conexión** (`assets/offline-storage.js`): la caché local y la cola de pendientes no tenían dueño, así que en un dispositivo compartido B veía los datos de A y, al volver la señal, lo pendiente de A se subía con la identidad de B. Ahora la caché y la cola son por persona (`uid`), solo se sube lo propio y el contador solo cuenta lo propio. La BD IndexedDB pasa a la versión 2: los pendientes viejos sin dueño NO se suben, se guardan en un respaldo (`OfflineStorage.exportLegacyBackup()`) y la caché vieja se descarta.
+- Pruebas automáticas en `tests/` (Playwright + Supabase simulado): `security/xss.test.js` y `security/offline-leak.test.js`.
+
 ## 2026-09-10 — Limpieza: rediseño del formato de impresión (letra muy pequeña)
 
 - La tabla de "Asignación de máquinas" se imprimía en 2 columnas fijas con

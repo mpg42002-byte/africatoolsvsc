@@ -847,6 +847,12 @@ document.getElementById('addEmpBtn').addEventListener('click', ()=>{
   renderRoster();
 });
 
+// emp.photo es dato compartido: solo se acepta un data-URL de imagen en base64; cualquier otra cosa se descarta.
+const BLANK_PX = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+function safePhoto(src){
+  return /^data:image\/(png|jpeg|jpg|webp|gif);base64,[A-Za-z0-9+\/=]+$/.test(src||'') ? src : BLANK_PX;
+}
+
 function renderRoster(){
   rosterList.innerHTML = '';
   if(employees.length === 0){
@@ -858,7 +864,7 @@ function renderRoster(){
     const chip = document.createElement('div');
     chip.className = 'emp-chip' + (selectedIds.has(emp.id) ? ' selected' : '');
     chip.innerHTML = `
-      <img src="${emp.photo}">
+      <img src="${safePhoto(emp.photo)}">
       <div class="emp-name">${escapeHtml(emp.name)}</div>
       <div class="check">✓</div>
       <button class="del" title="Eliminar">✕</button>`;
@@ -913,7 +919,7 @@ function buildWowCard(emp){
   const card = document.createElement('div');
   card.className = 'wow-card';
   card.innerHTML = `
-    <img class="photo" src="${emp.photo}">
+    <img class="photo" src="${safePhoto(emp.photo)}">
     <div class="namebox">
       <img class="sparkle tl" src="${SPARKLE}">
       <img class="sparkle tr" src="${SPARKLE}">

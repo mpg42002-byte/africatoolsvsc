@@ -82,6 +82,8 @@ Hasta el 6 de septiembre de 2026, Limpieza, Wow Tablero, Folders, Habladores Win
 | `habladores` | `africa_habladores` |
 | `wow-calificacion` | `africa_wow_scores` |
 
+**Control de versión (desde 2026-10-25):** los datos compartidos ya NO se guardan con un `upsert` directo. La app llama a la función SQL `public.save_shared(p_module, p_key, p_value, p_base_updated_at)` (archivo `sql/2026-10-25-F2b-save-shared.sql`): solo guarda si `p_base_updated_at` es igual al `updated_at` actual de la fila (la versión sobre la que la persona editó); si alguien más guardó antes, devuelve `{conflict:true, server_value, server_updated_at}` y no cambia nada. El `updated_at` lo pone el servidor (`clock_timestamp()`), no el reloj del celular. Corre con los permisos de quien llama (`security invoker`), así que las políticas RLS de la tabla siguen mandando. Si la función no existe, la app guarda como antes (sin control) para no romperse.
+
 Estos 5 módulos siguen usando `assets/offline-storage.js` para su cola de sincronización sin conexión — el cambio fue solo la tabla de destino (`get(...)`/`set(...)` con un cuarto parámetro `shared: true`), la mecánica de caché local y reintento no cambió.
 
 ## 6. Supabase — `lider_shared_data` y `lider_abordajes` (datos compartidos de Líder de Seguridad)
@@ -182,7 +184,7 @@ Canal de novedades compartido entre líderes de parque, día a día — no usa `
 ```sql
 create table bitacora_entries (
   id uuid primary key default gen_random_uuid(),
-  fecha date not null default current_date,
+  fecha date not null default public.bogota_today(), -- antes: current_date (UTC)
   autor_id uuid references auth.users(id),
   autor_nombre text not null default 'Usuario',
   texto text not null,
@@ -194,7 +196,8 @@ create table bitacora_entries (
 **Acceso restringido a solo `administrador` y `lider_parque`** — a diferencia del resto de tablas compartidas de este documento, aquí ni siquiera Supervisor tiene acceso (ni de lectura). En `assets/permissions.js`, el módulo `bitacora` está marcado `restricted: true`, así que `'ALL'` no lo incluye automáticamente — Administrador y Líder de Parque lo agregan explícitamente en su lista de módulos. Reglas, aplicadas tanto en la RLS como en la UI (la UI además bloquea toda la página con una pantalla de "sin acceso" si el rol no califica, no solo el botón de escribir):
 - **Leer**: solo `lider_parque` o `administrador`.
 - **Crear**: misma regla.
-- **Editar/eliminar**: misma regla, y solo si `fecha = current_date` — en cuanto pasa el día, la nota queda fija como registro histórico (nadie, ni siquiera quien la escribió, puede tocarla).
+- **Editar/eliminar**: misma regla, y solo si `fecha` es el día de HOY EN BOGOTÁ — en cuanto pasa el día, la nota queda fija como registro histórico (nadie, ni siquiera quien la escribió, puede tocarla).
+- **Fecha de la nota**: la decide el servidor en hora de Bogotá (`public.bogota_today()` como default + trigger `bitacora_set_fecha_trg` en el insert); la app ya no envía `fecha`. Antes se usaba `current_date` (UTC), que de 7 p. m. a 11:59 p. m. en Bogotá ya es el día siguiente. Migración en `sql/2026-10-25-bitacora-fecha-bogota.sql` (**aplicar el SQL antes de subir la app**): crea `bogota_date(ts)` y `bogota_today()`, y cambia solo la condición de fecha de las políticas `bitacora_update_same_day` y `bitacora_delete_same_day` (las de SELECT e INSERT no cambian).
 
 ## 9. Navegador — `localStorage`
 
@@ -209,8 +212,9 @@ Sobre todo preferencias de interfaz, más una excepción reciente:
 
 Usada por `assets/offline-storage.js`, la capa compartida que permite seguir trabajando sin señal en Limpieza, Wow Tablero, Folders, Habladores, Wow Calificación y Día a Día. **Ni Líder de Seguridad, ni Agenda de Fiestas, ni Bitácora la usan** — ninguno de los tres carga `offline-storage.js`, los tres hablan directo con sus tablas de Supabase; sin conexión, cada guardado o carga simplemente falla con un aviso en pantalla, sin cola de reintento.
 
-- **Store `cache`**: última copia conocida de cada dato (`{id: "modulo::clave", module, key, value, updatedAt}`) — lo que se muestra en pantalla cuando no hay conexión.
-- **Store `queue`**: cambios guardados localmente que todavía no se subieron a Supabase (`{id, module, key, value, updatedAt}`) — se reintenta solo al reconectar y cada 30 segundos.
+- **Store `cache`**: última copia conocida de cada dato, **por persona** (`{id: "uid::private|shared::modulo::clave", uid, shared, module, key, value, base, updatedAt}`; `base` = hora de versión del servidor sobre la que está basada la copia, solo en datos compartidos) — lo que se muestra en pantalla cuando no hay conexión. Cada cuenta tiene su propia copia: en un celular compartido, lo que guardó A nunca se lee como si fuera de B.
+- **Store `queue`**: cambios guardados localmente que todavía no se subieron a Supabase (`{id, uid, module, key, value, shared, updatedAt}` y, en datos compartidos, `base` + `baseValue` = versión y valor del servidor sobre los que se editó, y `conflict` = lo que había en el servidor cuando se detectó el choque) — se reintenta solo al reconectar y cada 30 segundos. Cada pendiente tiene **dueño** (`uid`): solo se sube cuando ESA persona tiene la sesión abierta, y el contador de pendientes solo cuenta los de la sesión actual.
+- **Store `legacy_backup`** (desde la versión 2 de la BD): al actualizar, los pendientes viejos que no tenían dueño no se pueden atribuir a nadie con seguridad, así que **no se suben**: se guardan aquí y se descargan con `OfflineStorage.exportLegacyBackup()` (consola del navegador). La caché vieja sin dueño se descarta (se vuelve a bajar del servidor).
 
 El indicador de conexión del shell muestra cuántos cambios quedan pendientes de subir cuando esta cola no está vacía.
 

@@ -151,3 +151,89 @@ async function gateModuleAccess(moduleKey) {
   document.body.style.visibility = 'visible';
   return { allowed, roles, userId, nombre, usuario, fromCache };
 }
+
+/* ============================================================
+   Actividad hacia el shell (cierre por inactividad)
+   ============================================================
+   Dentro del <iframe> los clics/teclas no llegan al documento del shell, así que sin esto el shell
+   creía que la persona estaba inactiva y la sacaba a los 30 min aunque estuviera trabajando.
+   Aviso con throttle de 10 s; solo hacia el mismo origen. Un módulo con un formulario a medias puede
+   llamar AfricaActivity.setDirty(true/false) para que el shell no cierre la sesión sin avisar. */
+(function () {
+  if (window.parent === window) return; // módulo abierto suelto, sin shell
+  let last = 0;
+  function ping() {
+    const now = Date.now();
+    if (now - last < 10000) return;
+    last = now;
+    try { window.parent.postMessage({ type: 'africa-tools-activity' }, location.origin); } catch (e) { /* sin shell */ }
+  }
+  ['click', 'keydown', 'touchstart', 'scroll', 'mousemove', 'input'].forEach((evt) =>
+    document.addEventListener(evt, ping, { passive: true, capture: true })
+  );
+  window.AfricaActivity = {
+    setDirty(flag) { try { window.parent.postMessage({ type: 'africa-tools-dirty', dirty: !!flag }, location.origin); } catch (e) { /* sin shell */ } }
+  };
+})();
+
+/* ============================================================
+   Choque de edición (dos personas cambiaron el mismo dato)
+   ============================================================
+   assets/offline-storage.js avisa con el evento 'offline-storage:conflict' cuando, al guardar un dato compartido
+   del equipo, el servidor ya tiene una versión más nueva hecha por alguien más. Aquí se le pregunta a la persona
+   qué hacer. Requiere que el módulo cargue offline-storage.js (si no, no hay nada que preguntar). */
+(function () {
+  const NOMBRES = { limpieza: 'Limpieza', 'wow-tablero': 'Wow Tablero', 'wow-calificacion': 'Wow Calificación', folders: 'Marcación de folders', habladores: 'Habladores Winner' };
+  const fila = [];
+  let abierto = false;
+
+  function siguiente() {
+    if (abierto || !fila.length) return;
+    abierto = true;
+    const d = fila.shift();
+    const back = document.createElement('div');
+    back.id = 'af-conflict-modal';
+    back.setAttribute('role', 'dialog');
+    back.setAttribute('aria-modal', 'true');
+    back.setAttribute('aria-labelledby', 'af-conflict-title');
+    back.style.cssText = 'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px;font-family:inherit';
+    const card = document.createElement('div');
+    card.style.cssText = 'background:#3b2a1a;color:#fff;border:2px solid #f5a623;border-radius:16px;padding:20px;max-width:440px;width:100%;max-height:90vh;overflow:auto;box-shadow:0 12px 32px rgba(0,0,0,.45)';
+    const h = document.createElement('h2');
+    h.id = 'af-conflict-title';
+    h.style.cssText = 'margin:0 0 8px;font-size:18px';
+    h.textContent = 'Alguien más cambió esto mientras editabas';
+    const p = document.createElement('p');
+    p.style.cssText = 'margin:0 0 16px;font-size:14px;line-height:1.45;opacity:.92';
+    p.textContent = `En ${NOMBRES[d.module] || d.module} otra persona guardó cambios antes que tú. Elige qué hacer con lo que escribiste:`;
+    card.append(h, p);
+    const OPC = [
+      ['merge', 'Combinar', 'Junta tus cambios con los de la otra persona. Lo que alguno borró no reaparece.'],
+      ['mine', 'Conservar lo mío', 'Reemplaza lo de la otra persona por lo que tú escribiste.'],
+      ['server', 'Usar lo del servidor', 'Descarta tus cambios y deja lo que guardó la otra persona.']
+    ];
+    OPC.forEach(([choice, label, help], i) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.dataset.choice = choice;
+      b.style.cssText = `display:block;width:100%;min-height:44px;margin:0 0 10px;padding:10px 14px;border-radius:12px;border:2px solid #f5a623;text-align:left;cursor:pointer;font:inherit;${i === 0 ? 'background:#f5a623;color:#2b1a0a' : 'background:transparent;color:#fff'}`;
+      const t = document.createElement('strong'); t.textContent = label;
+      const s = document.createElement('span'); s.style.cssText = 'display:block;font-size:12.5px;opacity:.85;margin-top:2px'; s.textContent = help;
+      b.append(t, s);
+      b.addEventListener('click', async () => {
+        card.querySelectorAll('button').forEach((x) => { x.disabled = true; });
+        let r = { ok: false };
+        try { r = await OfflineStorage.resolveConflict(d.module, d.key, choice); } catch (e) { /* se vuelve a preguntar en la próxima carga */ }
+        back.remove(); abierto = false;
+        // Con 'combinar' o 'servidor' lo que muestra la pantalla cambió: se recarga el módulo para verlo al día.
+        if (r.ok && choice !== 'mine') location.reload(); else siguiente();
+      });
+      card.appendChild(b);
+    });
+    back.appendChild(card);
+    document.body.appendChild(back);
+    card.querySelector('button').focus();
+  }
+
+  window.addEventListener('offline-storage:conflict', (e) => { fila.push(e.detail); siguiente(); });
+})();

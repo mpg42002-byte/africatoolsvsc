@@ -254,7 +254,10 @@ let currentUserRoles = [];
 let canWrite = false;
 
 /* ---------- Fechas ---------- */
-function todayStr(){ const d=new Date(); return dateToStr(d); }
+// "Hoy" SIEMPRE en hora de Bogotá (la del parque), no la del celular ni la del servidor (UTC).
+// De 7:00 p. m. a 11:59 p. m. en Bogotá el día UTC ya cambió: por eso la fecha de una nota la decide la base de datos
+// (ver sql/2026-10-25-bitacora-fecha-bogota.sql) y el cliente solo la usa para saber qué día mostrar.
+function todayStr(){ return new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota' }).format(new Date()); }
 function dateToStr(d){ const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0'); return `${y}-${m}-${day}`; }
 function strToDate(s){ const [y,m,d]=s.split('-').map(Number); return new Date(y, m-1, d); }
 function addDaysStr(dateStr, n){ const d=strToDate(dateStr); d.setDate(d.getDate()+n); return dateToStr(d); }
@@ -410,8 +413,7 @@ document.getElementById('composeSave').addEventListener('click', async () => {
   const btn = document.getElementById('composeSave');
   btn.disabled = true;
   const { error } = await supabaseClient.from('bitacora_entries').insert({
-    fecha: todayStr(),
-    autor_id: currentUserId,
+    autor_id: currentUserId, // la fecha NO se envía: la pone el servidor (hora de Bogotá)
     autor_nombre: currentUserNombre || 'Usuario',
     texto
   });

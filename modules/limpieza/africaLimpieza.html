@@ -606,12 +606,12 @@ async function buildTable(){
   DAYS.forEach(()=>h+='<th style="font-size:12px;color:var(--text-muted);padding:8px 0;font-family:var(--font-heading)">Entrada</th><th style="font-size:12px;color:var(--text-muted);padding:8px 0;font-family:var(--font-heading)">Salida</th>');
   h+='</tr></thead><tbody>';
   let cards='';
-  employees.forEach(w=>{
+  employees.forEach((w,wi)=>{
     h+=`<tr><td class="worker-cell">${escapeHtml(w)}</td>`;
     cards+=`<div class="emp-card"><div class="emp-card-hdr">${escapeHtml(w)}</div><div class="emp-card-days">`;
     DAYS.forEach((day,i)=>{
       const ev=sched[w]&&sched[w][i]?sched[w][i]:{e:'',s:''};
-      const key=w.replace(/\s/g,'_');
+      const key=wi; // índice, no el nombre: el nombre es dato compartido y no debe ir en atributos id
       h+=`<td class="time-cell"><input type="text" id="e_${i}_${key}" aria-label="${escapeAttr(w)} - ${day} - Entrada" placeholder="D" value="${escapeAttr(ev.e)}"></td>`;
       h+=`<td class="time-cell"><input type="text" id="s_${i}_${key}" aria-label="${escapeAttr(w)} - ${day} - Salida" placeholder="D" value="${escapeAttr(ev.s)}"></td>`;
       cards+=`<div class="emp-day"><span class="emp-day-name">${day}</span><div class="emp-day-inputs"><div class="emp-day-input-wrap"><input type="text" id="ce_${i}_${key}" data-mirror="e_${i}_${key}" aria-label="${escapeAttr(w)} - ${day} - Entrada" placeholder="—" value="${escapeAttr(ev.e)}"><span class="ilbl">Entra</span></div><div class="emp-day-input-wrap"><input type="text" id="cs_${i}_${key}" data-mirror="s_${i}_${key}" aria-label="${escapeAttr(w)} - ${day} - Salida" placeholder="—" value="${escapeAttr(ev.s)}"><span class="ilbl">Sale</span></div></div></div>`;
@@ -635,10 +635,10 @@ async function buildTable(){
 
 async function saveSched(){
   const d={};
-  employees.forEach(w=>{
+  employees.forEach((w,wi)=>{
     d[w]={};
     DAYS.forEach((_,i)=>{
-      const key=w.replace(/\s/g,'_');
+      const key=wi;
       d[w][i]={
         e:document.getElementById(`e_${i}_${key}`)?.value||'',
         s:document.getElementById(`s_${i}_${key}`)?.value||''
@@ -1081,11 +1081,13 @@ async function generatePdfFromHtml(html, filenameBase){
 function renderEmp(){
   const el=document.getElementById('emp-list');
   if(!employees.length){el.innerHTML='<div style="border:2px dashed var(--card-border);border-radius:var(--radius);padding:24px 16px;text-align:center"><div style="font-size:32px;margin-bottom:8px">🧹</div><div style="color:var(--text-muted);font-family:var(--font-heading);font-weight:700">No hay empleados</div></div>';return;}
-  el.innerHTML=employees.map(w=>`
+  el.innerHTML=employees.map((w,i)=>`
     <div class="list-item">
       <span style="color:var(--text-card)">${escapeHtml(w)}</span>
-      <button class="btn btn-sm btn-danger" onclick="removeEmp('${escapeAttr(w).replace(/'/g,"\\'")}')">🗑 Quitar</button>
+      <button class="btn btn-sm btn-danger" data-emp-idx="${i}">🗑 Quitar</button>
     </div>`).join('');
+  // Sin onclick inline: el nombre es dato compartido y nunca debe viajar dentro de código.
+  el.querySelectorAll('button[data-emp-idx]').forEach(b=>b.addEventListener('click',()=>removeEmp(employees[+b.dataset.empIdx])));
 }
 
 function addEmp(){

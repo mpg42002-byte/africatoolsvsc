@@ -210,7 +210,7 @@ function renderUserChip() {
   const initials = (currentUser.nombre || currentUser.usuario).slice(0, 2).toUpperCase();
   const roleLabels = currentUser.roles.map(r => (ROLES[r] && ROLES[r].label) || r).join(', ');
   document.getElementById('user-chip').innerHTML = `
-    <div class="avatar">${initials}</div>
+    <div class="avatar">${escapeHtmlLocal(initials)}</div>
     <div class="who">
       <div class="name">${escapeHtmlLocal(currentUser.nombre || currentUser.usuario)}</div>
       <div class="roles">${escapeHtmlLocal(roleLabels)}</div>
@@ -269,7 +269,10 @@ function showToast(message, type = 'error') {
   const toast = document.createElement('div');
   toast.className = 'toast ' + (type === 'error' ? 'toast-error' : '');
   const icon = type === 'error' ? '⚠️' : '✅';
-  toast.innerHTML = `<span>${icon}</span><span>${message}</span>`;
+  // textContent: el mensaje puede incluir texto del servidor (p. ej. result.error) y nunca debe interpretarse como HTML.
+  const iconEl = document.createElement('span'); iconEl.textContent = icon;
+  const msgEl = document.createElement('span'); msgEl.textContent = String(message);
+  toast.append(iconEl, msgEl);
   container.appendChild(toast);
   
   // Trigger animation

@@ -643,7 +643,11 @@ const ICON_CHEVRON_LEFT = '<svg aria-hidden="true" width="16" height="16" viewBo
 const ICON_CHEVRON_RIGHT = '<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>';
 const ICON_X = '<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>';
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+// Si el CDN no carga, el módulo igual debe abrir (antes este error dejaba la pantalla en blanco para siempre).
+// El mensaje claro aparece recién al usar el lector de PDF o al generar el Excel.
+if (window.pdfjsLib) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+}
 
 let rawTable = []; // array of arrays of strings, [0] = header row
 
@@ -705,6 +709,7 @@ function nearestCol(x, anchors){
 }
 
 async function parsePdf(arrayBuffer){
+  if (!window.pdfjsLib) throw new Error('No se pudo cargar el lector de PDF. Revisa tu conexión a internet y recarga la página.');
   const pdf = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
   let headerAnchors = null;
   let headerTextsJoined = '';
@@ -1074,6 +1079,7 @@ document.getElementById('exportBtn').onclick = async () => {
     const n = header.length;
     const rowCount = Math.max(left.length, right.length);
 
+    if (!window.ExcelJS) throw new Error('No se pudo cargar el generador de Excel. Revisa tu conexión a internet y recarga la página.');
     const wb = new ExcelJS.Workbook();
     const ws = wb.addWorksheet('Inventario', {
       views: [{state:'frozen', ySplit:1}],
