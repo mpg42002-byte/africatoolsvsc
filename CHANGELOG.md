@@ -6,6 +6,11 @@ CSS, propuesta de mejoras, checklists de deploy previos), consolidados aquí.
 Para el estado actual del modelo de datos, ver `ESTRUCTURA-DATOS.md` — ese
 es el documento de referencia vigente, no este changelog.
 
+## 2026-10-26 — Seguridad: contraseña de administración expuesta (Fase 2 de QA, hallazgo urgente)
+
+- `INSTRUCCIONES-SERVIDOR.md` traía la contraseña por defecto del administrador en texto plano y Netlify publicaba ese archivo (y el resto de la documentación, `sql/`, `tests/` y `netlify/`) porque no hay carpeta de publicación definida. Se quitó la contraseña del documento y `netlify.toml` ahora responde 404 a esos archivos internos. **La contraseña ya expuesta debe cambiarse en Supabase**: seguirá en el historial de git aunque se borre del archivo.
+- Pendiente (F5/F6): definir una carpeta de publicación (`publish`) para que Netlify solo sirva la app, y exigir contraseñas más largas (hoy el mínimo es 6 caracteres).
+
 ## 2026-10-25 — Choques de edición en datos compartidos (Fase 2b de QA · opción A)
 
 - **Problema**: si dos personas editaban a la vez el mismo dato compartido (empleados de Limpieza, roster del Tablero Wow, etc.), la última en guardar reemplazaba lo de la otra sin avisar.

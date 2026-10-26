@@ -48,10 +48,11 @@ Luego abre: **http://localhost:3000**
 
 ---
 
-## 🔐 Credenciales por defecto
+## 🔐 Credenciales
 
-- **Usuario:** admin
-- **Contraseña:** africa2026
+Las contraseñas **nunca** se guardan en este repositorio. La cuenta de administración se crea con una contraseña propia
+en Supabase (Authentication → Users) y se cambia desde el panel de Administración. Si no la recuerdas, otro administrador
+puede restablecerla desde Administración → usuarios → Restablecer contraseña.
 
 ---
 
