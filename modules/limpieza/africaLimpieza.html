@@ -12,7 +12,7 @@
 <script src="../../assets/ui-helpers.js"></script>
 <script src="../../assets/permissions.js"></script>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Limpieza · Africa Parque de Diversiones</title>
 <link rel="icon" type="image/svg+xml" href="../../assets/icons/icon.svg">
 <link rel="stylesheet" href="../../assets/design-tokens.css">
@@ -126,6 +126,9 @@ select option{background:var(--card-bg);color:var(--text-card)}
 table.sched{width:100%;border-collapse:collapse;font-size:13px;min-width:700px}
 table.sched th{background:var(--card-bg);color:var(--text-muted);font-family:var(--font-body);font-weight:700;padding:12px 10px;text-align:center;border-bottom:3px solid var(--card-border);border-right:2px solid var(--card-border);white-space:nowrap}
 table.sched td{border-bottom:2px solid var(--card-border);border-right:2px solid var(--card-border);padding:0}
+/* Primera columna (empleado) fija al desplazar la tabla: así siempre se sabe de quién es cada fila */
+.worker-cell{position:sticky;left:0;z-index:2;box-shadow:2px 0 4px rgba(0,0,0,0.08)}
+table.sched th:first-child{position:sticky;left:0;z-index:3;background:var(--card-bg)}
 table.sched tr:last-child td{border-bottom:none}
 .worker-cell{padding:10px;font-weight:700;font-size:14px;background:var(--card-bg);color:var(--text-card);white-space:nowrap;min-width:150px;font-family:var(--font-body);text-align:center}
 .time-cell input{background:transparent;border:none;color:var(--text-card);font-family:var(--font-body);font-size:13px;width:90px;padding:10px 8px;text-align:center;outline:none;font-weight:700}
@@ -206,10 +209,7 @@ table.sched tr:last-child td{border-bottom:none}
   .card{padding:20px}
   .sched-wrap{box-shadow:inset -10px 0 10px -10px rgba(0,0,0,0.2),inset 10px 0 10px -10px rgba(0,0,0,0.2)}
   .sched-wrap::after{display:none}
-  /* Sticky first column (empleado) en la tabla */
   table.sched{font-size:12.5px;min-width:680px}
-  .worker-cell{position:sticky;left:0;z-index:2;box-shadow:2px 0 4px rgba(0,0,0,0.08)}
-  table.sched th:first-child{position:sticky;left:0;z-index:3;background:var(--card-bg)}
 }
 
 /* Mobile grande */
@@ -249,7 +249,7 @@ table.sched tr:last-child td{border-bottom:none}
   .legend{gap:12px}
   .legend-item{font-size:12.5px}
   /* Tabs scrollable indicator */
-  .nav-tabs{position:relative;mask-image:linear-gradient(to right,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%);-webkit-mask-image:linear-gradient(to right,transparent 0,#000 16px,#000 calc(100% - 16px),transparent 100%)}
+  .nav-tabs{position:relative;mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent 100%);-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 28px),transparent 100%);padding-right:28px}
 }
 
 /* Mobile pequeño */
@@ -591,6 +591,7 @@ function showPage(p){
   document.getElementById('page-'+p).classList.add('active');
   const idx={'horario':0,'resultado':1,'empleados':2,'maquinas':3,'tareas':4}[p];
   document.querySelectorAll('.nav-tab')[idx].classList.add('active');
+  document.querySelectorAll('.nav-tab')[idx].scrollIntoView({inline:'center',block:'nearest',behavior:'smooth'}); // en pantallas angostas la pestaña activa no puede quedar fuera de vista
   if(p==='horario') renderTaskSelector();
   if(p==='empleados') renderEmp();
   if(p==='maquinas') renderMaq();

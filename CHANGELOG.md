@@ -6,6 +6,15 @@ CSS, propuesta de mejoras, checklists de deploy previos), consolidados aquí.
 Para el estado actual del modelo de datos, ver `ESTRUCTURA-DATOS.md` — ese
 es el documento de referencia vigente, no este changelog.
 
+## 2026-10-27 — Responsive, parte 1: zoom, desbordes y barras de pestañas (Fase 3a de QA)
+
+- **Zoom permitido** (WCAG 1.4.4): se quitó `maximum-scale=1.0, user-scalable=no` de `index.html` y de los 10 módulos, y el bloqueo de pellizco (`gesturestart`/`touchmove` con `preventDefault`) del shell. Se conservan `touch-action: manipulation` (sin zoom por doble toque) y `font-size: 16px` en los campos (iOS no amplía al enfocar).
+- **Menú lateral**: cerrado ya no deja una franja de sombra en el borde izquierdo del celular (la sombra solo existe mientras está abierto).
+- **Administración a 320 px**: el botón "+ Nuevo usuario" ya no se corta; baja debajo del título cuando no cabe.
+- **Líder de Seguridad**: las rejillas ya no exigen 320 px mínimos (`minmax(min(320px, 100%), 1fr)`); el `<main>` puede encogerse (`min-width: 0`) y la tabla del registro semanal se desplaza dentro de su contenedor hasta 1020 px (antes, en tablet a 768 px la pestaña Semáforo EPP ensanchaba toda la pantalla).
+- **Limpieza**: la primera columna (empleado) del horario queda fija al desplazar en todos los anchos; la pestaña activa se centra al cambiar (antes "Máquinas"/"Tareas" podían quedar fuera de vista) y el desvanecido de la barra es solo a la derecha.
+- Pruebas: `tests/responsive/overflow-zoom.test.js` (16) y `tests/responsive/no-overflow-matrix.test.js` (90: cada módulo y pestaña en 320/360/390/768/1024 px, sueltos y dentro del shell). **Pendiente** (F3b/F3c): objetivos táctiles de 44 px, textos de 12 px, horizontal en teléfono e impresión.
+
 ## 2026-10-26 — Seguridad: contraseña de administración expuesta (Fase 2 de QA, hallazgo urgente)
 
 - `INSTRUCCIONES-SERVIDOR.md` traía la contraseña por defecto del administrador en texto plano y Netlify publicaba ese archivo (y el resto de la documentación, `sql/`, `tests/` y `netlify/`) porque no hay carpeta de publicación definida. Se quitó la contraseña del documento y `netlify.toml` ahora responde 404 a esos archivos internos. **La contraseña ya expuesta debe cambiarse en Supabase**: seguirá en el historial de git aunque se borre del archivo.

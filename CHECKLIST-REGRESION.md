@@ -82,6 +82,11 @@ Todo esto se validó con análisis estático (sintaxis, HTML, diffs) pero no con
 - [ ] **Inventario sin internet (F-04)**: con los datos apagados al abrir el módulo, confirmar que la pantalla NO queda en blanco y que al subir un PDF aparece "No se pudo cargar el lector de PDF"
 - [ ] **Dos personas, mismo dato (F-02c)**: con dos celulares (A y B) abrir Limpieza → Empleados. B quita a un empleado y espera 5 s. A (que no recargó) agrega a otra persona. A debe ver la ventana "Alguien más cambió esto"; probar las 3 opciones en tres rondas: Combinar (queda B sin el empleado quitado + la persona nueva de A), Conservar lo mío y Usar lo del servidor
 - [ ] **Sin choque normal**: una sola persona editando y guardando varias veces seguidas NO debe ver la ventana nunca
+- [ ] **Zoom con dos dedos (F3a)**: en un iPhone y en un Android reales, pellizcar para ampliar en la pantalla de inicio y dentro de un módulo; debe ampliar, y al soltar no debe quedar nada roto. Doble toque rápido sobre un botón NO debe ampliar
+- [ ] **Menú lateral en el celular**: con el menú cerrado no se ve ninguna franja oscura en el borde izquierdo de la pantalla
+- [ ] **Administración en pantalla angosta**: "+ Nuevo usuario" se ve completo (puede quedar debajo del título)
+- [ ] **Limpieza en el celular**: al tocar "Tareas" o "Máquinas" la pestaña activa queda visible; en Horario, al desplazar la tabla a los lados la columna con el nombre del empleado se queda fija
+- [ ] **Líder de Seguridad en tablet vertical**: la pestaña Semáforo EPP y el registro semanal no hacen que la pantalla entera se desplace de lado (solo la tabla)
 - [ ] **Indicador de sin conexión**: apagar el wifi/datos con la app abierta y confirmar que aparece la franja "📶 Sin conexión..." arriba, y que desaparece al reconectar
 - [ ] **Sin conexión entre cuentas (S-05)**: con la cuenta A, apagar la señal, guardar una tarea en Día a Día y cerrar sesión; con la cuenta B (señal apagada) confirmar que NO aparece la tarea de A; prender la señal y confirmar que lo de A no aparece en B. Volver a entrar con A y confirmar que su tarea se sube sola
 - [ ] **Quitar empleado (Limpieza)**: agregar un empleado con comilla simple (por ejemplo `O'Brien`), quitarlo y confirmar que se elimina solo ese; el horario de los demás no se mueve

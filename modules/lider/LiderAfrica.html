@@ -11,7 +11,7 @@
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Panel del Líder de Seguridad · Africa Parque de Diversiones</title>
 <meta name="description" content="Panel de gestión para líderes de seguridad de Africa Parque de Diversiones: semáforo de EPP, misiones, checklist mensual y recursos SST.">
 <link rel="icon" type="image/svg+xml" href="../../assets/icons/icon.svg">
@@ -126,7 +126,7 @@
     max-width:1400px;
     width:100%;
     margin:0 auto;
-  }
+  ; min-width:0;}
   .view{display:none;}
   .view.active{display:block; animation:fade .25s ease;}
   @keyframes fade{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
@@ -537,21 +537,21 @@
   /* Grids to fill width and avoid empty gaps */
   .cards-grid{
     display:grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
     gap:24px;
     align-items:start;
   }
   .cards-grid .card{margin-bottom:0;}
   .missions-grid{
     display:grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
     gap:14px;
     align-items:start;
   }
   .missions-grid .mission{margin-bottom:0;}
   .games-grid{
     display:grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
     gap:24px;
     align-items:start;
   }
@@ -789,6 +789,8 @@
 
   @media (max-width: 1020px){
     main{padding:28px 26px 50px;}
+    /* la tabla de registro mide 640 px: con la barra lateral al lado no cabe, así que se desplaza dentro de su contenedor */
+    table.log{display:block; overflow-x:auto; max-width:100%; min-width:0 !important;} /* el min-width:640px en línea de la tabla empujaba al <main> fuera de pantalla */
   }
   @media (max-width: 760px){
     .app{flex-direction:column;}

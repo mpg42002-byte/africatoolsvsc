@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Africa Tools · Africa Parque de Diversiones</title>
 <meta name="description" content="Herramientas internas de Africa Parque de Diversiones para gestión de equipos, inventario y operación del parque." />
 <meta name="robots" content="noindex, nofollow" />
@@ -47,15 +47,6 @@
   }
   * { touch-action: manipulation !important; }
 </style>
-<script>
-  // touch-action:manipulation ya bloquea el doble-tap-zoom, pero Safari en iOS
-  // ignora "user-scalable=no" desde iOS 10 (decisión de Apple por accesibilidad),
-  // así que el pellizco con dos dedos se sigue colando. Esto lo bloquea de verdad,
-  // en iOS (gesturestart/gesturechange) y en el resto de navegadores (touchmove).
-  document.addEventListener('gesturestart', e => e.preventDefault());
-  document.addEventListener('gesturechange', e => e.preventDefault());
-  document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault(); }, { passive: false });
-</script>
 </head>
 <body>
 
@@ -129,7 +120,7 @@
       </div>
 
       <div id="admin-view" class="admin-wrap hidden">
-        <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
           <h2 style="margin:0;">Administración de usuarios</h2>
           <button id="new-user-btn" class="btn-primary" style="width:auto; padding:10px 16px;">+ Nuevo usuario</button>
         </div>
