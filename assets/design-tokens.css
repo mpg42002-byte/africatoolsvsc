@@ -1,6 +1,9 @@
 /* AFRICA TOOLS · DESIGN TOKENS */
 
 :root {
+  /* Tamaño táctil mínimo de un control (WCAG 2.5.5). Un solo valor para toda la suite: si algún día se quiere
+     que el escritorio sea más compacto, basta con redefinirlo (p. ej. en @media (pointer: fine)). */
+  --tap-min: 44px;
   --af-orange: #E85D25;
   --af-amber: #F5A623;
   --af-red: #D9481F;
@@ -85,3 +88,20 @@ select:focus-visible, textarea:focus-visible, label:focus-within {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* ---- Objetivos táctiles (F3b) ---------------------------------------------------------------------------------
+   Todo control visible mide al menos --tap-min de alto, y los que son solo un icono también de ancho. El tamaño del
+   icono o del texto NO cambia: solo crece la zona que se puede tocar. Las reglas propias de cada módulo pueden
+   hacer un control MÁS grande, nunca más pequeño. */
+button, [role="button"], [role="tab"], select, summary,
+input[type="button"], input[type="submit"], input[type="reset"],
+input[type="text"], input[type="number"], input[type="date"], input[type="time"], input[type="month"], input[type="week"], input[type="datetime-local"], input[type="search"],
+input[type="password"], input[type="email"], input[type="tel"], input[type="url"], input:not([type]) {
+  min-height: var(--tap-min);
+}
+/* Ancho mínimo también: un botón con una sola letra o un icono (✏️ 🗑 ◀ ▶ ✕ D …) no puede ser más angosto que un dedo */
+button, [role="button"], [role="tab"], summary { min-width: var(--tap-min); }
+/* Deslizadores (zoom de las vistas previas): el control mide 44 px de alto aunque el riel se vea fino */
+input[type="range"] { min-height: var(--tap-min); }
+/* Casillas y radios: la zona tocable es la etiqueta completa */
+label:has(> input[type="checkbox"]), label:has(> input[type="radio"]) { min-height: var(--tap-min); display: inline-flex; align-items: center; gap: 8px; }

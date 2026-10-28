@@ -6,6 +6,22 @@ CSS, propuesta de mejoras, checklists de deploy previos), consolidados aquí.
 Para el estado actual del modelo de datos, ver `ESTRUCTURA-DATOS.md` — ese
 es el documento de referencia vigente, no este changelog.
 
+## 2026-10-27 — Responsive, parte 3: textos de 12 px, celular horizontal e impresión intacta (Fase 3c de QA)
+
+- **Ningún texto visible de la interfaz mide menos de 12 px** (antes había entre 9 y 11,5 px en etiquetas, chips, insignias, encabezados de tablas y tarjetas del libro de Agenda). Se subieron 72 declaraciones de CSS y 4 etiquetas escritas en línea en Líder; en pantallas muy angostas esto puede hacer que una etiqueta salte de línea, no que se corte.
+- **Los formatos de impresión y PDF NO cambian**: no se tocó ningún bloque `@media print` ni ningún tamaño de letra dentro de las plantillas de los PDF (tarjetas de Limpieza, hojas de Habladores/Folders/Wow). Lo vigila `tests/responsive/print-intacto.test.js`, que compara con el original.
+- **Celular en horizontal (844×390 y 667×375)**: se comprobó que los 10 módulos dentro del shell no desbordan y dejan al menos el 55 % de la altura para el contenido; no hizo falta cambiar nada.
+- Pruebas: `targets-text.test.js` (textos), `print-intacto.test.js` (11), `horizontal.test.js` (22).
+
+## 2026-10-27 — Responsive, parte 2: botones y campos de 44 px (Fase 3b de QA)
+
+- **Un solo valor para toda la suite**: `--tap-min: 44px` en `assets/design-tokens.css`. Todo control visible (botones, pestañas, selectores, campos de texto/fecha/mes/hora, deslizadores, `summary`) mide al menos 44 px de alto, y los botones también de ancho, así un ✏️ o una letra suelta ya no es más angosto que un dedo. El tamaño del texto o del icono NO cambia: solo crece la zona que se puede tocar.
+- Aplica en **todos los tamaños de pantalla** (decisión del equipo: que escritorio, tablet y celular se vean iguales). Si más adelante se quiere un escritorio más compacto, basta con redefinir `--tap-min` dentro de `@media (pointer: fine)`.
+- Casillas y radios: cuenta la etiqueta completa (44 px). En la tabla de máquinas de Limpieza la casilla "Doble" ahora va dentro de una etiqueta con nombre accesible.
+- Botones con `all:unset` (Líder, Bitácora) perdían la regla global (queda `display:inline`, donde `min-height` no aplica): se corrigieron uno por uno. `shell.css` tenía `min-height: 38px` en `.btn-secondary/.btn-danger`: ahora usa el token.
+- Efecto en pantalla: las filas del horario de Limpieza y las tablas de Administración son más altas; la barra de periodo de Día a Día se ajusta para no desbordar a 320 px.
+- Pruebas: `tests/responsive/targets-text.test.js` (por módulo, todas las pestañas, 390 px; shell en 390 y 1024 px; menú abierto). **Pendiente** (F3c): textos de 12 px, horizontal en teléfono, impresión.
+
 ## 2026-10-27 — Responsive, parte 1: zoom, desbordes y barras de pestañas (Fase 3a de QA)
 
 - **Zoom permitido** (WCAG 1.4.4): se quitó `maximum-scale=1.0, user-scalable=no` de `index.html` y de los 10 módulos, y el bloqueo de pellizco (`gesturestart`/`touchmove` con `preventDefault`) del shell. Se conservan `touch-action: manipulation` (sin zoom por doble toque) y `font-size: 16px` en los campos (iOS no amplía al enfocar).

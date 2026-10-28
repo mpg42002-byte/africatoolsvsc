@@ -54,7 +54,7 @@ button{font-family:inherit;}
 .brand{display:flex; align-items:center; gap:12px; flex:1; min-width:220px;}
 .brand img{width:42px;height:42px;border-radius:13px;background:#fff;padding:3px;border:3px solid var(--af-cream);}
 .brand-text h1{font-family: var(--font-heading); font-size:16px; line-height:1.25; margin:0; font-weight:600; text-transform:uppercase;}
-.brand-text span{display:block; font-size:11px; font-weight:700; color:var(--af-amber); text-transform:uppercase; letter-spacing:.08em; margin-top:2px;}
+.brand-text span{display:block; font-size:12px; font-weight:700; color:var(--af-amber); text-transform:uppercase; letter-spacing:.08em; margin-top:2px;}
 .theme-toggle{
   flex-shrink:0; width:38px;height:38px; border-radius:12px;
   border:2px solid rgba(245,224,200,.35); background:rgba(255,255,255,.08);
@@ -82,7 +82,7 @@ button{font-family:inherit;}
 .summary-pill b{display:block; font-family:var(--font-heading); font-size:22px; color:var(--primary);}
 .summary-pill.vencidas b{color:var(--danger);}
 .summary-pill.completadas b{color:var(--success);}
-.summary-pill span{font-size:11px; color:var(--text-muted); text-transform:uppercase; font-weight:700; letter-spacing:.03em;}
+.summary-pill span{font-size:12px; color:var(--text-muted); text-transform:uppercase; font-weight:700; letter-spacing:.03em;}
 
 .tabs{display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap;}
 .tab-btn{
@@ -91,7 +91,7 @@ button{font-family:inherit;}
   font-family:var(--font-heading); text-transform:uppercase; letter-spacing:.02em; transition:.15s;
 }
 .tab-btn.active{background:var(--primary); color:var(--primary-text); border-color:var(--primary-shadow);}
-.tab-btn .count{ background:rgba(0,0,0,.15); border-radius:10px; padding:1px 7px; margin-left:6px; font-size:11px; }
+.tab-btn .count{ background:rgba(0,0,0,.15); border-radius:10px; padding:1px 7px; margin-left:6px; font-size:12px; }
 .tab-btn.active .count{background:rgba(255,255,255,.25);}
 
 .task-list{display:flex; flex-direction:column; gap:10px;}
@@ -114,7 +114,7 @@ button{font-family:inherit;}
 .task-name{font-family:var(--font-heading); font-weight:600; font-size:15px; color:var(--text-card);}
 .task-card.completada .task-name{text-decoration:line-through;}
 .badge{
-  font-size:10px; font-weight:800; text-transform:uppercase; letter-spacing:.03em;
+  font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.03em;
   padding:2px 9px; border-radius:12px; color:#fff; white-space:nowrap;
 }
 .badge.prioridad-alta{background:var(--af-red);}
@@ -145,11 +145,11 @@ button{font-family:inherit;}
 .empty-msg p{margin:0; font-size:13px;}
 
 /* ---------- Navegador de periodo (semana/mes) ---------- */
-.period-nav{ display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:16px; }
-.period-nav #periodLabel{ font-family:var(--font-heading); font-weight:600; font-size:14px; text-transform:capitalize; min-width:170px; text-align:center; }
+.period-nav{ display:flex; align-items:center; justify-content:center; flex-wrap:wrap; gap:8px; margin-bottom:16px; }
+.period-nav #periodLabel{ font-family:var(--font-heading); font-weight:600; font-size:14px; text-transform:capitalize; flex:1 1 110px; min-width:110px; text-align:center; } /* antes min-width:170px: con botones de 44 px ya no cabía a 320 px */
 .btn-period-today{
   font-family:var(--font-heading); cursor:pointer; border:2px solid var(--card-border); background:var(--card-bg);
-  color:var(--text-card); border-radius:16px; padding:6px 14px; font-size:11px; font-weight:700; text-transform:uppercase;
+  color:var(--text-card); border-radius:16px; padding:6px 14px; font-size:12px; font-weight:700; text-transform:uppercase;
 }
 .btn-period-today:hover{border-color:var(--primary); color:var(--primary);}
 
@@ -157,7 +157,7 @@ button{font-family:inherit;}
 .week-day{ margin-bottom:14px; }
 .week-day-head{ display:flex; align-items:baseline; gap:8px; margin-bottom:6px; padding-left:2px; }
 .week-day-head b{ font-family:var(--font-heading); font-size:13px; text-transform:uppercase; color:var(--text-card); }
-.week-day-head span{ font-size:11px; color:var(--text-muted); }
+.week-day-head span{ font-size:12px; color:var(--text-muted); }
 .week-day-head.is-today b{ color:var(--primary); }
 .week-chip-list{ display:flex; flex-direction:column; gap:6px; }
 .week-chip{
@@ -171,7 +171,7 @@ button{font-family:inherit;}
 
 /* ---------- Vista mensual (calendario) ---------- */
 .month-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:5px; }
-.month-dow{ text-align:center; font-size:10.5px; font-weight:800; color:var(--text-muted); text-transform:uppercase; padding-bottom:4px; }
+.month-dow{ text-align:center; font-size:12px; font-weight:800; color:var(--text-muted); text-transform:uppercase; padding-bottom:4px; }
 .month-cell{
   background:var(--card-bg); border:2px solid var(--card-border); border-radius:12px;
   padding:6px 5px; min-height:56px; cursor:pointer; transition:.12s; display:flex; flex-direction:column; gap:3px;
@@ -193,7 +193,7 @@ button{font-family:inherit;}
 .cumplimiento{ margin-top:6px; display:flex; align-items:center; gap:8px; }
 .cumplimiento-bar{ flex:1; height:7px; background:var(--card-bg-hover); border-radius:6px; overflow:hidden; max-width:140px; }
 .cumplimiento-bar-fill{ height:100%; background:var(--success); }
-.cumplimiento-label{ font-size:11px; color:var(--text-muted); font-weight:700; white-space:nowrap; }
+.cumplimiento-label{ font-size:12px; color:var(--text-muted); font-weight:700; white-space:nowrap; }
 
 @media (max-width:600px){
   .task-card{flex-wrap:wrap;}

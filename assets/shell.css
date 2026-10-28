@@ -258,7 +258,7 @@ button { font-family: inherit; cursor: pointer; }
 .sidebar-brand span { font-size: 17px; font-weight: 700; }
 
 .nav-section-label {
-  font-size: 11px; text-transform: uppercase; letter-spacing: .06em;
+  font-size: 12px; text-transform: uppercase; letter-spacing: .06em;
   color: #C7A98A; padding: 14px 10px 6px;
 }
 
@@ -282,7 +282,7 @@ button { font-family: inherit; cursor: pointer; }
 }
 .user-chip .who { line-height: 1.2; overflow: hidden; }
 .user-chip .who .name { font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.user-chip .who .roles { font-size: 11px; color: #C7A98A; }
+.user-chip .who .roles { font-size: 12px; color: #C7A98A; }
 
 #main {
   width: 100%; min-height: 100vh; display: flex; flex-direction: column;
@@ -341,7 +341,7 @@ button { font-family: inherit; cursor: pointer; }
 .admin-table { width: 100%; border-collapse: collapse; background: var(--card-bg); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--shadow); }
 .admin-table th, .admin-table td { padding: 10px 12px; text-align: left; font-size: 14px; border-bottom: 1px solid var(--card-border); color: var(--text-card); }
 .admin-table th { background: rgba(0,0,0,.04); font-family: var(--font-heading); }
-.badge-role { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--secondary); color: var(--secondary-text); font-size: 11px; font-weight: 700; margin-right: 4px; }
+.badge-role { display: inline-block; padding: 2px 8px; border-radius: 999px; background: var(--secondary); color: var(--secondary-text); font-size: 12px; font-weight: 700; margin-right: 4px; }
 .badge-off { background: #ccc; color: #555; }
 
 .btn-secondary { padding: 8px 14px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--input-bg); color: var(--text-card); font-weight: 700; font-size: 13px; }
@@ -385,7 +385,7 @@ button, input, select, textarea { touch-action: manipulation; }
 #module-menu-btn, #module-chrome-theme { width: 44px; height: 44px; flex: 0 0 44px; display: grid; place-items: center; border-radius: 12px; border: 1px solid rgba(237,224,200,.35); background: rgba(255,255,255,.08); color: var(--af-cream); font-size: 19px; }
 #module-chrome-theme { margin-left: auto; font-size: 16px; }
 .module-chrome-context { min-width: 0; display: flex; flex-direction: column; line-height: 1.1; }
-.module-chrome-context span { font-size: 11px; color: #C7A98A; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
+.module-chrome-context span { font-size: 12px; color: #C7A98A; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; }
 .module-chrome-context strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-heading); font-size: 16px; }
 #app-shell.module-active #module-frame-wrap { padding-top: calc(58px + env(safe-area-inset-top)); min-height: 100dvh; }
 #app-shell.module-active #module-frame { min-height: calc(100dvh - 58px - env(safe-area-inset-top)); background: var(--bg-body); }
@@ -419,7 +419,7 @@ button, input, select, textarea { touch-action: manipulation; }
 .admin-table-scroll { overflow-x: auto; border-radius: var(--radius-md); box-shadow: var(--shadow); }
 .admin-table { min-width: 690px; box-shadow: none; }
 .admin-table th, .admin-table td { padding: 12px; vertical-align: middle; }
-.btn-secondary, .btn-danger { min-height: 38px; }
+.btn-secondary, .btn-danger { min-height: var(--tap-min); }
 .modal-backdrop { padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
 .modal-card { max-height: calc(100dvh - 32px); overflow: auto; box-shadow: 0 18px 48px rgba(15,10,7,.35); }
 

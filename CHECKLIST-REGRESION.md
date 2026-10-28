@@ -87,6 +87,11 @@ Todo esto se validó con análisis estático (sintaxis, HTML, diffs) pero no con
 - [ ] **Administración en pantalla angosta**: "+ Nuevo usuario" se ve completo (puede quedar debajo del título)
 - [ ] **Limpieza en el celular**: al tocar "Tareas" o "Máquinas" la pestaña activa queda visible; en Horario, al desplazar la tabla a los lados la columna con el nombre del empleado se queda fija
 - [ ] **Líder de Seguridad en tablet vertical**: la pestaña Semáforo EPP y el registro semanal no hacen que la pantalla entera se desplace de lado (solo la tabla)
+- [ ] **Botones con el dedo (F3b)**: en un celular real, tocar con el pulgar los botones pequeños (✏️ 🗑 en Bitácora, las flechas de fecha de Día a Día y Agenda, el botón de tema, las casillas de "Doble" en máquinas de Limpieza): ninguno debe pedir puntería ni activar el de al lado
+- [ ] **Se ve bien en escritorio y tablet**: Limpieza → Horario, Administración y Día a Día se ven ordenados (filas más altas, sin textos cortados ni botones que se monten)
+- [ ] **Letra legible (F3c)**: en el celular, las etiquetas pequeñas (insignias de rol, chips, "Hoy", días de la semana, tarjetas del libro de Agenda) se leen sin acercar la pantalla y no quedan cortadas
+- [ ] **Impresión idéntica (F3c)**: generar e imprimir (o guardar en PDF) un horario de Limpieza, una hoja de Habladores, Folders y Wow Tablero, y compararlos con uno impreso antes: deben verse exactamente igual
+- [ ] **Celular acostado**: abrir la app con el celular en horizontal; el menú y el contenido siguen usables y no hay barra lateral que tape todo
 - [ ] **Indicador de sin conexión**: apagar el wifi/datos con la app abierta y confirmar que aparece la franja "📶 Sin conexión..." arriba, y que desaparece al reconectar
 - [ ] **Sin conexión entre cuentas (S-05)**: con la cuenta A, apagar la señal, guardar una tarea en Día a Día y cerrar sesión; con la cuenta B (señal apagada) confirmar que NO aparece la tarea de A; prender la señal y confirmar que lo de A no aparece en B. Volver a entrar con A y confirmar que su tarea se sube sola
 - [ ] **Quitar empleado (Limpieza)**: agregar un empleado con comilla simple (por ejemplo `O'Brien`), quitarlo y confirmar que se elimina solo ese; el horario de los demás no se mueve

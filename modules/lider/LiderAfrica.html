@@ -204,7 +204,7 @@
   }
   .card h2 .tag{
     font-family:var(--font-mono);
-    font-size:0.7rem;
+    font-size:0.75rem;
     background:var(--secondary);
     color:var(--secondary-text);
     padding:4px 10px;
@@ -435,7 +435,7 @@
   }
   .freq-badge{
     font-family:var(--font-mono);
-    font-size:0.7rem;
+    font-size:0.75rem;
     background:var(--secondary);
     color:var(--secondary-text);
     padding:3px 10px;
@@ -458,7 +458,7 @@
     flex-shrink:0;
     cursor: pointer;
   }
-  .task-row label{font-size:0.95rem; font-weight: 400; line-height:1.4; cursor:pointer;}
+  .task-row label{font-size:0.95rem; font-weight: 400; line-height:1.4; cursor:pointer; display:flex; flex-direction:column; justify-content:center; min-height:var(--tap-min);}
   .task-row label .note{display:block; color:var(--text-muted); font-size:0.82rem; margin-top:2px; font-weight: 400;}
   .month-selector{
     display:flex;
@@ -797,7 +797,7 @@
     .sidebar{width:100%; flex-direction:row; overflow-x:auto; padding:16px; border-right: none; border-bottom: 3px solid var(--card-border);}
     .nav{flex-direction:row; margin-top:0;}
     .sidebar-foot{margin-top:0; display:flex; align-items:center; padding:0 6px; margin-left:auto;}
-    .sidebar-foot #storage-status{margin-top:0; font-size:0.65rem; white-space:nowrap;}
+    .sidebar-foot #storage-status{margin-top:0; font-size:0.75rem; white-space:nowrap;}
     main{padding:22px 16px 50px;}
     .card{padding:20px 18px;}
     .field-row{flex-direction:column;}
@@ -852,6 +852,13 @@
     input, select, textarea { font-size: 16px !important; }
   }
   * { touch-action: manipulation !important; }
+
+  /* F3b · Tamaño táctil: los botones que usan all:unset pierden el min-height global y quedan display:inline (donde min-height no aplica) */
+  .color-pick button, .btn-primary, .btn-secondary, .btn-ghost, .del-row, .res-item .res-actions button, .res-item .res-actions a,
+  .tema-item .tema-del, .qbank-item button.qbank-del, .qbank-ver-respuesta{
+    display:inline-flex; align-items:center; justify-content:center; box-sizing:border-box;
+    min-height:var(--tap-min); min-width:var(--tap-min);
+  }
 </style>
 <script>
   // touch-action:manipulation ya bloquea el doble-tap-zoom, pero Safari en iOS
@@ -1157,7 +1164,7 @@
       <p class="page-sub">Accesos directos a los formularios digitales y referencia de emergencia en el parque.</p>
 
       <div class="card">
-        <h2>Archivos y formatos <span class="tag tag-edit"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg><span style="font-size:0.65rem;">editable</span></span></h2>
+        <h2>Archivos y formatos <span class="tag tag-edit"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg><span style="font-size:0.75rem;">editable</span></span></h2>
         <p class="section-note" style="margin:0 0 10px;">Sube aquí los formatos que usas seguido: asistencia, inspección de botiquines, inspección del parque, checklist de atracciones, etc.</p>
         <p class="section-note" style="margin:0 0 10px; color:var(--danger);">Máximo recomendado ~4 MB por archivo.</p>
         <div id="archivos-list"></div>
@@ -1177,7 +1184,7 @@
       </div>
 
       <div class="card">
-        <h2>Formularios (check list digital) <span class="tag tag-edit"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg><span style="font-size:0.65rem;">editable</span></span></h2>
+        <h2>Formularios (check list digital) <span class="tag tag-edit"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg><span style="font-size:0.75rem;">editable</span></span></h2>
         <p class="section-note" style="margin:0 0 10px;">Los links de anexo del instructivo. Edítalos aquí en cuanto los tengas listos.</p>
         <div id="res-formularios"></div>
         <div class="add-form">
@@ -1196,7 +1203,7 @@
 
       <div class="cards-grid">
         <div class="card">
-          <h2>Recursos SST adicionales <span class="tag tag-edit"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg><span style="font-size:0.65rem;">editable</span></span></h2>
+          <h2>Recursos SST adicionales <span class="tag tag-edit"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg><span style="font-size:0.75rem;">editable</span></span></h2>
           <p class="section-note" style="margin:0 0 10px;">Agrega aquí cualquier otro recurso que uses seguido: línea de la ARL, normativa, contactos de brigada, etc.</p>
           <div id="res-sst"></div>
           <div class="add-form">
@@ -1221,7 +1228,7 @@
         </div>
 
         <div class="card" style="grid-column: 1 / -1;">
-          <h2>Temas del mes — Salud Ocupacional <span class="tag tag-edit"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg><span style="font-size:0.65rem;">editable</span></span></h2>
+          <h2>Temas del mes — Salud Ocupacional <span class="tag tag-edit"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg><span style="font-size:0.75rem;">editable</span></span></h2>
           <p class="section-note" style="margin:0 0 10px;">Los temas que define Salud Ocupacional cada mes. Edita el contenido, agrega el mes que sigue o elimina los anteriores.</p>
           <div id="temas-list"></div>
           <div class="add-form">
