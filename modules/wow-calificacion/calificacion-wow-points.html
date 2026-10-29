@@ -8,6 +8,7 @@
 <script src="../../assets/supabase-config.js"></script>
 <script src="../../assets/offline-storage.js"></script>
 <script src="../../assets/ui-helpers.js"></script>
+<script src="../../assets/a11y.js"></script>
 <script src="../../assets/permissions.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -75,7 +76,7 @@ body{
   display:flex; align-items:center; gap:8px;
 }
 .step h2 .n{
-  width:20px;height:20px; border-radius:50%; background:var(--af-orange); color:#fff;
+  width:20px;height:20px; border-radius:50%; background:var(--af-orange); color:var(--primary-text);
   display:inline-flex;align-items:center;justify-content:center; font-size:12px;
   font-family: var(--font-heading); font-weight:600;
 }
@@ -128,10 +129,10 @@ button{
   background:rgba(217,72,31,.2); color:var(--af-red); border:none; font-size:13px; cursor:pointer;
   display:flex;align-items:center;justify-content:center;
 }
-.entry-chip .del:hover{background:var(--af-red); color:#fff;}
+.entry-chip .del:hover{background:var(--af-red); color:var(--danger-text);}
 
 .count-pill{
-  display:inline-flex;align-items:center;gap:6px; font-size:12px; color:var(--text-card); margin-top:8px;
+  display:inline-flex;align-items:center;gap:6px; font-size:12px; color:#2c1a00; margin-top:8px;
   background:var(--af-amber); padding:5px 11px; border-radius:20px; font-weight:700;
 }
 .count-pill b{color:#2c1a00;}
@@ -340,7 +341,7 @@ button{
       </div>
       <div class="toolbar">
         <div class="zoom">
-          🔍 <input type="range" id="zoomRange" min="30" max="100" value="55">
+          🔍 <input type="range" id="zoomRange" min="30" max="100" value="55" aria-label="Zoom de la vista previa">
           <span id="zoomVal">55%</span>
         </div>
         <div class="pagecount" id="pageCountTop">0 hojas</div>

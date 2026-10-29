@@ -7,6 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../../assets/supabase-config.js"></script>
 <script src="../../assets/ui-helpers.js"></script>
+<script src="../../assets/a11y.js"></script>
 <script src="../../assets/permissions.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -587,7 +588,7 @@
     <div class="two-col-row">
       <div>
         <label class="field-label">Ordenar alfabéticamente por</label>
-        <select id="sortSelect"></select>
+        <select id="sortSelect" aria-label="Ordenar"></select>
       </div>
       <div>
         <label class="field-label">Dirección</label>
@@ -1164,6 +1165,15 @@ window.addEventListener('message', function(e){
 });
 if (window.parent !== window) { var localToggle = document.getElementById('themeToggle'); if (localToggle) localToggle.style.display = 'none'; }
 
+
+// Pasos que todavía no se pueden usar: inactivos (inert). Así el teclado y los lectores de pantalla los saltan, y al estar
+// atenuados a propósito no cuentan para el contraste (WCAG: los componentes inactivos están exentos).
+['card2', 'card3'].forEach((id) => {
+  const c = document.getElementById(id); if (!c) return;
+  const sync = () => { const off = c.classList.contains('disabled'); c.toggleAttribute('inert', off); c.setAttribute('aria-disabled', off ? 'true' : 'false'); };
+  new MutationObserver(sync).observe(c, { attributes: true, attributeFilter: ['class'] });
+  sync();
+});
 </script>
 </body>
 </html>

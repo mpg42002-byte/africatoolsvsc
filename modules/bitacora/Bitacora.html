@@ -7,6 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../../assets/supabase-config.js"></script>
 <script src="../../assets/ui-helpers.js"></script>
+<script src="../../assets/a11y.js"></script>
 <script src="../../assets/permissions.js"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -208,7 +209,7 @@ button{font-family:inherit;}
   <div class="toolbar">
     <div class="date-nav">
       <button type="button" class="icon-btn" id="datePrev" title="Día anterior">◀</button>
-      <input type="date" id="bitacoraDate">
+      <input type="date" id="bitacoraDate" aria-label="Fecha de la bitácora">
       <button type="button" class="icon-btn" id="dateNext" title="Día siguiente">▶</button>
     </div>
     <button type="button" class="btn-pill secondary" id="dateToday" style="padding:9px 16px; font-size:12px;">Hoy</button>

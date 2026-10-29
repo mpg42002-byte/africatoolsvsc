@@ -112,7 +112,7 @@
     <div id="content-area">
       <div id="dashboard-view" class="dash-wrap hidden">
         <div class="dash-greeting">
-          <h2>Hola, <span id="dash-greeting-name"></span> 👋</h2>
+          <h2 role="heading" aria-level="1">Hola, <span id="dash-greeting-name"></span> 👋</h2>
           <p>Estos son tus módulos disponibles.</p>
         </div>
         <div id="dash-summary" class="dash-summary"></div>
@@ -121,16 +121,17 @@
 
       <div id="admin-view" class="admin-wrap hidden">
         <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:16px;">
-          <h2 style="margin:0;">Administración de usuarios</h2>
+          <h2 role="heading" aria-level="1" style="margin:0;">Administración de usuarios</h2>
           <button id="new-user-btn" class="btn-primary" style="width:auto; padding:10px 16px;">+ Nuevo usuario</button>
         </div>
         <div class="admin-table-scroll"><table class="admin-table">
+          <caption class="sr-only">Usuarios registrados</caption>
           <thead><tr>
-            <th>Nombre</th>
-            <th>Usuario</th>
-            <th>Roles</th>
-            <th>Estado</th>
-            <th>Acciones</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Usuario</th>
+            <th scope="col">Roles</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Acciones</th>
           </tr></thead>
           <tbody id="admin-tbody"></tbody>
         </table></div>
@@ -140,7 +141,7 @@
           <p style="margin:0 0 14px; color:var(--text-muted); font-size:14px;">Registro de cambios hechos desde este panel de Administración (usuarios y roles). No incluye actividad dentro de los módulos.</p>
           <div class="admin-table-scroll">
             <table class="admin-table" id="activity-log-table">
-              <thead><tr><th>Cuándo</th><th>Quién</th><th>Acción</th></tr></thead>
+              <thead><tr><th scope="col">Cuándo</th><th scope="col">Quién</th><th scope="col">Acción</th></tr></thead>
               <tbody id="activity-log-tbody"></tbody>
             </table>
           </div>
@@ -256,6 +257,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="assets/supabase-config.js"></script>
 <script src="assets/permissions.js"></script>
+<script src="assets/a11y.js"></script>
 <script src="assets/shell.js"></script>
 <script src="assets/app.js"></script>
 <script>

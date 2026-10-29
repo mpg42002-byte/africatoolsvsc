@@ -321,6 +321,7 @@ function goToView(viewKey) {
     setSidebarOpen(false);
     frameWrap.classList.remove('hidden');
     if (announcer) announcer.textContent = `Cargando ${module ? module.label : 'módulo'}`;
+    frame.title = `Módulo ${module ? module.label : ''}`.trim(); // lectores de pantalla: cada módulo tiene su propio nombre
     const src = MODULE_SOURCES[viewKey];
     if (frame.getAttribute('data-current') !== viewKey) {
       const loader = document.getElementById('module-loading');

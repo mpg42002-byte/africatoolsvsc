@@ -6,6 +6,14 @@ CSS, propuesta de mejoras, checklists de deploy previos), consolidados aquí.
 Para el estado actual del modelo de datos, ver `ESTRUCTURA-DATOS.md` — ese
 es el documento de referencia vigente, no este changelog.
 
+## 2026-10-29 — Accesibilidad: teclado, lectores de pantalla y contraste (Fase 4 de QA)
+
+- **Nuevo `assets/a11y.js`** (shell y los 10 módulos; también en el service worker): (1) **pestañas** con `role=tablist/tab/tabpanel`, `aria-selected`, tabulación móvil y flechas/Inicio/Fin (Limpieza, Líder, Agenda, filtros de Día a Día); (2) **ventanas modales** con `role=dialog`, foco atrapado, Esc (si hay botón cancelar), resto de la página inerte y el foco vuelve al botón que la abrió; (3) puntos de referencia `main`/`banner`/regiones donde la página no los declaraba. Un modal solo se considera abierto si de verdad se ve y recibe clics (los de Líder están siempre presentes pero invisibles: antes de esta guarda dejaban la pantalla inerte).
+- **Nombres accesibles**: selectores, campos de fecha/mes, deslizadores y columnas de acciones sin nombre (Limpieza, Líder, Agenda, Bitácora, Inventario, Habladores, Folders, Wow); `<caption>` y `scope` en las tablas de Administración; título propio por módulo en el iframe del shell; un solo encabezado de nivel 1 por vista.
+- **Contraste de color (WCAG AA 4,5:1)**: tema claro `--af-orange` #E85D25 → **#C24A18** y `--af-red` #D9481F → **#BC3C1A** (con texto blanco daban 3,5:1 y 4,3:1). Tema oscuro: naranja y rojo **claros** (#F08A5D / #FF8F73) con texto oscuro (`--primary-text`, nuevo `--danger-text`). El texto fijo blanco sobre naranja/rojo pasó a esas variables (19 reglas) y los fondos fijos de Líder usan el token. Las plantillas de impresión usan colores propios y NO cambian.
+- Pasos 2 y 3 de Inventario, mientras no se pueden usar, quedan inactivos (`inert`).
+- Pruebas: `tests/a11y/a11y.test.js` (axe: 0 críticos/serios en 11 pantallas y todas las pestañas, contraste en claro y oscuro, teclado, modales, iframe, encabezados, red de seguridad contra páginas inertes).
+
 ## 2026-10-27 — Responsive, parte 3: textos de 12 px, celular horizontal e impresión intacta (Fase 3c de QA)
 
 - **Ningún texto visible de la interfaz mide menos de 12 px** (antes había entre 9 y 11,5 px en etiquetas, chips, insignias, encabezados de tablas y tarjetas del libro de Agenda). Se subieron 72 declaraciones de CSS y 4 etiquetas escritas en línea en Líder; en pantallas muy angostas esto puede hacer que una etiqueta salte de línea, no que se corte.

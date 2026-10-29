@@ -23,7 +23,7 @@ button { font-family: inherit; cursor: pointer; }
   height: 32px;
   border-radius: 50%;
   background: linear-gradient(135deg, var(--primary), var(--accent-badge));
-  color: white;
+  color: var(--primary-text);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -57,7 +57,7 @@ button { font-family: inherit; cursor: pointer; }
 
 .pagination button:hover:not(:disabled) {
   background: var(--primary);
-  color: white;
+  color: var(--primary-text);
   border-color: var(--primary);
 }
 
@@ -346,7 +346,7 @@ button { font-family: inherit; cursor: pointer; }
 
 .btn-secondary { padding: 8px 14px; border-radius: var(--radius-sm); border: 1px solid var(--line); background: var(--input-bg); color: var(--text-card); font-weight: 700; font-size: 13px; }
 .btn-warn { padding: 8px 14px; border-radius: var(--radius-sm); border: 1px solid var(--secondary-shadow); background: var(--secondary); color: var(--secondary-text); font-weight: 700; font-size: 13px; }
-.btn-danger { padding: 6px 10px; border-radius: var(--radius-sm); border: none; background: var(--danger); color: #fff; font-weight: 700; font-size: 12px; }
+.btn-danger { padding: 6px 10px; border-radius: var(--radius-sm); border: none; background: var(--danger); color: var(--danger-text); font-weight: 700; font-size: 12px; }
 
 .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 16px; }
 .modal-card { background: var(--card-bg); color: var(--text-card); border-radius: var(--radius-lg); padding: 24px; width: 100%; max-width: 420px; }

@@ -92,6 +92,9 @@ Todo esto se validó con análisis estático (sintaxis, HTML, diffs) pero no con
 - [ ] **Letra legible (F3c)**: en el celular, las etiquetas pequeñas (insignias de rol, chips, "Hoy", días de la semana, tarjetas del libro de Agenda) se leen sin acercar la pantalla y no quedan cortadas
 - [ ] **Impresión idéntica (F3c)**: generar e imprimir (o guardar en PDF) un horario de Limpieza, una hoja de Habladores, Folders y Wow Tablero, y compararlos con uno impreso antes: deben verse exactamente igual
 - [ ] **Celular acostado**: abrir la app con el celular en horizontal; el menú y el contenido siguen usables y no hay barra lateral que tape todo
+- [ ] **Solo con teclado (F4)**: sin tocar el mouse, recorrer con Tab el menú, abrir un módulo, cambiar de pestaña con las flechas, abrir "+ Nuevo usuario" y cerrarlo con Esc: el foco nunca se pierde ni queda atrapado detrás de la ventana
+- [ ] **Lector de pantalla (VoiceOver en iPhone o TalkBack en Android)**: abrir Limpieza, tocar las pestañas y un botón de "Quitar": debe anunciar el nombre de la pestaña ("seleccionada") y de qué empleado es cada botón
+- [ ] **Colores**: botones principales y pestañas activas en naranja se ven bien en tema claro y en tema oscuro (en oscuro el texto sobre el naranja es oscuro)
 - [ ] **Indicador de sin conexión**: apagar el wifi/datos con la app abierta y confirmar que aparece la franja "📶 Sin conexión..." arriba, y que desaparece al reconectar
 - [ ] **Sin conexión entre cuentas (S-05)**: con la cuenta A, apagar la señal, guardar una tarea en Día a Día y cerrar sesión; con la cuenta B (señal apagada) confirmar que NO aparece la tarea de A; prender la señal y confirmar que lo de A no aparece en B. Volver a entrar con A y confirmar que su tarea se sube sola
 - [ ] **Quitar empleado (Limpieza)**: agregar un empleado con comilla simple (por ejemplo `O'Brien`), quitarlo y confirmar que se elimina solo ese; el horario de los demás no se mueve

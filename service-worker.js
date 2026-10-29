@@ -14,6 +14,7 @@ const CORE_ASSETS = [
   './assets/supabase-config.js',
   './assets/offline-storage.js',
   './assets/ui-helpers.js',
+  './assets/a11y.js',
   './assets/icons/icon.svg',
   './assets/icons/icon-192.png',
   './assets/icons/icon-512.png',

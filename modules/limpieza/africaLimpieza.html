@@ -10,6 +10,7 @@
 <script src="../../assets/supabase-config.js"></script>
 <script src="../../assets/offline-storage.js"></script>
 <script src="../../assets/ui-helpers.js"></script>
+<script src="../../assets/a11y.js"></script>
 <script src="../../assets/permissions.js"></script>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -345,6 +346,7 @@ table.sched tr:last-child td{border-bottom:none}
 </script>
 </head>
 <body>
+<h1 class="sr-only">Limpieza</h1>
 <div id="af-confirm-backdrop" class="hidden">
   <div id="af-confirm-card">
     <h3 id="af-confirm-title">¿Confirmar acción?</h3>
@@ -431,7 +433,7 @@ table.sched tr:last-child td{border-bottom:none}
     <div class="card-title">Nueva máquina</div>
     <div class="add-row">
       <input type="text" id="new-maq" placeholder="Nombre de la máquina" onkeydown="if(event.key==='Enter')addMaq()">
-      <select id="new-diff">
+      <select id="new-diff" aria-label="Dificultad de la máquina">
         <option value="alta">🔴 Alta</option>
         <option value="media" selected>🟡 Media</option>
         <option value="baja">🟢 Baja</option>
@@ -457,11 +459,11 @@ table.sched tr:last-child td{border-bottom:none}
     <div class="add-row">
       <input type="text" id="new-task" placeholder="Nombre de la tarea" onkeydown="if(event.key==='Enter')addTask()">
       <input type="text" id="new-task-pts" placeholder="Puntos (ej: 10)" style="max-width:140px">
-      <select id="new-task-mode" onchange="toggleTaskPersonField()">
+      <select id="new-task-mode" aria-label="Modo de la tarea" onchange="toggleTaskPersonField()">
         <option value="rotativa">🔄 Rotativa (cualquiera)</option>
         <option value="fija">📌 Fija (siempre la misma persona)</option>
       </select>
-      <select id="new-task-person" style="display:none"></select>
+      <select id="new-task-person" aria-label="Persona fija" style="display:none"></select>
       <button class="btn btn-primary" onclick="addTask()">+ Agregar</button>
     </div>
   </div>
@@ -1120,13 +1122,13 @@ function renderMaq(){
       <th style="text-align:center;padding:8px;color:var(--text-muted);font-weight:700;font-size:12px;border-bottom:2px solid var(--card-border);width:130px;font-family:var(--font-heading)">Dificultad</th>
       <th style="text-align:center;padding:8px;color:var(--text-muted);font-weight:700;font-size:12px;border-bottom:2px solid var(--card-border);width:100px;font-family:var(--font-heading)">Doble</th>
       <th style="text-align:center;padding:8px;color:var(--text-muted);font-weight:700;font-size:12px;border-bottom:2px solid var(--card-border);width:80px;font-family:var(--font-heading)">Pts</th>
-      <th style="width:70px;border-bottom:2px solid var(--card-border)"></th>
+      <th style="width:70px;border-bottom:2px solid var(--card-border)"><span class="sr-only">Acciones</span></th>
     </tr></thead>
     <tbody>`+machines.map((m,i)=>`
     <tr>
       <td style="padding:10px 14px;border-bottom:2px solid var(--card-border);color:var(--text-card);font-weight:700">${escapeHtml(m.n)}</td>
       <td style="padding:8px;text-align:center;border-bottom:2px solid var(--card-border)">
-        <select onchange="changeDiff(${i},this.value)" style="font-size:13px;padding:6px 10px;width:auto">
+        <select onchange="changeDiff(${i},this.value)" aria-label="Dificultad de ${escapeAttr(m.n||m.name||'la máquina')}" style="font-size:13px;padding:6px 10px;width:auto">
           <option value="alta" ${m.d==='alta'?'selected':''}>🔴 Alta</option>
           <option value="media" ${m.d==='media'?'selected':''}>🟡 Media</option>
           <option value="baja" ${m.d==='baja'?'selected':''}>🟢 Baja</option>
@@ -1188,7 +1190,7 @@ function renderTaskSelector(){
     const sel=taskSel[t.n]||{active:false,person:'auto'};
     const safeName=escapeAttr(t.n).replace(/'/g,"\\'");
     const personField = t.mode==='rotativa'
-      ? `<select onchange="updateTaskSel('${safeName}',null,this.value)" ${sel.active?'':'disabled'} style="max-width:230px">
+      ? `<select onchange="updateTaskSel('${safeName}',null,this.value)" aria-label="Tarea de ${escapeAttr(t.n)}" ${sel.active?'':'disabled'} style="max-width:230px">
            <option value="auto" ${sel.person==='auto'||!sel.person?'selected':''}>🔄 Automático (equitativo)</option>
            ${employees.map(e=>`<option value="${escapeAttr(e)}" ${sel.person===e?'selected':''}>${escapeHtml(e)}</option>`).join('')}
          </select>`
@@ -1223,27 +1225,27 @@ function renderTasks(){
       <th style="text-align:center;padding:8px;color:var(--text-muted);font-weight:700;font-size:12px;border-bottom:2px solid var(--card-border);width:160px;font-family:var(--font-heading)">Modo</th>
       <th style="text-align:center;padding:8px;color:var(--text-muted);font-weight:700;font-size:12px;border-bottom:2px solid var(--card-border);width:180px;font-family:var(--font-heading)">Persona fija</th>
       <th style="text-align:center;padding:8px;color:var(--text-muted);font-weight:700;font-size:12px;border-bottom:2px solid var(--card-border);width:90px;font-family:var(--font-heading)">Pts</th>
-      <th style="width:70px;border-bottom:2px solid var(--card-border)"></th>
+      <th style="width:70px;border-bottom:2px solid var(--card-border)"><span class="sr-only">Acciones</span></th>
     </tr></thead>
     <tbody>`+tasks.map((t,i)=>`
     <tr>
       <td style="padding:10px 14px;border-bottom:2px solid var(--card-border);color:var(--text-card);font-weight:700">${escapeHtml(t.n)}</td>
       <td style="padding:8px;text-align:center;border-bottom:2px solid var(--card-border)">
-        <select onchange="changeTaskMode(${i},this.value)" style="font-size:13px;padding:6px 10px;width:auto">
+        <select onchange="changeTaskMode(${i},this.value)" aria-label="Modo de ${escapeAttr(t.n||'la tarea')}" style="font-size:13px;padding:6px 10px;width:auto">
           <option value="rotativa" ${t.mode==='rotativa'?'selected':''}>🔄 Rotativa</option>
           <option value="fija" ${t.mode==='fija'?'selected':''}>📌 Fija</option>
         </select>
       </td>
       <td style="padding:8px;text-align:center;border-bottom:2px solid var(--card-border)">
         ${t.mode==='fija'
-          ? `<select onchange="changeTaskPerson(${i},this.value)" style="font-size:13px;padding:6px 10px;width:auto">
+          ? `<select onchange="changeTaskPerson(${i},this.value)" aria-label="Persona fija de ${escapeAttr(t.n||'la tarea')}" style="font-size:13px;padding:6px 10px;width:auto">
               <option value="">—</option>
               ${employees.map(e=>`<option value="${escapeAttr(e)}" ${t.person===e?'selected':''}>${escapeHtml(e)}</option>`).join('')}
              </select>`
           : `<span style="color:var(--text-muted)">—</span>`}
       </td>
       <td style="padding:8px;text-align:center;border-bottom:2px solid var(--card-border)">
-        <input type="text" value="${escapeAttr(t.pts)}" style="width:60px;text-align:center;padding:6px;border-radius:10px" onchange="changeTaskPts(${i},this.value)">
+        <input type="text" value="${escapeAttr(t.pts)}" aria-label="Puntos de ${escapeAttr(t.name||t.n||'la tarea')}" style="width:60px;text-align:center;padding:6px;border-radius:10px" onchange="changeTaskPts(${i},this.value)">
       </td>
       <td style="padding:8px;text-align:center;border-bottom:2px solid var(--card-border)">
         <button class="btn btn-sm btn-danger" aria-label="Eliminar tarea" onclick="removeTask(${i})">🗑</button>

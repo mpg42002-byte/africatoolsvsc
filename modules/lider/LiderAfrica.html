@@ -7,6 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../../assets/supabase-config.js"></script>
 <script src="../../assets/ui-helpers.js"></script>
+<script src="../../assets/a11y.js"></script>
 <script src="../../assets/permissions.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -109,7 +110,7 @@
     transition: all .15s ease;
   }
   .nav button:hover{background:var(--card-bg-hover); border-color: var(--card-border);}
-  .nav button.active{background:#C24A18; color:var(--primary-text); border-color:var(--primary-shadow); box-shadow: 0 4px 0 var(--primary-shadow);}
+  .nav button.active{background:var(--primary); color:var(--primary-text); border-color:var(--primary-shadow); box-shadow: 0 4px 0 var(--primary-shadow);}
   .nav button.active .dot{background:var(--af-yellow); width:10px; height:10px; opacity:1;}
 
   .sidebar-foot{
@@ -322,7 +323,7 @@
   .btn-primary{
     all:unset;
     cursor:pointer;
-    background:#C24A18;
+    background:var(--primary);
     color:var(--primary-text);
     padding:12px 22px;
     border-radius:var(--radius-md);
@@ -651,7 +652,7 @@
     padding: 6px 12px; border: 2px solid var(--card-border); border-radius: var(--radius-md); background: var(--card-bg);
     transition: background 0.1s ease, transform 0.1s ease;
   }
-  .tema-item .tema-del:hover{background:var(--af-red); color: #fff; transform: translateY(-1px);}
+  .tema-item .tema-del:hover{background:var(--af-red); color: var(--danger-text); transform: translateY(-1px);}
   textarea.tema-contenido{
     width:100%;
     min-height:160px;
@@ -828,7 +829,7 @@
   .confirm-actions button{all:unset; cursor:pointer; padding:10px 18px; border-radius:var(--radius-md); font-weight:700; font-size:0.9rem; text-align:center;}
   .confirm-cancel{background:var(--card-bg-hover); color:var(--text-card); border:2px solid var(--card-border) !important;}
   .confirm-cancel:hover{background:var(--card-border);}
-  .confirm-ok{background:var(--danger); color:#fff;}
+  .confirm-ok{background:var(--danger); color:var(--danger-text);}
   .confirm-ok:hover{filter:brightness(1.08);}
 
   /* El Reporte Semanal reutiliza el modal genérico, pero su contenido
@@ -859,6 +860,8 @@
     display:inline-flex; align-items:center; justify-content:center; box-sizing:border-box;
     min-height:var(--tap-min); min-width:var(--tap-min);
   }
+  /* F4 · el botón rojo del semáforo usa el rojo del tema (en oscuro es claro: lleva texto oscuro) */
+  .color-pick button[data-c="rojo"]{color:var(--danger-text);}
 </style>
 <script>
   // touch-action:manipulation ya bloquea el doble-tap-zoom, pero Safari en iOS
@@ -1019,7 +1022,7 @@
           <input type="text" id="epp-log-filter" placeholder="Escribe un nombre...">
         </div>
         <table class="log">
-          <thead><tr><th>Fecha</th><th>Trabajador</th><th>Tarjeta</th><th>Nota</th><th>Registrado por</th><th></th></tr></thead>
+          <thead><tr><th>Fecha</th><th>Trabajador</th><th>Tarjeta</th><th>Nota</th><th>Registrado por</th><th><span class="sr-only">Acciones</span></th></tr></thead>
           <tbody id="epp-log-body"></tbody>
         </table>
         <div class="empty" id="epp-empty" style="display:none;">Aún no hay abordajes registrados.</div>
@@ -1039,7 +1042,7 @@
 
       <div class="month-selector">
         <label style="font-size:0.95rem; font-weight:700;">Mes de gestión:</label>
-        <input type="month" id="mes-select">
+        <input type="month" id="mes-select" aria-label="Mes del tema">
         <span class="reset-mo">Cada mes queda guardado por separado en tu expedición.</span>
       </div>
 
@@ -2340,7 +2343,7 @@
         div.className = 'tema-item';
         div.innerHTML = `
           <div class="tema-head">
-            <input type="month" class="tema-mes-input" value="${escapeAttr(t.mes||'')}">
+            <input type="month" class="tema-mes-input" aria-label="Mes del tema" value="${escapeAttr(t.mes||'')}">
             <input type="text" class="tema-titulo" value="${escapeAttr(t.titulo)}" placeholder="Título del tema">
             <button class="tema-del">eliminar</button>
           </div>
