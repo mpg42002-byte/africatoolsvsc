@@ -4,7 +4,7 @@
 <script src="https://browser.sentry-cdn.com/10.71.0/bundle.min.js" integrity="sha384-Z0GeEnLeg0yvo3LU6sdGDESgTZCwpVvZBIgcnddmSR+ovRPe8Esn+19CrZdcxC4Z" crossorigin="anonymous"></script>
 <script src="../../assets/sentry-init.js"></script>
 <script>(function(){try{var t=new URLSearchParams(location.search).get('theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../assets/vendor/supabase-2.117.3.js"></script>
 <script src="../../assets/supabase-config.js"></script>
 <script src="../../assets/offline-storage.js"></script>
 <script src="../../assets/ui-helpers.js"></script>
@@ -15,9 +15,8 @@
 <title>Habladores Winner · Africa Parque de Diversiones</title>
 <link rel="icon" type="image/svg+xml" href="../../assets/icons/icon.svg">
 <link rel="stylesheet" href="../../assets/design-tokens.css">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<link href="../../assets/vendor/fonts/fonts.css" rel="stylesheet">
+<script src="../../assets/vendor/pdf-3.11.174.min.js"></script>
 <style>
 body{visibility:hidden;} /* revelado por gateModuleAccess() en assets/ui-helpers.js */
 /* Century Gothic Bold, empaquetada con el módulo — así se ve igual sin
@@ -486,7 +485,7 @@ button{
 <script>
 // afConfirm() ahora vive en assets/ui-helpers.js (compartido entre módulos)
 if (window['pdfjsLib']) {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  pdfjsLib.GlobalWorkerOptions.workerSrc = '../../assets/vendor/pdf.worker-3.11.174.min.js';
 }
 
 let entries = [];   // {id, desc, ticket}

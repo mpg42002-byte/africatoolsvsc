@@ -225,3 +225,9 @@ Ya **no existe** el botón de "Respaldo de datos" (exportar/restaurar un `.json`
 ## Netlify Function: `manage-user.js`
 
 La única pieza que corre en un servidor, no en el navegador. Usa la llave `service_role` de Supabase (variable de entorno en Netlify, nunca en el código) para crear y eliminar cuentas — acciones que requieren privilegios que el navegador nunca debe tener. Verifica primero, contra el propio servidor, que quien está llamando sea un administrador activo.
+
+## 11. Dependencias y Service Worker (desde la Fase 5)
+
+- **Librerías**: `assets/vendor/` (ver `assets/vendor/VERSIONS.md`). Nada se carga de un CDN. Para actualizar una: copiar el archivo con la versión en el nombre, cambiar la referencia en los HTML, `node scripts/stamp.js`, correr las pruebas.
+- **Service Worker** (`service-worker.js`): precachea el shell, los 10 módulos, las librerías y las fuentes. Código propio: red primero con copia de respaldo; `assets/vendor/`: caché primero. `CACHE_NAME` = hash de todo el precaché (lo calcula `scripts/stamp.js`).
+- **Cabeceras de seguridad** en `netlify.toml` (CSP, Permissions-Policy, COOP, frame-ancestors). La CSP mantiene `'unsafe-inline'` en `script-src` mientras los módulos tengan scripts y manejadores `onclick` en línea.

@@ -4,7 +4,7 @@
 <script src="https://browser.sentry-cdn.com/10.71.0/bundle.min.js" integrity="sha384-Z0GeEnLeg0yvo3LU6sdGDESgTZCwpVvZBIgcnddmSR+ovRPe8Esn+19CrZdcxC4Z" crossorigin="anonymous"></script>
 <script src="../../assets/sentry-init.js"></script>
 <script>(function(){try{var t=new URLSearchParams(location.search).get('theme');if(t==='dark'||t==='light')document.documentElement.setAttribute('data-theme',t)}catch(e){}})();</script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../../assets/vendor/supabase-2.117.3.js"></script>
 <script src="../../assets/supabase-config.js"></script>
 <script src="../../assets/ui-helpers.js"></script>
 <script src="../../assets/a11y.js"></script>
@@ -14,13 +14,11 @@
 <title>Convertidor de Inventario · Africa Parque de Diversiones</title>
 <link rel="icon" type="image/svg+xml" href="../../assets/icons/icon.svg">
 <link rel="stylesheet" href="../../assets/design-tokens.css">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js"></script>
+<script src="../../assets/vendor/pdf-3.11.174.min.js"></script>
+<script src="../../assets/vendor/exceljs-4.4.0.min.js"></script>
 
 <!-- Fuentes de Google: Fredoka (Headings) y Nunito (Body) -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="../../assets/vendor/fonts/fonts.css" rel="stylesheet">
 
 <style>
   body{visibility:hidden;} /* revelado por gateModuleAccess() en assets/ui-helpers.js */
@@ -647,7 +645,7 @@ const ICON_X = '<svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 2
 // Si el CDN no carga, el módulo igual debe abrir (antes este error dejaba la pantalla en blanco para siempre).
 // El mensaje claro aparece recién al usar el lector de PDF o al generar el Excel.
 if (window.pdfjsLib) {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  pdfjsLib.GlobalWorkerOptions.workerSrc = '../../assets/vendor/pdf.worker-3.11.174.min.js';
 }
 
 let rawTable = []; // array of arrays of strings, [0] = header row

@@ -77,7 +77,9 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Strict-Transport-Security = "max-age=31536000; includeSubDomains; preload"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://browser.sentry-cdn.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self' https://jzzabzpjpqfnofnezkaa.supabase.co https://o4511987246170112.ingest.us.sentry.io https://browser.sentry-cdn.com; frame-src 'self'; base-uri 'self'; form-action 'self'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://browser.sentry-cdn.com; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self' https://jzzabzpjpqfnofnezkaa.supabase.co https://o4511987246170112.ingest.us.sentry.io https://browser.sentry-cdn.com; frame-src 'self'; frame-ancestors 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
+    Permissions-Policy = "camera=(self), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+    Cross-Origin-Opener-Policy = "same-origin"
 
 [[headers]]
   for = "/service-worker.js"
@@ -101,5 +103,11 @@
 
 [[headers]]
   for = "*.svg"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Librerías y fuentes autoalojadas: el nombre del archivo lleva la versión, así que pueden cachearse para siempre.
+[[headers]]
+  for = "/assets/vendor/*"
   [headers.values]
     Cache-Control = "public, max-age=31536000, immutable"
