@@ -8,7 +8,10 @@ let currentView = 'dashboard';
   const session = await getSession();
   if (session) {
     currentUser = session;
-    showApp();
+    // Antes solo se pedía cambiar la clave al entrar con el formulario: quien cerraba la pestaña sin cambiarla volvía
+    // con la sesión restaurada y entraba sin cambiarla. Ahora se exige también al restaurar la sesión.
+    if (session.mustChangePassword) showForcePasswordModal();
+    else showApp();
   } else {
     showLogin();
   }
@@ -162,9 +165,7 @@ async function onLoginSubmit(e) {
   currentUser = { id: user.id, usuario: user.usuario, nombre: user.nombre, roles: user.roles };
   
   if (user.mustChangePassword) {
-    document.getElementById('login-screen').classList.add('hidden');
-    const modal = document.getElementById('force-pw-modal-backdrop');
-    if (modal) modal.classList.remove('hidden');
+    showForcePasswordModal();
     return;
   }
   showApp();
@@ -204,6 +205,12 @@ function showApp() {
     errorBox.textContent = 'Tu sesión se cerró por inactividad. Vuelve a ingresar.';
     errorBox.classList.remove('hidden');
   });
+}
+
+function showForcePasswordModal() {
+  document.getElementById('login-screen').classList.add('hidden');
+  const modal = document.getElementById('force-pw-modal-backdrop');
+  if (modal) modal.classList.remove('hidden');
 }
 
 function renderUserChip() {
@@ -647,8 +654,8 @@ async function openUserModal(existingUser) {
       saveBtn.textContent = originalText;
       return; 
     }
-    if (clave && clave.length < 6) { 
-      showToast('La contraseña debe tener al menos 6 caracteres.'); 
+    if (clave && clave.length < 10) { 
+      showToast('La contraseña debe tener al menos 10 caracteres.'); 
       saveBtn.disabled = false;
       saveBtn.textContent = originalText;
       return; 
@@ -771,8 +778,8 @@ function openResetPasswordModal(targetUser) {
     const clave2 = clave2Input.value;
     errorBox.classList.add('hidden');
 
-    if (!clave || clave.length < 6) {
-      errorBox.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+    if (!clave || clave.length < 10) {
+      errorBox.textContent = 'La contraseña debe tener al menos 10 caracteres.';
       errorBox.classList.remove('hidden');
       return;
     }
@@ -809,8 +816,8 @@ async function onForcePasswordSave() {
   const errorBox = document.getElementById('force-pw-error');
   errorBox.classList.add('hidden');
 
-  if (!clave || clave.length < 6) {
-    errorBox.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+  if (!clave || clave.length < 10) {
+    errorBox.textContent = 'La contraseña debe tener al menos 10 caracteres.';
     errorBox.classList.remove('hidden');
     return;
   }

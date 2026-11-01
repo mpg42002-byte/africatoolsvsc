@@ -1,166 +1,159 @@
 // AFRICA TOOLS · netlify/functions/manage-user.js
 //
-// Esta función corre en el servidor de Netlify, nunca en el navegador de
-// nadie. Es la única pieza del proyecto autorizada a usar la llave
-// "service_role" de Supabase — la que puede crear o eliminar cuentas de
-// otras personas. Esa llave vive en una variable de entorno de Netlify
-// (SUPABASE_SERVICE_ROLE_KEY), nunca en el código ni en el repositorio.
+// Esta función corre en el servidor de Netlify, nunca en el navegador de nadie. Es la única pieza del proyecto autorizada
+// a usar la llave "service_role" de Supabase — la que puede crear o eliminar cuentas de otras personas. Esa llave vive en
+// una variable de entorno de Netlify (SUPABASE_SERVICE_ROLE_KEY), nunca en el código ni en el repositorio.
 //
-// Habla con Supabase directo por fetch (sin ninguna librería externa) para
-// no depender de que Netlify instale paquetes dentro de netlify/functions.
+// Habla con Supabase directo por fetch (sin librerías externas).
 //
-// Antes de hacer nada, verifica con el token de quien llama que sea
-// realmente un administrador activo — sin esto, cualquiera podría llamar
-// esta función directamente (sin pasar por el panel) y crear cuentas.
+// Antes de hacer nada verifica, con el token de quien llama, que sea realmente un administrador activo. Además (Fase 6):
+//   · TODO lo que llega del navegador se valida aquí: id (UUID), roles (lista permitida), usuario (patrón y largo),
+//     nombre (largo y sin caracteres de control) y contraseña (mínimo 10) — en crear Y en restablecer.
+//   · El correo de la cuenta NO se acepta del navegador: se deriva del usuario (igual que hace el inicio de sesión).
+//   · Se revisa el encabezado Origin (defensa extra; el token va en un encabezado, no en una cookie).
+//   · La cuenta principal (la administradora más antigua) no se puede restablecer ni eliminar por otra persona.
+//   · El registro de actividad lo escribe el SERVIDOR con la identidad verificada de quien llama (antes lo escribía el
+//     navegador y se podía falsificar).
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const ROLES = ['administrador', 'supervisor', 'lider_parque', 'lider_seguridad', 'cajero', 'anfitrion_fiesta'];
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const USUARIO_RE = /^[a-z0-9][a-z0-9 ._-]{1,31}$/;
+const AUTH_EMAIL_DOMAIN = 'africatools.internal';
+const PASSWORD_MIN = 10;
+const PASSWORD_MAX = 72; // bcrypt ignora lo que pase de 72 bytes
 
-async function supabaseFetch(path, options = {}) {
-  const res = await fetch(SUPABASE_URL + path, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'apikey': SUPABASE_SERVICE_ROLE_KEY,
-      'Authorization': 'Bearer ' + SUPABASE_SERVICE_ROLE_KEY,
-      ...(options.headers || {}),
-    },
-  });
-  let json = null;
-  try { json = await res.json(); } catch { /* algunas respuestas vienen vacías (204) */ }
-  return { ok: res.status >= 200 && res.status < 300, status: res.status, data: json };
+const usuarioToEmail = (usuario) => String(usuario).trim().toLowerCase().replace(/\s+/g, '.') + '@' + AUTH_EMAIL_DOMAIN;
+const reply = (statusCode, obj) => ({ statusCode, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(obj) });
+const clean = (s, max) => String(s == null ? '' : s).replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, max);
+
+function validatePassword(p) {
+  if (typeof p !== 'string' || p.length < PASSWORD_MIN) return `La contraseña debe tener al menos ${PASSWORD_MIN} caracteres.`;
+  if (Buffer.byteLength(p, 'utf8') > PASSWORD_MAX) return `La contraseña es demasiado larga (máximo ${PASSWORD_MAX} caracteres).`;
+  return null;
 }
 
-exports.handler = async (event) => {
-  if (event.httpMethod !== 'POST') {
-    return { statusCode: 405, body: JSON.stringify({ error: 'Método no permitido.' }) };
+function originAllowed(headers, env) {
+  const origin = headers.origin || headers.Origin;
+  if (!origin) return true; // llamadas que no vienen de un navegador: igual necesitan el token de un administrador
+  const host = headers['x-forwarded-host'] || headers.host || headers.Host || '';
+  const extra = String(env.ALLOWED_ORIGINS || '').split(',').map((x) => x.trim()).filter(Boolean);
+  return origin === 'https://' + host || origin === 'http://' + host || extra.includes(origin);
+}
+
+function makeHandler({ fetch: doFetch, env }) {
+  const SUPABASE_URL = env.SUPABASE_URL;
+  const KEY = env.SUPABASE_SERVICE_ROLE_KEY;
+
+  async function sb(path, options = {}) {
+    const res = await doFetch(SUPABASE_URL + path, {
+      ...options,
+      headers: { 'Content-Type': 'application/json', apikey: KEY, Authorization: 'Bearer ' + KEY, ...(options.headers || {}) },
+    });
+    let json = null;
+    try { json = await res.json(); } catch { /* algunas respuestas vienen vacías (204) */ }
+    return { ok: res.status >= 200 && res.status < 300, status: res.status, data: json };
   }
-  if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-    return { statusCode: 500, body: JSON.stringify({ error: 'El servidor no tiene configurada la conexión con Supabase.' }) };
-  }
+  const authMsg = (r, fallback) => clean((r.data && (r.data.msg || r.data.error_description || r.data.message)) || fallback, 200);
 
-  let body;
-  try {
-    body = JSON.parse(event.body || '{}');
-  } catch {
-    return { statusCode: 400, body: JSON.stringify({ error: 'Cuerpo de la solicitud inválido.' }) };
-  }
+  return async function handler(event) {
+    if (event.httpMethod !== 'POST') return reply(405, { error: 'Método no permitido.' });
+    if (!SUPABASE_URL || !KEY) return reply(500, { error: 'El servidor no tiene configurada la conexión con Supabase.' });
+    const headers = event.headers || {};
+    if (!originAllowed(headers, env)) return reply(403, { error: 'Origen no permitido.' });
 
-  const authHeader = event.headers.authorization || event.headers.Authorization || '';
-  const callerToken = authHeader.replace(/^Bearer\s+/i, '');
-  if (!callerToken) {
-    return { statusCode: 401, body: JSON.stringify({ error: 'Falta la sesión.' }) };
-  }
+    let body;
+    try { body = JSON.parse(event.body || '{}'); } catch { return reply(400, { error: 'Cuerpo de la solicitud inválido.' }); }
+    if (!body || typeof body !== 'object' || Array.isArray(body)) return reply(400, { error: 'Cuerpo de la solicitud inválido.' });
 
-  // 1) ¿El token de quien llama es válido y corresponde a alguien real?
-  const callerRes = await fetch(SUPABASE_URL + '/auth/v1/user', {
-    headers: {
-      'apikey': SUPABASE_SERVICE_ROLE_KEY,
-      'Authorization': 'Bearer ' + callerToken,
-    },
-  });
-  if (!callerRes.ok) {
-    return { statusCode: 401, body: JSON.stringify({ error: 'Sesión inválida o expirada.' }) };
-  }
-  const callerUser = await callerRes.json();
+    const callerToken = String(headers.authorization || headers.Authorization || '').replace(/^Bearer\s+/i, '');
+    if (!callerToken) return reply(401, { error: 'Falta la sesión.' });
 
-  // 2) ¿Esa persona es administrador activo? (se verifica en el servidor,
-  //    no se confía en nada que venga del navegador para esto)
-  const profileCheck = await supabaseFetch(
-    `/rest/v1/profiles?id=eq.${callerUser.id}&select=roles,activo`
-  );
-  const callerProfile = profileCheck.ok && Array.isArray(profileCheck.data) ? profileCheck.data[0] : null;
-  const isAdmin = callerProfile && callerProfile.activo &&
-    Array.isArray(callerProfile.roles) && callerProfile.roles.includes('administrador');
-  if (!isAdmin) {
-    return { statusCode: 403, body: JSON.stringify({ error: 'No tienes permiso para hacer esto.' }) };
-  }
+    // 1) ¿El token de quien llama es válido y corresponde a alguien real?
+    const callerRes = await doFetch(SUPABASE_URL + '/auth/v1/user', { headers: { apikey: KEY, Authorization: 'Bearer ' + callerToken } });
+    if (!callerRes.ok) return reply(401, { error: 'Sesión inválida o expirada.' });
+    const callerUser = await callerRes.json();
+    if (!callerUser || !UUID_RE.test(String(callerUser.id))) return reply(401, { error: 'Sesión inválida o expirada.' });
 
-  // 3) Ejecutar la acción pedida.
-  try {
-    if (body.action === 'create') {
-      const { email, usuario, nombre, clave, roles } = body;
-      if (!email || !usuario || !clave || !Array.isArray(roles) || roles.length === 0) {
-        return { statusCode: 400, body: JSON.stringify({ error: 'Faltan datos para crear el usuario.' }) };
-      }
+    // 2) ¿Es administrador activo? (se verifica aquí, no se confía en nada del navegador)
+    const pc = await sb(`/rest/v1/profiles?id=eq.${callerUser.id}&select=roles,activo,usuario,nombre`);
+    const caller = pc.ok && Array.isArray(pc.data) ? pc.data[0] : null;
+    if (!(caller && caller.activo && Array.isArray(caller.roles) && caller.roles.includes('administrador'))) {
+      return reply(403, { error: 'No tienes permiso para hacer esto.' });
+    }
+    const actorName = clean(caller.nombre || caller.usuario || 'Administración', 80);
+    const audit = (action) => sb('/rest/v1/activity_log', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ actor: actorName, actor_id: callerUser.id, action: clean(action, 200) }) }).catch(() => null);
 
-      const createRes = await supabaseFetch('/auth/v1/admin/users', {
-        method: 'POST',
-        body: JSON.stringify({ email, password: clave, email_confirm: true }),
-      });
-      if (!createRes.ok || !createRes.data || !createRes.data.id) {
-        const msg = (createRes.data && (createRes.data.msg || createRes.data.error_description)) || 'No se pudo crear la cuenta.';
-        return { statusCode: 400, body: JSON.stringify({ error: msg }) };
-      }
-
-      const newUserId = createRes.data.id;
-      const insertRes = await supabaseFetch('/rest/v1/profiles', {
-        method: 'POST',
-        headers: { 'Prefer': 'return=minimal' },
-        body: JSON.stringify({
-          id: newUserId,
-          usuario,
-          nombre: nombre || '',
-          roles,
-          activo: true,
-          must_change_password: true,
-        }),
-      });
-      if (!insertRes.ok) {
-        // Si el perfil no se pudo crear, no dejamos huérfana la cuenta de Auth.
-        await supabaseFetch(`/auth/v1/admin/users/${newUserId}`, { method: 'DELETE' });
-        return { statusCode: 400, body: JSON.stringify({ error: 'No se pudo guardar el perfil del usuario.' }) };
-      }
-      return { statusCode: 200, body: JSON.stringify({ id: newUserId }) };
+    // La cuenta principal (la administradora más antigua) solo la puede tocar ella misma.
+    async function isProtected(targetId) {
+      const first = await sb('/rest/v1/profiles?select=id&order=created_at.asc&limit=1');
+      const firstId = first.ok && Array.isArray(first.data) && first.data[0] ? first.data[0].id : null;
+      return !!firstId && firstId === targetId && callerUser.id !== targetId;
     }
 
-    if (body.action === 'delete') {
-      const { id } = body;
-      if (!id) return { statusCode: 400, body: JSON.stringify({ error: 'Falta el id del usuario.' }) };
-      if (id === callerUser.id) {
-        return { statusCode: 400, body: JSON.stringify({ error: 'No puedes eliminar tu propia cuenta.' }) };
+    // 3) Ejecutar la acción pedida.
+    try {
+      if (body.action === 'create') {
+        const usuario = clean(body.usuario, 200).toLowerCase(); // sin recortar: un usuario demasiado largo se rechaza, no se acorta en silencio
+        const nombre = clean(body.nombre, 80);
+        const roles = body.roles;
+        if (!USUARIO_RE.test(usuario)) return reply(400, { error: 'El usuario debe tener entre 2 y 32 caracteres: letras sin tildes, números, espacio, punto, guion o guion bajo.' });
+        if (!Array.isArray(roles) || roles.length === 0 || roles.length > ROLES.length || !roles.every((r) => ROLES.includes(r)) || new Set(roles).size !== roles.length) {
+          return reply(400, { error: 'Los roles no son válidos.' });
+        }
+        const pwErr = validatePassword(body.clave);
+        if (pwErr) return reply(400, { error: pwErr });
+
+        const createRes = await sb('/auth/v1/admin/users', { method: 'POST', body: JSON.stringify({ email: usuarioToEmail(usuario), password: body.clave, email_confirm: true }) });
+        if (!createRes.ok || !createRes.data || !UUID_RE.test(String(createRes.data.id))) return reply(400, { error: authMsg(createRes, 'No se pudo crear la cuenta.') });
+
+        const newUserId = createRes.data.id;
+        const insertRes = await sb('/rest/v1/profiles', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ id: newUserId, usuario, nombre, roles, activo: true, must_change_password: true }) });
+        if (!insertRes.ok) {
+          await sb(`/auth/v1/admin/users/${newUserId}`, { method: 'DELETE' }); // no dejamos huérfana la cuenta de Auth
+          return reply(400, { error: 'No se pudo guardar el perfil del usuario.' });
+        }
+        await audit(`Creó al usuario: ${nombre || usuario}`);
+        return reply(200, { id: newUserId });
       }
-      const deleteRes = await supabaseFetch(`/auth/v1/admin/users/${id}`, { method: 'DELETE' });
-      if (!deleteRes.ok) {
-        return { statusCode: 400, body: JSON.stringify({ error: 'No se pudo eliminar.' }) };
+
+      if (body.action === 'delete') {
+        const id = String(body.id || '');
+        if (!UUID_RE.test(id)) return reply(400, { error: 'Falta el id del usuario o no es válido.' });
+        if (id === callerUser.id) return reply(400, { error: 'No puedes eliminar tu propia cuenta.' });
+        if (await isProtected(id)) return reply(403, { error: 'La cuenta principal está protegida.' });
+        const target = await sb(`/rest/v1/profiles?id=eq.${id}&select=usuario,nombre`);
+        const who = target.ok && Array.isArray(target.data) && target.data[0] ? (target.data[0].nombre || target.data[0].usuario) : id;
+        const del = await sb(`/auth/v1/admin/users/${id}`, { method: 'DELETE' });
+        if (!del.ok) return reply(400, { error: 'No se pudo eliminar.' });
+        await audit(`Eliminó al usuario: ${who}`);
+        return reply(200, { ok: true }); // el perfil se borra solo (on delete cascade)
       }
-      // La fila en profiles se borra sola (on delete cascade).
-      return { statusCode: 200, body: JSON.stringify({ ok: true }) };
+
+      if (body.action === 'reset-password') {
+        const id = String(body.id || '');
+        if (!UUID_RE.test(id)) return reply(400, { error: 'Falta el id del usuario o no es válido.' });
+        const pwErr = validatePassword(body.nuevaClave);
+        if (pwErr) return reply(400, { error: pwErr });
+        if (await isProtected(id)) return reply(403, { error: 'La cuenta principal está protegida.' });
+
+        const resetRes = await sb(`/auth/v1/admin/users/${id}`, { method: 'PUT', body: JSON.stringify({ password: body.nuevaClave }) });
+        if (!resetRes.ok) return reply(400, { error: authMsg(resetRes, 'No se pudo cambiar la clave.') });
+        const target = await sb(`/rest/v1/profiles?id=eq.${id}&select=usuario,nombre`);
+        const who = target.ok && Array.isArray(target.data) && target.data[0] ? (target.data[0].nombre || target.data[0].usuario) : id;
+        await audit(`Restableció la clave de: ${who}`);
+        // Forzamos a que la persona la cambie apenas entre, igual que un usuario nuevo.
+        const flag = await sb(`/rest/v1/profiles?id=eq.${id}`, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ must_change_password: true }) });
+        if (!flag.ok) return reply(200, { ok: true, warning: 'Clave cambiada, pero no se pudo marcar el cambio obligatorio en el próximo login.' });
+        return reply(200, { ok: true });
+      }
+
+      return reply(400, { error: 'Acción no reconocida.' });
+    } catch (e) {
+      return reply(500, { error: 'Error inesperado del servidor.' });
     }
+  };
+}
 
-    if (body.action === 'reset-password') {
-      const { id, nuevaClave } = body;
-      if (!id || !nuevaClave) {
-        return { statusCode: 400, body: JSON.stringify({ error: 'Falta el id del usuario o la nueva clave.' }) };
-      }
-      if (nuevaClave.length < 6) {
-        return { statusCode: 400, body: JSON.stringify({ error: 'La nueva clave debe tener al menos 6 caracteres.' }) };
-      }
-
-      const resetRes = await supabaseFetch(`/auth/v1/admin/users/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify({ password: nuevaClave }),
-      });
-      if (!resetRes.ok) {
-        const msg = (resetRes.data && (resetRes.data.msg || resetRes.data.error_description)) || 'No se pudo cambiar la clave.';
-        return { statusCode: 400, body: JSON.stringify({ error: msg }) };
-      }
-
-      // Forzamos a que la persona la cambie apenas entre, igual que un usuario nuevo.
-      const flagRes = await supabaseFetch(`/rest/v1/profiles?id=eq.${id}`, {
-        method: 'PATCH',
-        headers: { 'Prefer': 'return=minimal' },
-        body: JSON.stringify({ must_change_password: true }),
-      });
-      if (!flagRes.ok) {
-        // La clave sí quedó cambiada; esto solo es un detalle de UX, no lo tratamos como error fatal.
-        return { statusCode: 200, body: JSON.stringify({ ok: true, warning: 'Clave cambiada, pero no se pudo marcar el cambio obligatorio en el próximo login.' }) };
-      }
-      return { statusCode: 200, body: JSON.stringify({ ok: true }) };
-    }
-
-    return { statusCode: 400, body: JSON.stringify({ error: 'Acción no reconocida.' }) };
-  } catch (e) {
-    return { statusCode: 500, body: JSON.stringify({ error: 'Error inesperado del servidor.' }) };
-  }
-};
+exports.makeHandler = makeHandler;
+exports.handler = makeHandler({ fetch: (...a) => fetch(...a), env: process.env });
+exports._internals = { ROLES, UUID_RE, USUARIO_RE, PASSWORD_MIN, usuarioToEmail, validatePassword, originAllowed };

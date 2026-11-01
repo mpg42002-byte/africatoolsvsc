@@ -6,6 +6,18 @@ CSS, propuesta de mejoras, checklists de deploy previos), consolidados aquí.
 Para el estado actual del modelo de datos, ver `ESTRUCTURA-DATOS.md` — ese
 es el documento de referencia vigente, no este changelog.
 
+## 2026-10-31 — Servidor y cuentas, parte 1: funciones endurecidas y sesión (Fase 6a de QA)
+
+- **`manage-user.js` (S-07)** valida todo lo que llega del navegador: `id` (UUID, antes iba directo a una ruta de Supabase), roles (lista permitida, sin repetidos), usuario (patrón y largo; ya no se recorta en silencio), nombre y contraseña (mínimo 10, máximo 72) tanto al crear como al restablecer. **El correo de la cuenta ya no se acepta del navegador**: se deriva del usuario. Revisa el encabezado `Origin`. La cuenta principal (la administradora más antigua) no la puede restablecer ni eliminar otra persona (antes solo lo impedía la interfaz). No devuelve detalles internos en los errores.
+- **Registro de actividad (S-08/S-09)**: lo escribe el **servidor** con la identidad verificada de quien llama (crear, eliminar y restablecer clave); el navegador ya no escribe en `activity_log` (cualquier persona con sesión podía falsificar entradas a nombre de otra). Los cambios de perfil los registrará un trigger en la base de datos (siguiente entrega, con el SQL).
+- **Contraseña mínima de 10** en el navegador (crear usuario, restablecer, cambio obligatorio) y en el servidor.
+- **Cambio de clave obligatorio ya no se puede saltar**: antes solo se pedía al iniciar sesión con el formulario, así que cerrar la pestaña y volver restauraba la sesión y entraba sin cambiarla. Ahora se pide también al restaurar la sesión, y los módulos no abren (ni con su dirección directa) mientras esté pendiente.
+- **Cuentas desactivadas**: los módulos ya no abren aunque la sesión siga abierta.
+- **Sentry**: `sendDefaultPii: false`, se quita el usuario, las cabeceras y los cuerpos de petición, y se limpian correos internos y tokens de todo evento y rastro; no se envían rastros de lo que se escribe en pantalla ni de la consola.
+- Netlify ya no publica `SEGURIDAD-SUPABASE.md`, `/supabase/*` ni `/scripts/*`; una prueba vigila que todo `.md` de la raíz y esas carpetas estén bloqueados.
+- Nuevo `SEGURIDAD-SUPABASE.md`: lista de lo que debe estar configurado en el panel de Supabase, Netlify y Sentry (no se puede garantizar desde el código).
+- Pruebas: `tests/server/manage-user.test.js` (11), `tests/server/sentry-scrub.test.js` (4), `tests/security/cuentas.test.js` (8).
+
 ## 2026-10-29 — PWA y dependencias: sin CDN, arranque sin conexión y caché que se renueva sola (Fase 5 de QA)
 
 - **Librerías y fuentes autoalojadas** en `assets/vendor/` (supabase-js 2.117.3, pdf.js 3.11.174, ExcelJS 4.4.0, jsPDF 2.5.1, html2canvas 1.4.1, heic-to 1.5.2, Fredoka y Nunito en WOFF2). Antes `supabase-js` se pedía como `@2` (la última versión, cambiando sola, sin SRI) y la app no arrancaba sin internet. Cada archivo lleva la versión en el nombre, hay `checksums.sha256` y `VERSIONS.md` (origen, versión, licencia) y las licencias están en `licenses/`. Ningún HTML ni script pide nada a un CDN ni a Google Fonts; lo único externo que queda es Sentry (con SRI), y la app funciona sin él. (Cierra F-04 y la parte de dependencias de S-06.)

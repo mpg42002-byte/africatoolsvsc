@@ -284,21 +284,14 @@ function stopIdleWatcher() {
 }
 
 /* ---------- Log de actividad administrativa ----------
-   Registro simple de qué se hizo desde Administración (usuarios/roles), quién
-   y cuándo. Vive en Supabase (tabla activity_log) — así, un administrador ve
-   el mismo historial sin importar desde qué dispositivo entra. Solo un
-   administrador puede leerlo (lo hace cumplir la seguridad por fila en
-   Supabase, no este código); cualquier persona autenticada puede añadir una
-   entrada sobre su propia acción. */
-async function logActivity(action) {
-  try {
-    const actor = (typeof currentUser !== 'undefined' && currentUser && (currentUser.nombre || currentUser.usuario)) || 'Sistema';
-    const actorId = (typeof currentUser !== 'undefined' && currentUser) ? currentUser.id : null;
-    await supabaseClient.from('activity_log').insert({ actor, actor_id: actorId, action });
-  } catch (e) {
-    console.error('Error guardando actividad:', e);
-  }
-}
+   Registro de qué se hizo desde Administración (usuarios/roles), quién y cuándo. Vive en Supabase (tabla activity_log):
+   un administrador ve el mismo historial sin importar desde qué dispositivo entra. Solo un administrador puede leerlo.
+
+   Desde la Fase 6 el navegador YA NO escribe en esa tabla (cualquiera con sesión podía falsificar entradas a nombre de
+   otra persona): crear, eliminar y restablecer clave los registra la función del servidor manage-user, y los cambios de
+   perfil (roles, activo, nombre) los registra un trigger en la base de datos con la identidad real de quien los hace.
+   Se deja la función para no tocar los puntos de llamada; no hace nada. */
+async function logActivity() { /* lo registra el servidor */ }
 
 async function loadActivityLog(limit = 50, offset = 0) {
   const { data, error, count } = await supabaseClient

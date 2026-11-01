@@ -108,13 +108,16 @@ async function gateModuleAccess(moduleKey) {
     if (authUid) {
       userId = authUid;
       try {
-        const { data: profile, error } = await supabaseClient.from('profiles').select('nombre, usuario, roles').eq('id', authUid).maybeSingle();
+        const { data: profile, error } = await supabaseClient.from('profiles').select('nombre, usuario, roles, activo, must_change_password').eq('id', authUid).maybeSingle();
         if (error) throw error;
-        if (profile) { nombre = profile.nombre || ''; usuario = profile.usuario || ''; roles = profile.roles || []; }
+        // Una cuenta desactivada no tiene acceso a ningún módulo aunque su sesión siga abierta (y no se guarda como "último permiso").
+        // Sin cambiar la clave obligatoria tampoco se entra a un módulo abriendo su dirección directamente.
+        const inactiva = !!(profile && (profile.activo === false || profile.must_change_password === true));
+        if (profile) { nombre = profile.nombre || ''; usuario = profile.usuario || ''; roles = inactiva ? [] : (profile.roles || []); }
         // Se confirmó el rol con éxito — se guarda como "el último permiso
         // confirmado", para poder seguir trabajando si más tarde no hay
         // internet al abrir un módulo.
-        try { localStorage.setItem(LAST_PROFILE_KEY, JSON.stringify({ userId, nombre, usuario, roles })); } catch (e) {}
+        try { if (inactiva) localStorage.removeItem(LAST_PROFILE_KEY); else localStorage.setItem(LAST_PROFILE_KEY, JSON.stringify({ userId, nombre, usuario, roles })); } catch (e) {}
       } catch (profileErr) {
         // Hay sesión, pero no se pudo consultar el rol (sin internet,
         // Supabase caído, etc.) — se usa el último permiso confirmado que
