@@ -6,6 +6,13 @@ CSS, propuesta de mejoras, checklists de deploy previos), consolidados aquí.
 Para el estado actual del modelo de datos, ver `ESTRUCTURA-DATOS.md` — ese
 es el documento de referencia vigente, no este changelog.
 
+## 2026-11-02 — Servidor y cuentas, parte 2: permisos por rol en la base de datos (Fase 6b de QA)
+
+- **Nuevo `supabase/policies.sql`** (se corre a mano en Supabase, una transacción; `supabase/rollback.sql` lo deshace): (1) los datos compartidos (`module_data_shared`) solo los leen y escriben los roles que tienen ese módulo, con la misma tabla de `assets/permissions.js` (antes: cualquier cuenta con sesión); (2) los visitantes sin sesión pierden todo permiso de tabla y nadie con sesión conserva `TRUNCATE`; las funciones ya no las ejecutan visitantes; (3) quién escribe una nota (Bitácora, abordajes de Líder, historial de la Agenda, "creado por", "actualizado por") lo decide la sesión, no el navegador; (4) `activity_log` ya no admite escrituras del navegador: los cambios de perfil los registra un trigger con la identidad real y el resto `manage-user`; (5) las cuentas desactivadas no leen ni escriben nada (Bitácora y datos privados ahora también lo comprueban); (6) nadie puede cambiarse a sí mismo el `usuario`.
+- Agenda y Líder de Seguridad: sus políticas ya estaban bien y no se tocan; las funciones de la Agenda siguen funcionando con cada rol (probado).
+- **Nuevo `supabase/03-agenda-fecha-bogota.sql`**: las funciones de la Agenda comparaban con `CURRENT_DATE` (UTC): de 7 p. m. a 11:59 p. m. (Bogotá) el cierre automático finalizaba los eventos de HOY y no se podía agendar ni mover un evento a hoy. Ahora usan `bogota_today()`.
+- Pruebas: `tests/sql/rls.test.js` (16: cada rol × cada tabla × cada operación sobre una réplica del esquema real, identidad, funciones de la Agenda, comprobación previa, idempotencia y rollback) y `tests/sql/agenda-fecha.test.js` (3, con reloj simulado a las 7:30 p. m. de Bogotá).
+
 ## 2026-10-31 — Servidor y cuentas, parte 1: funciones endurecidas y sesión (Fase 6a de QA)
 
 - **`manage-user.js` (S-07)** valida todo lo que llega del navegador: `id` (UUID, antes iba directo a una ruta de Supabase), roles (lista permitida, sin repetidos), usuario (patrón y largo; ya no se recorta en silencio), nombre y contraseña (mínimo 10, máximo 72) tanto al crear como al restablecer. **El correo de la cuenta ya no se acepta del navegador**: se deriva del usuario. Revisa el encabezado `Origin`. La cuenta principal (la administradora más antigua) no la puede restablecer ni eliminar otra persona (antes solo lo impedía la interfaz). No devuelve detalles internos en los errores.

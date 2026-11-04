@@ -231,3 +231,19 @@ La única pieza que corre en un servidor, no en el navegador. Usa la llave `serv
 - **Librerías**: `assets/vendor/` (ver `assets/vendor/VERSIONS.md`). Nada se carga de un CDN. Para actualizar una: copiar el archivo con la versión en el nombre, cambiar la referencia en los HTML, `node scripts/stamp.js`, correr las pruebas.
 - **Service Worker** (`service-worker.js`): precachea el shell, los 10 módulos, las librerías y las fuentes. Código propio: red primero con copia de respaldo; `assets/vendor/`: caché primero. `CACHE_NAME` = hash de todo el precaché (lo calcula `scripts/stamp.js`).
 - **Cabeceras de seguridad** en `netlify.toml` (CSP, Permissions-Policy, COOP, frame-ancestors). La CSP mantiene `'unsafe-inline'` en `script-src` mientras los módulos tengan scripts y manejadores `onclick` en línea.
+
+## 12. Permisos en la base de datos (desde la Fase 6b)
+
+La interfaz esconde módulos según el rol, pero lo que de verdad protege los datos son las políticas RLS (`supabase/policies.sql`):
+
+| Tabla | Quién lee | Quién escribe |
+|---|---|---|
+| `module_data_shared` | roles del módulo (`module_roles(module)`, generada de `assets/permissions.js`) | igual (insert/update; nadie borra) |
+| `module_data` (privados) | la propia persona, cuenta activa | la propia persona |
+| `bitacora_entries` | líder de parque y administración | igual; editar y eliminar solo el día de hoy (Bogotá); el autor lo fija la sesión |
+| `lider_shared_data`, `lider_abordajes` | administración, líder de parque, supervisor, líder de seguridad | igual (los abordajes también se eliminan; el autor lo fija la sesión) |
+| `park_rooms`, `party_types`, `park_events`, `park_event_rooms`, `park_event_history` | administración, líder de parque, supervisor, cajero, anfitrión | crear: los mismos; editar/eliminar: administración, líder de parque, supervisor |
+| `activity_log` | solo administración | nadie desde el navegador: la escribe `manage-user` (servidor) o un trigger con la identidad real |
+| `profiles` | administración (todos) y cada quien el suyo | administración; cada quien solo la marca de cambio de clave |
+
+Sin sesión (`anon`) no hay ningún permiso de tabla ni de función. `has_any_role()` exige cuenta activa. Los scripts, el respaldo y el procedimiento para deshacer están en `supabase/README.md`.
